@@ -49,8 +49,8 @@ public class VisitController {
 
     @PostMapping("/api/visits/{id}/complete")
     @PreAuthorize(WRITE_ROLES)
-    public VisitResponse complete(@PathVariable Long id, @Valid @RequestBody MarkVisitCompletedRequest req) {
-        return visitService.markCompleted(id, req);
+    public VisitResponse complete(Principal principal, @PathVariable Long id, @Valid @RequestBody MarkVisitCompletedRequest req) {
+        return visitService.markCompleted(id, req, principal.getName());
     }
 
     @PostMapping("/api/visits/{id}/miss")

@@ -1,0 +1,96 @@
+<div class="max-w-6xl mx-auto flex flex-col gap-6">
+  <div class="bg-white rounded-lg shadow p-6">
+    <h1 class="text-lg font-semibold text-gray-900">Payments</h1>
+
+    <form [formGroup]="filterForm" class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
+      <mat-form-field appearance="outline">
+        <mat-label>Study ID</mat-label>
+        <input matInput type="number" formControlName="studyId" />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Site ID</mat-label>
+        <input matInput type="number" formControlName="siteId" />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Cost Category</mat-label>
+        <mat-select formControlName="costCategory">
+          <mat-option [value]="null">All</mat-option>
+          <mat-option value="INVESTIGATOR_FEES">Investigator Fees</mat-option>
+          <mat-option value="MONITORING">Monitoring</mat-option>
+          <mat-option value="SITE_PAYMENTS">Site Payments</mat-option>
+          <mat-option value="LABS">Labs</mat-option>
+          <mat-option value="OTHER">Other</mat-option>
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Status</mat-label>
+        <mat-select formControlName="status">
+          <mat-option [value]="null">All</mat-option>
+          <mat-option value="PENDING">Pending</mat-option>
+          <mat-option value="ON_HOLD">On Hold</mat-option>
+          <mat-option value="RELEASED">Released</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </form>
+    <button mat-flat-button color="primary" (click)="applyFilters()" class="mt-1">Apply Filters</button>
+
+    @if (errorMessage()) {
+      <p class="text-sm text-red-600 mt-3">{{ errorMessage() }}</p>
+    }
+  </div>
+
+  @if (page(); as p) {
+    <div class="bg-white rounded-lg shadow p-6">
+      <table class="w-full text-sm text-left">
+        <thead class="text-gray-500 border-b">
+          <tr>
+            <th class="py-2 pr-2">Study</th>
+            <th class="py-2 pr-2">Site</th>
+            <th class="py-2 pr-2">Category</th>
+            <th class="py-2 pr-2">Event</th>
+            <th class="py-2 pr-2">Amount</th>
+            <th class="py-2 pr-2">Status</th>
+            <th class="py-2 pr-2">Created</th>
+            <th class="py-2 pr-2"></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (payment of p.content; track payment.id) {
+            <tr class="border-b">
+              <td class="py-2 pr-2">{{ payment.studyCode }}</td>
+              <td class="py-2 pr-2">{{ payment.siteCode || '&mdash;' }}</td>
+              <td class="py-2 pr-2">{{ payment.costCategory }}</td>
+              <td class="py-2 pr-2">{{ payment.eventCode }}</td>
+              <td class="py-2 pr-2">{{ payment.amount | number: '1.2-2' }} {{ payment.currency }}</td>
+              <td class="py-2 pr-2">
+                <span
+                  class="text-xs px-2 py-0.5 rounded"
+                  [class.bg-gray-100]="payment.status === 'PENDING'"
+                  [class.text-gray-600]="payment.status === 'PENDING'"
+                  [class.bg-amber-100]="payment.status === 'ON_HOLD'"
+                  [class.text-amber-700]="payment.status === 'ON_HOLD'"
+                  [class.bg-green-100]="payment.status === 'RELEASED'"
+                  [class.text-green-700]="payment.status === 'RELEASED'"
+                >
+                  {{ payment.status }}
+                </span>
+              </td>
+              <td class="py-2 pr-2">{{ payment.createdAt | date: 'short' }}</td>
+              <td class="py-2 pr-2">
+                @if (payment.status === 'PENDING') {
+                  <button mat-button (click)="openHoldDialog(payment)">Hold</button>
+                }
+                @if (payment.status === 'ON_HOLD') {
+                  <button mat-button color="warn" (click)="openReleaseDialog(payment)">Release</button>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+      @if (p.content.length === 0) {
+        <p class="text-sm text-gray-500 text-center py-4">No payments found.</p>
+      }
+    </div>
+  }
+</div>

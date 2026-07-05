@@ -12,6 +12,7 @@ import com.ctms.ctms_backend.milestone.exception.DuplicateMilestoneTypeException
 import com.ctms.ctms_backend.milestone.exception.InvalidMilestoneActualDateException;
 import com.ctms.ctms_backend.milestone.exception.MilestoneNotFoundException;
 import com.ctms.ctms_backend.milestone.repository.MilestoneRepository;
+import com.ctms.ctms_backend.payment.service.PaymentService;
 import com.ctms.ctms_backend.security.exception.InvalidCredentialsException;
 import com.ctms.ctms_backend.study.entity.Study;
 import com.ctms.ctms_backend.study.exception.StudyNotFoundException;
@@ -32,16 +33,19 @@ public class MilestoneService {
     private final StudyRepository studyRepository;
     private final UserRepository userRepository;
     private final AuditService auditService;
+    private final PaymentService paymentService;
 
     public MilestoneService(
             MilestoneRepository milestoneRepository,
             StudyRepository studyRepository,
             UserRepository userRepository,
-            AuditService auditService) {
+            AuditService auditService,
+            PaymentService paymentService) {
         this.milestoneRepository = milestoneRepository;
         this.studyRepository = studyRepository;
         this.userRepository = userRepository;
         this.auditService = auditService;
+        this.paymentService = paymentService;
     }
 
     @Transactional
@@ -98,6 +102,12 @@ public class MilestoneService {
         milestone = milestoneRepository.save(milestone);
 
         auditService.record("Milestone", String.valueOf(id), AuditAction.STATE_CHANGE, null, "actual date recorded: " + req.actualDate(), null);
+
+        if (milestone.getMilestoneType() == MilestoneType.FPI || milestone.getMilestoneType() == MilestoneType.LPI) {
+            paymentService.generatePayment(
+                    "MILESTONE_REACHED_" + milestone.getMilestoneType(), milestone.getStudy(), null, "Milestone", milestone.getId(), actorUsername);
+        }
+
         return MilestoneResponse.from(milestone);
     }
 

@@ -1,0 +1,13 @@
+<h2 mat-dialog-title>Hold Payment</h2>
+<mat-dialog-content>
+  <form [formGroup]="form" class="flex flex-col gap-3">
+    <mat-form-field appearance="outline" class="w-full">
+      <mat-label>Reason for hold</mat-label>
+      <textarea matInput formControlName="reason" rows="3"></textarea>
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button (click)="cancel()">Cancel</button>
+  <button mat-flat-button color="primary" [disabled]="form.invalid" (click)="confirm()">Hold</button>
+</mat-dialog-actions>

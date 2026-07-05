@@ -12,6 +12,7 @@ import static org.mockito.Mockito.when;
 
 import com.ctms.ctms_backend.audit.AuditService;
 import com.ctms.ctms_backend.notification.NotificationService;
+import com.ctms.ctms_backend.payment.service.PaymentService;
 import com.ctms.ctms_backend.site.dto.ActivationAttemptResponse;
 import com.ctms.ctms_backend.site.dto.ChecklistItemResponse;
 import com.ctms.ctms_backend.site.dto.UpdateChecklistItemRequest;
@@ -54,6 +55,8 @@ class SiteActivationServiceTest {
     private NotificationService notificationService;
     @Mock
     private TaskService taskService;
+    @Mock
+    private PaymentService paymentService;
 
     @InjectMocks
     private SiteActivationService siteActivationService;

@@ -3,6 +3,7 @@ package com.ctms.ctms_backend.visit.service;
 import com.ctms.ctms_backend.audit.AuditAction;
 import com.ctms.ctms_backend.audit.AuditService;
 import com.ctms.ctms_backend.notification.NotificationService;
+import com.ctms.ctms_backend.payment.service.PaymentService;
 import com.ctms.ctms_backend.security.exception.InvalidCredentialsException;
 import com.ctms.ctms_backend.subject.entity.Subject;
 import com.ctms.ctms_backend.subject.exception.SubjectNotFoundException;
@@ -44,6 +45,7 @@ public class VisitService {
     private final AuditService auditService;
     private final NotificationService notificationService;
     private final TaskService taskService;
+    private final PaymentService paymentService;
 
     public VisitService(
             VisitRepository visitRepository,
@@ -51,13 +53,15 @@ public class VisitService {
             UserRepository userRepository,
             AuditService auditService,
             NotificationService notificationService,
-            TaskService taskService) {
+            TaskService taskService,
+            PaymentService paymentService) {
         this.visitRepository = visitRepository;
         this.subjectRepository = subjectRepository;
         this.userRepository = userRepository;
         this.auditService = auditService;
         this.notificationService = notificationService;
         this.taskService = taskService;
+        this.paymentService = paymentService;
     }
 
     @Transactional(readOnly = true)
@@ -71,7 +75,7 @@ public class VisitService {
     }
 
     @Transactional
-    public VisitResponse markCompleted(Long id, MarkVisitCompletedRequest req) {
+    public VisitResponse markCompleted(Long id, MarkVisitCompletedRequest req, String actorUsername) {
         Visit visit = findVisit(id);
         guardScheduled(visit);
 
@@ -85,6 +89,10 @@ public class VisitService {
         auditService.record(
                 "Visit", String.valueOf(id), AuditAction.STATE_CHANGE, VisitStatus.SCHEDULED.name(), VisitStatus.COMPLETED.name(), null);
         notificationService.clearByLink(visitLink(visit));
+
+        Subject subject = visit.getSubject();
+        paymentService.generatePayment(
+                "VISIT_COMPLETED", subject.getStudy(), subject.getSite(), "Visit", visit.getId(), actorUsername);
 
         return VisitResponse.from(visit);
     }

@@ -29,6 +29,13 @@
         >
           AE Board
         </a>
+        <a
+          *appHasRole="['FINANCE_MANAGER', 'ADMIN']"
+          routerLink="/payments"
+          class="text-gray-700 hover:text-gray-900"
+        >
+          Payments
+        </a>
         <a routerLink="/notifications" class="text-gray-700 hover:text-gray-900">Notifications</a>
         <a *appHasRole="['ADMIN']" routerLink="/admin/rule-sets" class="text-gray-700 hover:text-gray-900">
           Rule Sets

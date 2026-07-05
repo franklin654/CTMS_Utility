@@ -24,6 +24,9 @@
           <a [routerLink]="['/studies', s.id, 'milestones']" mat-stroked-button>
             Milestones
           </a>
+          <a *appHasRole="['FINANCE_MANAGER', 'ADMIN']" [routerLink]="['/studies', s.id, 'budget']" mat-stroked-button>
+            Budget
+          </a>
           @if (!isFullyLocked()) {
             <button *appHasRole="['STUDY_MANAGER', 'ADMIN']" mat-stroked-button (click)="toggleEdit()">
               {{ editMode() ? 'Cancel' : 'Edit' }}

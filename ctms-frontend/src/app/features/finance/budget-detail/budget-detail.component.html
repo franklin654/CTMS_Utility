@@ -1,0 +1,194 @@
+@if (study(); as s) {
+  <div class="max-w-4xl mx-auto flex flex-col gap-6">
+    <div class="bg-white rounded-lg shadow p-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-xl font-semibold text-gray-900">Budget</h1>
+          <p class="text-sm text-gray-500">{{ s.name }} &middot; {{ s.studyCode }}</p>
+        </div>
+        @if (budgetExists()) {
+          <div class="flex gap-2">
+            <button mat-stroked-button (click)="export('pdf')">Export PDF</button>
+            <button mat-stroked-button (click)="export('excel')">Export Excel</button>
+          </div>
+        }
+      </div>
+
+      @if (errorMessage()) {
+        <p class="text-sm text-red-600 mt-3">{{ errorMessage() }}</p>
+      }
+    </div>
+
+    @if (!budgetExists()) {
+      <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-sm font-semibold text-gray-700 mb-3">No budget exists yet for this study</h2>
+        <form class="flex flex-col gap-3">
+          @for (group of lineItemsArray.controls; track $index; let i = $index) {
+            <div [formGroup]="group" class="grid grid-cols-1 sm:grid-cols-4 gap-3 items-start">
+              <mat-form-field appearance="outline">
+                <mat-label>Cost Category</mat-label>
+                <mat-select formControlName="costCategory">
+                  <mat-option value="INVESTIGATOR_FEES">Investigator Fees</mat-option>
+                  <mat-option value="MONITORING">Monitoring</mat-option>
+                  <mat-option value="SITE_PAYMENTS">Site Payments</mat-option>
+                  <mat-option value="LABS">Labs</mat-option>
+                  <mat-option value="OTHER">Other</mat-option>
+                </mat-select>
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Planned Amount</mat-label>
+                <input matInput type="number" formControlName="plannedAmount" />
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Currency</mat-label>
+                <input matInput formControlName="currency" />
+              </mat-form-field>
+              <button mat-button (click)="removeLineItem(i)" type="button">Remove</button>
+            </div>
+          }
+        </form>
+        <div class="flex gap-2 mt-3">
+          <button mat-stroked-button (click)="addLineItem()">Add Line Item</button>
+          <button mat-flat-button color="primary" (click)="submitCreateBudget()" [disabled]="lineItemsArray.invalid">
+            Create Budget
+          </button>
+        </div>
+      </div>
+    }
+
+    @if (budgetExists() && currentVersion(); as current) {
+      <div class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="text-sm font-semibold text-gray-700">Planned vs Actual (version {{ current.versionNumber }})</h2>
+          <button mat-stroked-button (click)="openNewVersionForm()">Create New Version</button>
+        </div>
+        <table class="w-full text-sm text-left">
+          <thead class="text-gray-500 border-b">
+            <tr>
+              <th class="py-2 pr-2">Cost Category</th>
+              <th class="py-2 pr-2">Planned</th>
+              <th class="py-2 pr-2">Actual</th>
+              <th class="py-2 pr-2">Variance</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of current.lineItems; track item.costCategory) {
+              <tr class="border-b">
+                <td class="py-2 pr-2">{{ item.costCategory }}</td>
+                <td class="py-2 pr-2">{{ item.plannedAmount | number: '1.2-2' }} {{ item.currency }}</td>
+                <td class="py-2 pr-2">{{ item.actualAmount | number: '1.2-2' }} {{ item.currency }}</td>
+                <td class="py-2 pr-2" [class.text-red-600]="(item.variance ?? 0) < 0">
+                  {{ item.variance | number: '1.2-2' }} {{ item.currency }}
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      @if (showNewVersionForm()) {
+        <div class="bg-white rounded-lg shadow p-6">
+          <h2 class="text-sm font-semibold text-gray-700 mb-3">New Budget Version</h2>
+          <form class="flex flex-col gap-3">
+            @for (group of lineItemsArray.controls; track $index; let i = $index) {
+              <div [formGroup]="group" class="grid grid-cols-1 sm:grid-cols-4 gap-3 items-start">
+                <mat-form-field appearance="outline">
+                  <mat-label>Cost Category</mat-label>
+                  <mat-select formControlName="costCategory">
+                    <mat-option value="INVESTIGATOR_FEES">Investigator Fees</mat-option>
+                    <mat-option value="MONITORING">Monitoring</mat-option>
+                    <mat-option value="SITE_PAYMENTS">Site Payments</mat-option>
+                    <mat-option value="LABS">Labs</mat-option>
+                    <mat-option value="OTHER">Other</mat-option>
+                  </mat-select>
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>Planned Amount</mat-label>
+                  <input matInput type="number" formControlName="plannedAmount" />
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>Currency</mat-label>
+                  <input matInput formControlName="currency" />
+                </mat-form-field>
+                <button mat-button (click)="removeLineItem(i)" type="button">Remove</button>
+              </div>
+            }
+          </form>
+          <button mat-stroked-button (click)="addLineItem()" class="mt-2">Add Line Item</button>
+
+          <mat-form-field appearance="outline" class="w-full mt-3">
+            <mat-label>Reason for change</mat-label>
+            <textarea matInput [formControl]="reasonControl" rows="2"></textarea>
+          </mat-form-field>
+
+          <div class="flex gap-2 mt-2">
+            <button mat-flat-button color="primary" (click)="submitNewVersion()" [disabled]="lineItemsArray.invalid || reasonControl.invalid">
+              Save New Version
+            </button>
+            <button mat-button (click)="cancelNewVersionForm()">Cancel</button>
+          </div>
+        </div>
+      }
+
+      <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-sm font-semibold text-gray-700 mb-3">Version History</h2>
+        <table class="w-full text-sm text-left">
+          <thead class="text-gray-500 border-b">
+            <tr>
+              <th class="py-2 pr-2"></th>
+              <th class="py-2 pr-2">Version</th>
+              <th class="py-2 pr-2">Status</th>
+              <th class="py-2 pr-2">Reason</th>
+              <th class="py-2 pr-2">Created By</th>
+              <th class="py-2 pr-2">Created At</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (v of versions(); track v.id) {
+              <tr class="border-b">
+                <td class="py-2 pr-2">
+                  <mat-checkbox [checked]="compareSelection().includes(v.id)" (change)="toggleCompare(v.id)"></mat-checkbox>
+                </td>
+                <td class="py-2 pr-2">{{ v.versionNumber }}</td>
+                <td class="py-2 pr-2">{{ v.status }}</td>
+                <td class="py-2 pr-2">{{ v.reason || '&mdash;' }}</td>
+                <td class="py-2 pr-2">{{ v.createdByUsername }}</td>
+                <td class="py-2 pr-2">{{ v.createdAt | date: 'short' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+        <p class="text-xs text-gray-500 mt-2">Check exactly two versions above to compare them side by side.</p>
+      </div>
+
+      @if (compareVersions().length === 2) {
+        <div class="bg-white rounded-lg shadow p-6">
+          <h2 class="text-sm font-semibold text-gray-700 mb-3">Version Comparison</h2>
+          <div class="grid grid-cols-2 gap-6">
+            @for (v of compareVersions(); track v.id) {
+              <div>
+                <h3 class="text-xs font-semibold text-gray-500 mb-2">Version {{ v.versionNumber }} ({{ v.status }})</h3>
+                <table class="w-full text-sm text-left">
+                  <thead class="text-gray-500 border-b">
+                    <tr>
+                      <th class="py-1 pr-2">Category</th>
+                      <th class="py-1 pr-2">Planned</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (item of v.lineItems; track item.costCategory) {
+                      <tr class="border-b">
+                        <td class="py-1 pr-2">{{ item.costCategory }}</td>
+                        <td class="py-1 pr-2">{{ item.plannedAmount | number: '1.2-2' }} {{ item.currency }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    }
+  </div>
+}

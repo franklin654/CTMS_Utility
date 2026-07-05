@@ -3,6 +3,7 @@ package com.ctms.ctms_backend.site.service;
 import com.ctms.ctms_backend.audit.AuditAction;
 import com.ctms.ctms_backend.audit.AuditService;
 import com.ctms.ctms_backend.notification.NotificationService;
+import com.ctms.ctms_backend.payment.service.PaymentService;
 import com.ctms.ctms_backend.security.exception.InvalidCredentialsException;
 import com.ctms.ctms_backend.site.dto.ActivationAttemptResponse;
 import com.ctms.ctms_backend.site.dto.ChecklistItemResponse;
@@ -49,6 +50,7 @@ public class SiteActivationService {
     private final AuditService auditService;
     private final NotificationService notificationService;
     private final TaskService taskService;
+    private final PaymentService paymentService;
 
     public SiteActivationService(
             SiteRepository siteRepository,
@@ -56,13 +58,15 @@ public class SiteActivationService {
             UserRepository userRepository,
             AuditService auditService,
             NotificationService notificationService,
-            TaskService taskService) {
+            TaskService taskService,
+            PaymentService paymentService) {
         this.siteRepository = siteRepository;
         this.checklistRepository = checklistRepository;
         this.userRepository = userRepository;
         this.auditService = auditService;
         this.notificationService = notificationService;
         this.taskService = taskService;
+        this.paymentService = paymentService;
     }
 
     @Transactional(readOnly = true)
@@ -159,6 +163,7 @@ public class SiteActivationService {
                 "all activation prerequisites complete");
 
         notifyActivation(site);
+        paymentService.generatePayment("SITE_ACTIVATED", site.getStudy(), site, "Site", site.getId(), actor.getUsername());
 
         if (site.getAssignedCra() == null) {
             createCraAssignmentTask(site, actor);

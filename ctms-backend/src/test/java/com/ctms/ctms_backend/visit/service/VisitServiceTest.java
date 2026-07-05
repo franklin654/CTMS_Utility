@@ -8,6 +8,7 @@ import static org.mockito.Mockito.when;
 
 import com.ctms.ctms_backend.audit.AuditService;
 import com.ctms.ctms_backend.notification.NotificationService;
+import com.ctms.ctms_backend.payment.service.PaymentService;
 import com.ctms.ctms_backend.site.entity.Site;
 import com.ctms.ctms_backend.study.entity.Study;
 import com.ctms.ctms_backend.subject.entity.Subject;
@@ -46,6 +47,7 @@ class VisitServiceTest {
     @Mock private AuditService auditService;
     @Mock private NotificationService notificationService;
     @Mock private TaskService taskService;
+    @Mock private PaymentService paymentService;
 
     @InjectMocks
     private VisitService visitService;
@@ -112,7 +114,7 @@ class VisitServiceTest {
     @Test
     void markCompleted_setsStatusAndTimestamps() {
         MarkVisitCompletedRequest req = new MarkVisitCompletedRequest(LocalDate.now(), null, "all good");
-        VisitResponse response = visitService.markCompleted(1L, req);
+        VisitResponse response = visitService.markCompleted(1L, req, "coordinator1");
         assertEquals("COMPLETED", response.status());
     }
 
@@ -120,7 +122,7 @@ class VisitServiceTest {
     void markCompleted_alreadyCompleted_throws() {
         scheduledVisit.setStatus(VisitStatus.COMPLETED);
         MarkVisitCompletedRequest req = new MarkVisitCompletedRequest(LocalDate.now(), null, null);
-        assertThrows(InvalidVisitTransitionException.class, () -> visitService.markCompleted(1L, req));
+        assertThrows(InvalidVisitTransitionException.class, () -> visitService.markCompleted(1L, req, "coordinator1"));
     }
 
     @Test

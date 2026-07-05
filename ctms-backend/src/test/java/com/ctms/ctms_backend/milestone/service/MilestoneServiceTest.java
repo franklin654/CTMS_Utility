@@ -15,6 +15,7 @@ import com.ctms.ctms_backend.milestone.entity.MilestoneType;
 import com.ctms.ctms_backend.milestone.exception.DuplicateMilestoneTypeException;
 import com.ctms.ctms_backend.milestone.exception.InvalidMilestoneActualDateException;
 import com.ctms.ctms_backend.milestone.repository.MilestoneRepository;
+import com.ctms.ctms_backend.payment.service.PaymentService;
 import com.ctms.ctms_backend.study.entity.Study;
 import com.ctms.ctms_backend.study.repository.StudyRepository;
 import com.ctms.ctms_backend.user.User;
@@ -35,6 +36,7 @@ class MilestoneServiceTest {
     @Mock private StudyRepository studyRepository;
     @Mock private UserRepository userRepository;
     @Mock private AuditService auditService;
+    @Mock private PaymentService paymentService;
 
     @InjectMocks
     private MilestoneService milestoneService;

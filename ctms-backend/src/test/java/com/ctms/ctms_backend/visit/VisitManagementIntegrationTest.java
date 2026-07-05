@@ -126,7 +126,7 @@ class VisitManagementIntegrationTest {
 
         // Complete subject B's visit before the template changes -- it must stay untouched.
         VisitResponse subjectBVisit = visitService.schedule(subjectB.id()).visits().get(0);
-        visitService.markCompleted(subjectBVisit.id(), new MarkVisitCompletedRequest(screeningDate, null, "done"));
+        visitService.markCompleted(subjectBVisit.id(), new MarkVisitCompletedRequest(screeningDate, null, "done"), coordinator.getUsername());
 
         visitTemplateService.update(template.id(), new UpdateVisitTemplateRequest(
                 "Screening Visit (v2)", 1, 10, 1, 1, "Vitals + ECG", "ONSITE"), coordinator.getUsername());
@@ -162,7 +162,7 @@ class VisitManagementIntegrationTest {
         VisitResponse visit2 = visits.get(1);
         VisitResponse visit3 = visits.get(2);
 
-        visitService.markCompleted(visit1.id(), new MarkVisitCompletedRequest(visit1.scheduledDate(), null, "done"));
+        visitService.markCompleted(visit1.id(), new MarkVisitCompletedRequest(visit1.scheduledDate(), null, "done"), coordinator.getUsername());
         visitService.markMissed(visit2.id(), new MarkVisitMissedRequest("Subject unreachable"), coordinator.getUsername());
 
         SubjectVisitScheduleResponse midSchedule = visitService.schedule(subject.id());
@@ -223,7 +223,7 @@ class VisitManagementIntegrationTest {
         SubjectResponse subject = enrollSubject(coordinator.getUsername(), study.id(), site.id(), screeningDate);
 
         VisitResponse protocolVisit = visitService.schedule(subject.id()).visits().get(0);
-        visitService.markCompleted(protocolVisit.id(), new MarkVisitCompletedRequest(screeningDate, null, "done"));
+        visitService.markCompleted(protocolVisit.id(), new MarkVisitCompletedRequest(screeningDate, null, "done"), coordinator.getUsername());
 
         VisitResponse adHocVisit = visitService.scheduleAdHoc(
                 subject.id(),

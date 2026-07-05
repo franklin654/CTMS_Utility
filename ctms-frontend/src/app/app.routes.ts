@@ -98,6 +98,18 @@ export const routes: Routes = [
           import('./features/milestones/milestones.component').then((m) => m.MilestonesComponent),
       },
       {
+        path: 'studies/:studyId/budget',
+        canActivate: [roleGuard(['FINANCE_MANAGER', 'ADMIN'])],
+        loadComponent: () =>
+          import('./features/finance/budget-detail/budget-detail.component').then((m) => m.BudgetDetailComponent),
+      },
+      {
+        path: 'payments',
+        canActivate: [roleGuard(['FINANCE_MANAGER', 'ADMIN'])],
+        loadComponent: () =>
+          import('./features/finance/payment-list/payment-list.component').then((m) => m.PaymentListComponent),
+      },
+      {
         path: 'documents',
         loadComponent: () =>
           import('./features/documents/document-list/document-list.component').then((m) => m.DocumentListComponent),

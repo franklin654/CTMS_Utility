@@ -2,6 +2,10 @@ package com.ctms.ctms_backend.security.exception;
 
 import com.ctms.ctms_backend.adverseevent.exception.AdverseEventNotFoundException;
 import com.ctms.ctms_backend.adverseevent.exception.InvalidAdverseEventTransitionException;
+import com.ctms.ctms_backend.budget.exception.BudgetNotFoundException;
+import com.ctms.ctms_backend.budget.exception.BudgetVersionNotFoundException;
+import com.ctms.ctms_backend.budget.exception.DuplicateBudgetException;
+import com.ctms.ctms_backend.budget.exception.MissingBudgetVersionReasonException;
 import com.ctms.ctms_backend.document.exception.DocumentAccessDeniedException;
 import com.ctms.ctms_backend.document.exception.DocumentLockedException;
 import com.ctms.ctms_backend.document.exception.DocumentNotFoundException;
@@ -12,6 +16,8 @@ import com.ctms.ctms_backend.milestone.exception.InvalidMilestoneActualDateExcep
 import com.ctms.ctms_backend.milestone.exception.MilestoneNotFoundException;
 import com.ctms.ctms_backend.monitoring.exception.MonitoringVisitNotFoundException;
 import com.ctms.ctms_backend.monitoring.exception.MonitoringVisitReportNotFoundException;
+import com.ctms.ctms_backend.payment.exception.InvalidPaymentTransitionException;
+import com.ctms.ctms_backend.payment.exception.PaymentNotFoundException;
 import com.ctms.ctms_backend.rules.RuleCompilationException;
 import com.ctms.ctms_backend.site.exception.ChecklistItemNotFoundException;
 import com.ctms.ctms_backend.site.exception.DuplicateSiteCodeException;
@@ -207,6 +213,31 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(InvalidMilestoneActualDateException.class)
     public ResponseEntity<Object> handleInvalidMilestoneActualDate(InvalidMilestoneActualDateException e) {
+        return error(HttpStatus.BAD_REQUEST, e.getMessage());
+    }
+
+    @ExceptionHandler({BudgetNotFoundException.class, BudgetVersionNotFoundException.class})
+    public ResponseEntity<Object> handleBudgetNotFound(RuntimeException e) {
+        return error(HttpStatus.NOT_FOUND, e.getMessage());
+    }
+
+    @ExceptionHandler(DuplicateBudgetException.class)
+    public ResponseEntity<Object> handleDuplicateBudget(DuplicateBudgetException e) {
+        return error(HttpStatus.CONFLICT, e.getMessage());
+    }
+
+    @ExceptionHandler(MissingBudgetVersionReasonException.class)
+    public ResponseEntity<Object> handleMissingBudgetVersionReason(MissingBudgetVersionReasonException e) {
+        return error(HttpStatus.BAD_REQUEST, e.getMessage());
+    }
+
+    @ExceptionHandler(PaymentNotFoundException.class)
+    public ResponseEntity<Object> handlePaymentNotFound(PaymentNotFoundException e) {
+        return error(HttpStatus.NOT_FOUND, e.getMessage());
+    }
+
+    @ExceptionHandler(InvalidPaymentTransitionException.class)
+    public ResponseEntity<Object> handleInvalidPaymentTransition(InvalidPaymentTransitionException e) {
         return error(HttpStatus.BAD_REQUEST, e.getMessage());
     }
 
