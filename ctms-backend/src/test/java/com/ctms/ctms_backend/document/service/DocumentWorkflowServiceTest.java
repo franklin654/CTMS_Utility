@@ -55,6 +55,7 @@ class DocumentWorkflowServiceTest {
 
     private User reviewer;
     private User approver;
+    private User admin;
     private Document document;
     private DocumentVersion version;
 
@@ -85,8 +86,16 @@ class DocumentWorkflowServiceTest {
         version.setVersionNumber(2);
         version.setStatus(DocumentVersionStatus.DRAFT);
 
+        Role adminRole = new Role();
+        adminRole.setCode(Role.ADMIN);
+        admin = new User();
+        admin.setId(3L);
+        admin.setUsername("admin1");
+        admin.setRoles(new HashSet<>(List.of(adminRole)));
+
         lenient().when(userRepository.findByUsername("reviewer1")).thenReturn(Optional.of(reviewer));
         lenient().when(userRepository.findByUsername("approver1")).thenReturn(Optional.of(approver));
+        lenient().when(userRepository.findByUsername("admin1")).thenReturn(Optional.of(admin));
 
         DocumentWorkflowRole reviewRole = new DocumentWorkflowRole();
         reviewRole.setCategory(null);
@@ -162,6 +171,15 @@ class DocumentWorkflowServiceTest {
     }
 
     @Test
+    void reviewerDecide_adminBypassesDataDrivenRoleCheck() {
+        version.setStatus(DocumentVersionStatus.PENDING_REVIEW);
+        var response = workflowService.reviewerDecide(
+                10L, 2, new ReviewDecisionRequest("APPROVED", null), "admin1");
+        assertEquals("APPROVED", response.action());
+        assertEquals(DocumentVersionStatus.PENDING_APPROVAL, version.getStatus());
+    }
+
+    @Test
     void approverFinalDecide_approve_signsAndPromotes() {
         version.setStatus(DocumentVersionStatus.PENDING_APPROVAL);
         ESignature signature = new ESignature(approver, "DocumentVersion", "100", "sign-off");
@@ -204,5 +222,19 @@ class DocumentWorkflowServiceTest {
         version.setStatus(DocumentVersionStatus.PENDING_APPROVAL);
         assertThrows(DocumentAccessDeniedException.class, () -> workflowService.approverFinalDecide(
                 10L, 2, new FinalApprovalRequest("APPROVED", null, "pw", "reason"), "reviewer1"));
+    }
+
+    @Test
+    void approverFinalDecide_adminBypassesDataDrivenRoleCheck() {
+        version.setStatus(DocumentVersionStatus.PENDING_APPROVAL);
+        ESignature signature = new ESignature(admin, "DocumentVersion", "100", "sign-off");
+        when(eSignatureService.sign("admin1", "correct-pw", "DocumentVersion", "100", "sign-off"))
+                .thenReturn(signature);
+
+        var response = workflowService.approverFinalDecide(
+                10L, 2, new FinalApprovalRequest("APPROVED", null, "correct-pw", "sign-off"), "admin1");
+
+        assertEquals("APPROVED", response.action());
+        assertEquals(DocumentVersionStatus.CURRENT, version.getStatus());
     }
 }

@@ -23,6 +23,7 @@ import com.ctms.ctms_backend.esignature.ESignature;
 import com.ctms.ctms_backend.esignature.ESignatureService;
 import com.ctms.ctms_backend.notification.NotificationService;
 import com.ctms.ctms_backend.security.exception.InvalidCredentialsException;
+import com.ctms.ctms_backend.user.Role;
 import com.ctms.ctms_backend.user.User;
 import com.ctms.ctms_backend.user.UserRepository;
 import java.util.List;
@@ -197,10 +198,15 @@ public class DocumentWorkflowService {
 
     /** Coarse @PreAuthorize on the controller only narrows to "could ever be a reviewer/approver
      * of anything"; this re-check enforces the actual data-driven role for this document's
-     * category (or the default rule when no category-specific override exists). */
+     * category (or the default rule when no category-specific override exists). ADMIN is exempt
+     * from the data-driven check -- it's included in the controller's coarse role list precisely
+     * so an administrator can act as reviewer/approver when no dedicated one is configured. */
     private void assertRoleForStage(Document document, ReviewStage stage, String actorUsername) {
-        String requiredRole = roleFor(document, stage);
         User actor = currentUser(actorUsername);
+        if (actor.hasRole(Role.ADMIN)) {
+            return;
+        }
+        String requiredRole = roleFor(document, stage);
         boolean hasRole = actor.getRoles().stream().anyMatch(r -> r.getCode().equals(requiredRole));
         if (!hasRole) {
             throw new DocumentAccessDeniedException(document.getId());
