@@ -1,0 +1,96 @@
+@if (study(); as s) {
+  <div class="max-w-3xl mx-auto flex flex-col gap-6">
+    <div class="bg-white rounded-lg shadow p-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-xl font-semibold text-gray-900">Milestones</h1>
+          <p class="text-sm text-gray-500">{{ s.name }} &middot; {{ s.studyCode }}</p>
+        </div>
+        <button *appHasRole="['STUDY_MANAGER', 'ADMIN']" mat-flat-button color="primary" (click)="openCreateForm()">
+          Add Milestone
+        </button>
+      </div>
+
+      @if (errorMessage()) {
+        <p class="text-sm text-red-600 mt-3">{{ errorMessage() }}</p>
+      }
+
+      @if (showCreateForm()) {
+        <form [formGroup]="createForm" class="grid grid-cols-1 sm:grid-cols-2 gap-3 border rounded p-3 mt-4">
+          <mat-form-field appearance="outline">
+            <mat-label>Milestone Type</mat-label>
+            <mat-select formControlName="milestoneType">
+              <mat-option value="FPI">FPI (First Patient In)</mat-option>
+              <mat-option value="LPI">LPI (Last Patient In)</mat-option>
+              <mat-option value="LPO">LPO (Last Patient Out)</mat-option>
+              <mat-option value="DBL">DBL (Database Lock)</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Planned Date</mat-label>
+            <input matInput type="date" formControlName="plannedDate" />
+          </mat-form-field>
+          <div class="sm:col-span-2 flex gap-2">
+            <button mat-flat-button color="primary" type="button" (click)="submitCreate()" [disabled]="createForm.invalid">
+              Save
+            </button>
+            <button mat-button type="button" (click)="cancelCreateForm()">Cancel</button>
+          </div>
+        </form>
+      }
+
+      <table class="w-full text-sm text-left mt-4">
+        <thead class="text-gray-500 border-b">
+          <tr>
+            <th class="py-2 pr-2">Type</th>
+            <th class="py-2 pr-2">Planned</th>
+            <th class="py-2 pr-2">Actual</th>
+            <th class="py-2 pr-2">Status</th>
+            <th class="py-2 pr-2"></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (m of milestones(); track m.id) {
+            <tr class="border-b" [class.bg-red-50]="m.delayed">
+              <td class="py-2 pr-2 font-medium">{{ m.milestoneType }}</td>
+              <td class="py-2 pr-2">{{ m.plannedDate | date: 'mediumDate' }}</td>
+              <td class="py-2 pr-2">{{ m.actualDate ? (m.actualDate | date: 'mediumDate') : '&mdash;' }}</td>
+              <td class="py-2 pr-2">
+                @if (m.delayed) {
+                  <span class="text-xs px-2 py-0.5 rounded bg-red-100 text-red-700">Delayed</span>
+                } @else if (m.actualDate) {
+                  <span class="text-xs px-2 py-0.5 rounded bg-green-100 text-green-700">Reached</span>
+                } @else {
+                  <span class="text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-600">On Track</span>
+                }
+              </td>
+              <td class="py-2 pr-2">
+                @if (!m.actualDate) {
+                  <div *appHasRole="['STUDY_MANAGER', 'ADMIN']">
+                    @if (recordingActualForId() !== m.id) {
+                      <button mat-button (click)="openRecordActual(m.id)">Record Actual</button>
+                    } @else {
+                      <div class="flex items-end gap-2">
+                        <mat-form-field appearance="outline">
+                          <mat-label>Actual Date</mat-label>
+                          <input matInput type="date" [formControl]="actualDateControl" />
+                        </mat-form-field>
+                        <button mat-flat-button color="primary" (click)="submitRecordActual(m.id)" [disabled]="actualDateControl.invalid" class="mb-4">
+                          Confirm
+                        </button>
+                        <button mat-button (click)="cancelRecordActual()" class="mb-4">Cancel</button>
+                      </div>
+                    }
+                  </div>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+      @if (milestones().length === 0) {
+        <p class="text-sm text-gray-500 text-center py-4">No milestones defined yet.</p>
+      }
+    </div>
+  </div>
+}

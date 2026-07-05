@@ -9,6 +9,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.ctms.ctms_backend.audit.AuditService;
+import com.ctms.ctms_backend.notification.NotificationService;
 import com.ctms.ctms_backend.site.dto.AssignCraRequest;
 import com.ctms.ctms_backend.site.dto.CreateSiteRequest;
 import com.ctms.ctms_backend.site.dto.SiteResponse;
@@ -45,6 +46,8 @@ class SiteServiceTest {
     private UserRepository userRepository;
     @Mock
     private AuditService auditService;
+    @Mock
+    private NotificationService notificationService;
 
     @InjectMocks
     private SiteService siteService;
@@ -121,7 +124,7 @@ class SiteServiceTest {
         when(userRepository.findByUsername("not.cra")).thenReturn(Optional.of(notCra));
 
         assertThrows(InvalidCraAssignmentException.class,
-                () -> siteService.assignCra(100L, new AssignCraRequest("not.cra"), "study.manager"));
+                () -> siteService.assignCra(100L, new AssignCraRequest("not.cra", null), "study.manager"));
     }
 
     @Test
@@ -133,15 +136,45 @@ class SiteServiceTest {
         site.setModifiedBy(creator);
         when(siteRepository.findById(100L)).thenReturn(Optional.of(site));
 
+        User cra = craUser(3L, "cra.monitor");
+        when(userRepository.findByUsername("cra.monitor")).thenReturn(Optional.of(cra));
+
+        SiteResponse response = siteService.assignCra(100L, new AssignCraRequest("cra.monitor", null), "study.manager");
+        assertEquals("cra.monitor", response.assignedCraUsername());
+        verify(notificationService).notify(org.mockito.ArgumentMatchers.eq(3L), org.mockito.ArgumentMatchers.eq("CRA_ASSIGNED"),
+                org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any());
+    }
+
+    @Test
+    void assignCra_withBackupCra_setsBothAndNotifiesBoth() {
+        Site site = new Site();
+        site.setId(100L);
+        site.setStudy(study);
+        site.setCreatedBy(creator);
+        site.setModifiedBy(creator);
+        when(siteRepository.findById(100L)).thenReturn(Optional.of(site));
+
+        User primary = craUser(3L, "cra.primary");
+        User backup = craUser(4L, "cra.backup");
+        when(userRepository.findByUsername("cra.primary")).thenReturn(Optional.of(primary));
+        when(userRepository.findByUsername("cra.backup")).thenReturn(Optional.of(backup));
+
+        SiteResponse response = siteService.assignCra(100L, new AssignCraRequest("cra.primary", "cra.backup"), "study.manager");
+        assertEquals("cra.primary", response.assignedCraUsername());
+        assertEquals("cra.backup", response.backupCraUsername());
+        verify(notificationService).notify(org.mockito.ArgumentMatchers.eq(3L), org.mockito.ArgumentMatchers.any(),
+                org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any());
+        verify(notificationService).notify(org.mockito.ArgumentMatchers.eq(4L), org.mockito.ArgumentMatchers.any(),
+                org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any());
+    }
+
+    private User craUser(Long id, String username) {
         User cra = new User();
-        cra.setId(3L);
-        cra.setUsername("cra.monitor");
+        cra.setId(id);
+        cra.setUsername(username);
         com.ctms.ctms_backend.user.Role craRole = new com.ctms.ctms_backend.user.Role();
         craRole.setCode(Role.CRA_MONITOR);
         cra.setRoles(java.util.Set.of(craRole));
-        when(userRepository.findByUsername("cra.monitor")).thenReturn(Optional.of(cra));
-
-        SiteResponse response = siteService.assignCra(100L, new AssignCraRequest("cra.monitor"), "study.manager");
-        assertEquals("cra.monitor", response.assignedCraUsername());
+        return cra;
     }
 }

@@ -24,6 +24,7 @@ export interface SiteResponse {
   status: 'PENDING_ACTIVATION' | 'ACTIVE';
   activationDate: string | null;
   assignedCraUsername: string | null;
+  backupCraUsername: string | null;
   createdByUsername: string;
   modifiedByUsername: string;
   createdAt: string;
@@ -108,8 +109,8 @@ export class SiteService {
     return this.http.put<SiteResponse>(`/api/sites/${id}`, req);
   }
 
-  assignCra(id: number, craUsername: string): Observable<SiteResponse> {
-    return this.http.put<SiteResponse>(`/api/sites/${id}/cra`, { craUsername });
+  assignCra(id: number, craUsername: string, backupCraUsername: string | null = null): Observable<SiteResponse> {
+    return this.http.put<SiteResponse>(`/api/sites/${id}/cra`, { craUsername, backupCraUsername });
   }
 
   checklist(id: number): Observable<ChecklistItemResponse[]> {

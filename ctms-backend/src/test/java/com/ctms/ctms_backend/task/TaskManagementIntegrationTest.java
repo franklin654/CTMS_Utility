@@ -147,7 +147,7 @@ class TaskManagementIntegrationTest {
                         study.id(), "TASK-IT-SITE-003", "IT Test Hospital", "1 Main St", null, "Boston", null, null, "USA",
                         "Dr. Smith", "drsmith@example.com", "Jane", "jane@example.com", "555-1234", "Completed", null),
                 manager.getUsername());
-        siteService.assignCra(site.id(), new AssignCraRequest(cra.getUsername()), manager.getUsername());
+        siteService.assignCra(site.id(), new AssignCraRequest(cra.getUsername(), null), manager.getUsername());
 
         long tasksBefore = taskRepository.count();
         completeAllChecklistItems(site.id(), manager.getUsername());

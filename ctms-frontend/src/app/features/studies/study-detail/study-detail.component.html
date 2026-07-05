@@ -21,6 +21,9 @@
           >
             Visit Templates
           </a>
+          <a [routerLink]="['/studies', s.id, 'milestones']" mat-stroked-button>
+            Milestones
+          </a>
           @if (!isFullyLocked()) {
             <button *appHasRole="['STUDY_MANAGER', 'ADMIN']" mat-stroked-button (click)="toggleEdit()">
               {{ editMode() ? 'Cancel' : 'Edit' }}

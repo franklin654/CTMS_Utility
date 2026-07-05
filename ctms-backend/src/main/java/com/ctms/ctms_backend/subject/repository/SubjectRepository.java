@@ -27,4 +27,6 @@ public interface SubjectRepository extends JpaRepository<Subject, Long> {
             Pageable pageable);
 
     List<Subject> findByStudyIdAndStatusNotIn(Long studyId, List<SubjectStatus> excludedStatuses);
+
+    long countBySiteIdInAndStatus(List<Long> siteIds, SubjectStatus status);
 }

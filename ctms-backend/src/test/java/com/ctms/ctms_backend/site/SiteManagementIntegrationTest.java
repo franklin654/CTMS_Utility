@@ -88,7 +88,7 @@ class SiteManagementIntegrationTest {
                 manager.getUsername());
         assertEquals("PENDING_ACTIVATION", site.status());
 
-        siteService.assignCra(site.id(), new com.ctms.ctms_backend.site.dto.AssignCraRequest(cra.getUsername()), manager.getUsername());
+        siteService.assignCra(site.id(), new com.ctms.ctms_backend.site.dto.AssignCraRequest(cra.getUsername(), null), manager.getUsername());
 
         // Mark 4 of 5 items complete.
         siteActivationService.updateChecklistItem(site.id(), "FEASIBILITY_COMPLETION",

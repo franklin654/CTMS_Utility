@@ -2,6 +2,7 @@ package com.ctms.ctms_backend.site.service;
 
 import com.ctms.ctms_backend.audit.AuditAction;
 import com.ctms.ctms_backend.audit.AuditService;
+import com.ctms.ctms_backend.notification.NotificationService;
 import com.ctms.ctms_backend.security.exception.InvalidCredentialsException;
 import com.ctms.ctms_backend.site.dto.AssignCraRequest;
 import com.ctms.ctms_backend.site.dto.CreateSiteRequest;
@@ -35,18 +36,21 @@ public class SiteService {
     private final StudyRepository studyRepository;
     private final UserRepository userRepository;
     private final AuditService auditService;
+    private final NotificationService notificationService;
 
     public SiteService(
             SiteRepository siteRepository,
             SiteActivationChecklistItemRepository checklistRepository,
             StudyRepository studyRepository,
             UserRepository userRepository,
-            AuditService auditService) {
+            AuditService auditService,
+            NotificationService notificationService) {
         this.siteRepository = siteRepository;
         this.checklistRepository = checklistRepository;
         this.studyRepository = studyRepository;
         this.userRepository = userRepository;
         this.auditService = auditService;
+        this.notificationService = notificationService;
     }
 
     @Transactional
@@ -130,18 +134,43 @@ public class SiteService {
     @Transactional
     public SiteResponse assignCra(Long id, AssignCraRequest req, String actorUsername) {
         Site site = findSite(id);
-        User cra = userRepository
-                .findByUsername(req.craUsername())
-                .filter(u -> u.hasRole(Role.CRA_MONITOR))
-                .orElseThrow(() -> new InvalidCraAssignmentException(req.craUsername()));
+        User cra = resolveCra(req.craUsername());
+        User backupCra = req.backupCraUsername() == null || req.backupCraUsername().isBlank()
+                ? null
+                : resolveCra(req.backupCraUsername());
 
-        String before = site.getAssignedCra() == null ? null : site.getAssignedCra().getUsername();
+        String beforePrimary = site.getAssignedCra() == null ? null : site.getAssignedCra().getUsername();
+        String beforeBackup = site.getBackupCra() == null ? null : site.getBackupCra().getUsername();
         site.setAssignedCra(cra);
+        site.setBackupCra(backupCra);
         site.setModifiedBy(currentUser(actorUsername));
         site = siteRepository.save(site);
 
-        auditService.record("Site", String.valueOf(id), AuditAction.UPDATE, before, cra.getUsername(), "CRA assignment");
+        auditService.record("Site", String.valueOf(id), AuditAction.UPDATE, beforePrimary, cra.getUsername(), "primary CRA assignment");
+        if (backupCra != null || beforeBackup != null) {
+            auditService.record(
+                    "Site", String.valueOf(id), AuditAction.UPDATE, beforeBackup,
+                    backupCra == null ? null : backupCra.getUsername(), "backup CRA assignment");
+        }
+
+        String link = "/sites/" + site.getId();
+        notificationService.notify(
+                cra.getId(), "CRA_ASSIGNED", "You've been assigned to site " + site.getSiteCode(),
+                "You are now the primary CRA for site " + site.getSiteCode() + " (" + site.getName() + ").", link);
+        if (backupCra != null) {
+            notificationService.notify(
+                    backupCra.getId(), "CRA_ASSIGNED", "You've been assigned as backup CRA for site " + site.getSiteCode(),
+                    "You are now the backup CRA for site " + site.getSiteCode() + " (" + site.getName() + ").", link);
+        }
+
         return SiteResponse.from(site);
+    }
+
+    private User resolveCra(String username) {
+        return userRepository
+                .findByUsername(username)
+                .filter(u -> u.hasRole(Role.CRA_MONITOR))
+                .orElseThrow(() -> new InvalidCraAssignmentException(username));
     }
 
     @Transactional(readOnly = true)

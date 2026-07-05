@@ -1,14 +1,20 @@
 import { DatePipe } from '@angular/common';
 import { Component, OnInit, signal } from '@angular/core';
-import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ActivatedRoute } from '@angular/router';
 import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs';
 import { HasRoleDirective } from '../../../core/auth/has-role.directive';
+import {
+  MonitoringVisitReportResponse,
+  MonitoringVisitResponse,
+  MonitoringVisitService,
+} from '../../../core/monitoring-visits/monitoring-visit.service';
 import { ChecklistItemResponse, SiteResponse, SiteService } from '../../../core/sites/site.service';
 import { UserService, UserSummaryResponse } from '../../../core/users/user.service';
 
@@ -27,6 +33,7 @@ const ITEM_LABELS: Record<string, string> = {
     MatButtonModule,
     MatFormFieldModule,
     MatInputModule,
+    MatSelectModule,
     MatAutocompleteModule,
     ReactiveFormsModule,
     DatePipe,
@@ -41,11 +48,26 @@ export class SiteDetailComponent implements OnInit {
   readonly missingItems = signal<string[]>([]);
   readonly editingItemType = signal<string | null>(null);
   readonly craUsernameControl = new FormControl('', { nonNullable: true });
+  readonly backupCraUsernameControl = new FormControl('', { nonNullable: true });
   readonly craSuggestions = signal<UserSummaryResponse[]>([]);
+  readonly backupCraSuggestions = signal<UserSummaryResponse[]>([]);
 
   readonly editForm = new FormGroup({
     completedDate: new FormControl<string | null>(null),
     note: new FormControl('', { nonNullable: true }),
+  });
+
+  readonly monitoringVisits = signal<MonitoringVisitResponse[]>([]);
+  readonly monitoringVisitErrorMessage = signal<string | null>(null);
+  readonly showMonitoringVisitForm = signal(false);
+  readonly reportsByVisitId = signal<Record<number, MonitoringVisitReportResponse[]>>({});
+
+  readonly monitoringVisitForm = new FormGroup({
+    visitType: new FormControl<'SIV' | 'IMV' | 'COV'>('IMV', { nonNullable: true }),
+    visitDate: new FormControl('', { nonNullable: true, validators: Validators.required }),
+    findings: new FormControl<string | null>(null),
+    issuesIdentified: new FormControl<string | null>(null),
+    checklistNotes: new FormControl<string | null>(null),
   });
 
   private siteId!: number;
@@ -54,6 +76,7 @@ export class SiteDetailComponent implements OnInit {
     private readonly route: ActivatedRoute,
     private readonly siteService: SiteService,
     private readonly userService: UserService,
+    private readonly monitoringVisitService: MonitoringVisitService,
     private readonly snackBar: MatSnackBar,
   ) {}
 
@@ -68,11 +91,103 @@ export class SiteDetailComponent implements OnInit {
         switchMap((value) => this.userService.searchByRole('CRA_MONITOR', value.trim())),
       )
       .subscribe((users) => this.craSuggestions.set(users));
+
+    this.backupCraUsernameControl.valueChanges
+      .pipe(
+        debounceTime(250),
+        distinctUntilChanged(),
+        switchMap((value) => this.userService.searchByRole('CRA_MONITOR', value.trim())),
+      )
+      .subscribe((users) => this.backupCraSuggestions.set(users));
   }
 
   load(): void {
     this.siteService.get(this.siteId).subscribe((s) => this.site.set(s));
     this.siteService.checklist(this.siteId).subscribe((items) => this.checklist.set(items));
+    this.loadMonitoringVisits();
+  }
+
+  loadMonitoringVisits(): void {
+    this.monitoringVisitService.list(this.siteId).subscribe((visits) => {
+      this.monitoringVisits.set(visits);
+      visits.forEach((v) => this.loadReports(v.id));
+    });
+  }
+
+  loadReports(visitId: number): void {
+    this.monitoringVisitService.reports(visitId).subscribe((reports) => {
+      this.reportsByVisitId.update((map) => ({ ...map, [visitId]: reports }));
+    });
+  }
+
+  reportsFor(visitId: number): MonitoringVisitReportResponse[] {
+    return this.reportsByVisitId()[visitId] ?? [];
+  }
+
+  openMonitoringVisitForm(): void {
+    this.monitoringVisitErrorMessage.set(null);
+    this.monitoringVisitForm.reset({
+      visitType: 'IMV',
+      visitDate: new Date().toISOString().slice(0, 10),
+      findings: null,
+      issuesIdentified: null,
+      checklistNotes: null,
+    });
+    this.showMonitoringVisitForm.set(true);
+  }
+
+  cancelMonitoringVisitForm(): void {
+    this.showMonitoringVisitForm.set(false);
+  }
+
+  submitMonitoringVisit(): void {
+    if (this.monitoringVisitForm.invalid) {
+      return;
+    }
+    const raw = this.monitoringVisitForm.getRawValue();
+    this.monitoringVisitErrorMessage.set(null);
+    this.monitoringVisitService
+      .log({
+        siteId: this.siteId,
+        visitType: raw.visitType,
+        visitDate: raw.visitDate,
+        findings: raw.findings || null,
+        issuesIdentified: raw.issuesIdentified || null,
+        checklistNotes: raw.checklistNotes || null,
+      })
+      .subscribe({
+        next: () => {
+          this.showMonitoringVisitForm.set(false);
+          this.loadMonitoringVisits();
+        },
+        error: (err) => this.monitoringVisitErrorMessage.set(err.error?.message ?? 'Could not log monitoring visit.'),
+      });
+  }
+
+  uploadMonitoringVisitReport(visitId: number, input: HTMLInputElement): void {
+    const file = input.files?.[0];
+    if (!file) {
+      return;
+    }
+    this.monitoringVisitErrorMessage.set(null);
+    this.monitoringVisitService.uploadReport(visitId, file).subscribe({
+      next: () => {
+        input.value = '';
+        this.loadReports(visitId);
+      },
+      error: (err) => this.monitoringVisitErrorMessage.set(err.error?.message ?? 'Could not upload report.'),
+    });
+  }
+
+  downloadMonitoringVisitReport(report: MonitoringVisitReportResponse): void {
+    this.monitoringVisitService.downloadReport(report.id).subscribe((blob) => {
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = report.fileName;
+      anchor.click();
+      URL.revokeObjectURL(url);
+    });
   }
 
   label(itemType: string): string {
@@ -135,15 +250,21 @@ export class SiteDetailComponent implements OnInit {
     this.craUsernameControl.setValue(username);
   }
 
+  selectBackupCra(username: string): void {
+    this.backupCraUsernameControl.setValue(username);
+  }
+
   assignCra(): void {
     const craUsername = this.craUsernameControl.value.trim();
     if (!craUsername) {
       return;
     }
+    const backupCraUsername = this.backupCraUsernameControl.value.trim() || null;
     this.errorMessage.set(null);
-    this.siteService.assignCra(this.siteId, craUsername).subscribe({
+    this.siteService.assignCra(this.siteId, craUsername, backupCraUsername).subscribe({
       next: () => {
         this.craUsernameControl.setValue('');
+        this.backupCraUsernameControl.setValue('');
         this.load();
         this.snackBar.open(`CRA "${craUsername}" assigned.`, 'Dismiss', { duration: 4000 });
       },

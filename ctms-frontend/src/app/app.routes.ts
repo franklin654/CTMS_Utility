@@ -93,6 +93,11 @@ export const routes: Routes = [
           import('./features/visit-templates/visit-templates.component').then((m) => m.VisitTemplatesComponent),
       },
       {
+        path: 'studies/:studyId/milestones',
+        loadComponent: () =>
+          import('./features/milestones/milestones.component').then((m) => m.MilestonesComponent),
+      },
+      {
         path: 'documents',
         loadComponent: () =>
           import('./features/documents/document-list/document-list.component').then((m) => m.DocumentListComponent),

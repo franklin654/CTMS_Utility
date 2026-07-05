@@ -1,0 +1,121 @@
+<div class="max-w-6xl mx-auto flex flex-col gap-6">
+  <div class="bg-white rounded-lg shadow p-6">
+    <h1 class="text-lg font-semibold text-gray-900">Welcome, {{ authService.currentUser()?.username }}</h1>
+
+    <form [formGroup]="filterForm" class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
+      <mat-form-field appearance="outline">
+        <mat-label>Study ID</mat-label>
+        <input matInput type="number" formControlName="studyId" />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Country</mat-label>
+        <input matInput formControlName="country" [matAutocomplete]="countryAuto" />
+        <mat-autocomplete #countryAuto="matAutocomplete">
+          @for (c of filteredCountryOptions(); track c) {
+            <mat-option [value]="c">{{ c }}</mat-option>
+          }
+        </mat-autocomplete>
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Site ID</mat-label>
+        <input matInput type="number" formControlName="siteId" />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Phase</mat-label>
+        <input matInput formControlName="phase" [matAutocomplete]="phaseAuto" />
+        <mat-autocomplete #phaseAuto="matAutocomplete">
+          @for (p of filteredPhaseOptions(); track p) {
+            <mat-option [value]="p">{{ p }}</mat-option>
+          }
+        </mat-autocomplete>
+      </mat-form-field>
+    </form>
+    <div class="flex gap-2 mt-1">
+      <button mat-flat-button color="primary" (click)="applyFilters()">Apply Filters</button>
+      <button mat-stroked-button (click)="export('pdf')">Export PDF</button>
+      <button mat-stroked-button (click)="export('excel')">Export Excel</button>
+    </div>
+
+    @if (errorMessage()) {
+      <p class="text-sm text-red-600 mt-3">{{ errorMessage() }}</p>
+    }
+  </div>
+
+  @if (accessDenied()) {
+    <div class="bg-white rounded-lg shadow p-6 text-center">
+      <p class="text-sm text-gray-600">
+        Study/site dashboards aren't available for your role yet. A dedicated patient view is planned for a later phase.
+      </p>
+    </div>
+  }
+
+  @if (summary(); as s) {
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-sm font-semibold text-gray-700 mb-3">Enrollment by Status</h2>
+        <canvas baseChart [data]="enrollmentChartData()" [options]="barChartOptions" type="bar"></canvas>
+      </div>
+
+      <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-sm font-semibold text-gray-700 mb-3">Site Activation</h2>
+        <canvas baseChart [data]="siteActivationChartData()" [options]="pieChartOptions" type="pie"></canvas>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+      <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-sm font-semibold text-gray-700 mb-2">Visit Adherence</h2>
+        <p class="text-3xl font-semibold text-gray-900">
+          {{ s.visitAdherenceRatePercent != null ? (s.visitAdherenceRatePercent | number: '1.0-1') + '%' : 'N/A' }}
+        </p>
+      </div>
+      <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-sm font-semibold text-gray-700 mb-2">Sites by Country</h2>
+        @for (entry of s.sitesByCountry | keyvalue; track entry.key) {
+          <p class="text-sm text-gray-700">{{ entry.key }}: {{ entry.value }}</p>
+        }
+      </div>
+      <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-sm font-semibold text-gray-700 mb-2">High-Risk Sites</h2>
+        @for (site of s.highRiskSites; track site.siteId) {
+          <p class="text-sm text-red-700">
+            {{ site.siteCode }} &mdash; {{ site.missedVisitRatePercent | number: '1.0-1' }}% missed,
+            {{ site.openHighSeverityAeCount }} open severe AE(s)
+          </p>
+        }
+        @if (s.highRiskSites.length === 0) {
+          <p class="text-sm text-gray-500">None</p>
+        }
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6">
+      <h2 class="text-sm font-semibold text-gray-700 mb-3">Milestones</h2>
+      <table class="w-full text-sm text-left">
+        <thead class="text-gray-500 border-b">
+          <tr>
+            <th class="py-2 pr-2">Study</th>
+            <th class="py-2 pr-2">Type</th>
+            <th class="py-2 pr-2">Planned</th>
+            <th class="py-2 pr-2">Actual</th>
+            <th class="py-2 pr-2">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (m of s.milestones; track m.id) {
+            <tr class="border-b" [class.bg-red-50]="m.delayed">
+              <td class="py-2 pr-2">{{ m.studyCode }}</td>
+              <td class="py-2 pr-2">{{ m.milestoneType }}</td>
+              <td class="py-2 pr-2">{{ m.plannedDate | date: 'mediumDate' }}</td>
+              <td class="py-2 pr-2">{{ m.actualDate ? (m.actualDate | date: 'mediumDate') : '&mdash;' }}</td>
+              <td class="py-2 pr-2">{{ m.delayed ? 'Delayed' : m.actualDate ? 'Reached' : 'On Track' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+      @if (s.milestones.length === 0) {
+        <p class="text-sm text-gray-500 text-center py-4">No milestones yet.</p>
+      }
+    </div>
+  }
+</div>

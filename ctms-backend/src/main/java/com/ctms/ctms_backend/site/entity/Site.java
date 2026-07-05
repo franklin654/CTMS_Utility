@@ -92,6 +92,10 @@ public class Site {
     @JoinColumn(name = "assigned_cra_id")
     private User assignedCra;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "backup_cra_id")
+    private User backupCra;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "created_by", nullable = false)
     private User createdBy;

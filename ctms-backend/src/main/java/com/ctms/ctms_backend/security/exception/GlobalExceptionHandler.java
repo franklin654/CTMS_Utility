@@ -7,6 +7,11 @@ import com.ctms.ctms_backend.document.exception.DocumentLockedException;
 import com.ctms.ctms_backend.document.exception.DocumentNotFoundException;
 import com.ctms.ctms_backend.document.exception.DocumentVersionNotFoundException;
 import com.ctms.ctms_backend.document.exception.InvalidDocumentTransitionException;
+import com.ctms.ctms_backend.milestone.exception.DuplicateMilestoneTypeException;
+import com.ctms.ctms_backend.milestone.exception.InvalidMilestoneActualDateException;
+import com.ctms.ctms_backend.milestone.exception.MilestoneNotFoundException;
+import com.ctms.ctms_backend.monitoring.exception.MonitoringVisitNotFoundException;
+import com.ctms.ctms_backend.monitoring.exception.MonitoringVisitReportNotFoundException;
 import com.ctms.ctms_backend.rules.RuleCompilationException;
 import com.ctms.ctms_backend.site.exception.ChecklistItemNotFoundException;
 import com.ctms.ctms_backend.site.exception.DuplicateSiteCodeException;
@@ -182,6 +187,26 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(InvalidAdverseEventTransitionException.class)
     public ResponseEntity<Object> handleAdverseEventStateViolation(InvalidAdverseEventTransitionException e) {
+        return error(HttpStatus.BAD_REQUEST, e.getMessage());
+    }
+
+    @ExceptionHandler({MonitoringVisitNotFoundException.class, MonitoringVisitReportNotFoundException.class})
+    public ResponseEntity<Object> handleMonitoringVisitNotFound(RuntimeException e) {
+        return error(HttpStatus.NOT_FOUND, e.getMessage());
+    }
+
+    @ExceptionHandler(MilestoneNotFoundException.class)
+    public ResponseEntity<Object> handleMilestoneNotFound(MilestoneNotFoundException e) {
+        return error(HttpStatus.NOT_FOUND, e.getMessage());
+    }
+
+    @ExceptionHandler(DuplicateMilestoneTypeException.class)
+    public ResponseEntity<Object> handleDuplicateMilestoneType(DuplicateMilestoneTypeException e) {
+        return error(HttpStatus.CONFLICT, e.getMessage());
+    }
+
+    @ExceptionHandler(InvalidMilestoneActualDateException.class)
+    public ResponseEntity<Object> handleInvalidMilestoneActualDate(InvalidMilestoneActualDateException e) {
         return error(HttpStatus.BAD_REQUEST, e.getMessage());
     }
 

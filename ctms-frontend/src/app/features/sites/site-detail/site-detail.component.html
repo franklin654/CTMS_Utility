@@ -44,9 +44,13 @@
           <p class="text-gray-500">Assigned CRA</p>
           <p class="text-gray-900">{{ s.assignedCraUsername ?? 'Unassigned' }}</p>
         </div>
+        <div>
+          <p class="text-gray-500">Backup CRA</p>
+          <p class="text-gray-900">{{ s.backupCraUsername ?? 'None' }}</p>
+        </div>
       </div>
 
-      <div *appHasRole="['STUDY_MANAGER', 'ADMIN']" class="mt-4 flex items-end gap-3">
+      <div *appHasRole="['STUDY_MANAGER', 'ADMIN']" class="mt-4 flex items-end gap-3 flex-wrap">
         <mat-form-field appearance="outline">
           <mat-label>Assign CRA</mat-label>
           <input matInput [formControl]="craUsernameControl" placeholder="Start typing a name or username" [matAutocomplete]="craAuto" />
@@ -58,7 +62,99 @@
             }
           </mat-autocomplete>
         </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Backup CRA (optional)</mat-label>
+          <input matInput [formControl]="backupCraUsernameControl" placeholder="Start typing a name or username" [matAutocomplete]="backupCraAuto" />
+          <mat-autocomplete #backupCraAuto="matAutocomplete">
+            @for (u of backupCraSuggestions(); track u.id) {
+              <mat-option [value]="u.username" (onSelectionChange)="selectBackupCra(u.username)">
+                {{ u.fullName }} ({{ u.username }})
+              </mat-option>
+            }
+          </mat-autocomplete>
+        </mat-form-field>
         <button mat-stroked-button (click)="assignCra()" class="mb-4">Assign</button>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="text-sm font-semibold text-gray-700">Monitoring Visits</h2>
+        <button *appHasRole="['CRA_MONITOR', 'ADMIN']" mat-stroked-button (click)="openMonitoringVisitForm()">
+          Log Visit
+        </button>
+      </div>
+
+      @if (monitoringVisitErrorMessage()) {
+        <p class="text-sm text-red-600 mb-3">{{ monitoringVisitErrorMessage() }}</p>
+      }
+
+      @if (showMonitoringVisitForm()) {
+        <form [formGroup]="monitoringVisitForm" class="grid grid-cols-1 sm:grid-cols-2 gap-3 border rounded p-3 mb-4">
+          <mat-form-field appearance="outline">
+            <mat-label>Visit Type</mat-label>
+            <mat-select formControlName="visitType">
+              <mat-option value="SIV">Site Initiation Visit</mat-option>
+              <mat-option value="IMV">Interim Monitoring Visit</mat-option>
+              <mat-option value="COV">Close-Out Visit</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Visit Date</mat-label>
+            <input matInput type="date" formControlName="visitDate" />
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="sm:col-span-2">
+            <mat-label>Findings</mat-label>
+            <textarea matInput formControlName="findings" rows="2"></textarea>
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="sm:col-span-2">
+            <mat-label>Issues Identified</mat-label>
+            <textarea matInput formControlName="issuesIdentified" rows="2"></textarea>
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="sm:col-span-2">
+            <mat-label>Checklist Notes</mat-label>
+            <textarea matInput formControlName="checklistNotes" rows="2"></textarea>
+          </mat-form-field>
+          <div class="sm:col-span-2 flex gap-2">
+            <button mat-flat-button color="primary" type="button" (click)="submitMonitoringVisit()" [disabled]="monitoringVisitForm.invalid">
+              Save
+            </button>
+            <button mat-button type="button" (click)="cancelMonitoringVisitForm()">Cancel</button>
+          </div>
+        </form>
+      }
+
+      <div class="flex flex-col gap-3">
+        @for (v of monitoringVisits(); track v.id) {
+          <div class="border rounded p-3">
+            <div class="flex items-center justify-between">
+              <div>
+                <div class="text-sm font-medium text-gray-900">
+                  {{ v.visitType }} &middot; {{ v.visitDate | date: 'mediumDate' }}
+                  <span class="ml-2 text-xs text-gray-500">by {{ v.craUsername }}</span>
+                </div>
+                @if (v.findings) {
+                  <p class="text-xs text-gray-600 mt-1">{{ v.findings }}</p>
+                }
+                @if (v.issuesIdentified) {
+                  <p class="text-xs text-red-600 mt-1">Issues: {{ v.issuesIdentified }}</p>
+                }
+                <div class="flex flex-wrap gap-2 mt-2">
+                  @for (r of reportsFor(v.id); track r.id) {
+                    <button mat-button (click)="downloadMonitoringVisitReport(r)">{{ r.fileName }}</button>
+                  }
+                </div>
+              </div>
+              <div *appHasRole="['CRA_MONITOR', 'ADMIN']">
+                <input #fileInput type="file" class="hidden" (change)="uploadMonitoringVisitReport(v.id, fileInput)" />
+                <button mat-button (click)="fileInput.click()">Attach Report</button>
+              </div>
+            </div>
+          </div>
+        }
+        @if (monitoringVisits().length === 0) {
+          <p class="text-sm text-gray-500 text-center py-4">No monitoring visits logged yet.</p>
+        }
       </div>
     </div>
 
