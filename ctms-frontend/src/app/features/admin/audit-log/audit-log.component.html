@@ -1,0 +1,59 @@
+<div class="max-w-6xl mx-auto">
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-xl font-semibold text-gray-900">Audit Log</h1>
+    <button mat-flat-button color="primary" (click)="exportCsv()">Export CSV</button>
+  </div>
+
+  <div class="flex gap-4 mb-4">
+    <mat-form-field appearance="outline">
+      <mat-label>Entity Name</mat-label>
+      <input matInput [formControl]="entityName" placeholder="e.g. Document, Study" />
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Entity ID</mat-label>
+      <input matInput [formControl]="entityId" />
+    </mat-form-field>
+    <button mat-stroked-button (click)="search()" class="h-fit self-center">Filter</button>
+  </div>
+
+  <div class="bg-white rounded-lg shadow overflow-x-auto">
+    <table class="w-full text-sm text-left">
+      <thead class="bg-gray-50 text-gray-600 border-b">
+        <tr>
+          <th class="px-4 py-3">Entity</th>
+          <th class="px-4 py-3">ID</th>
+          <th class="px-4 py-3">Action</th>
+          <th class="px-4 py-3">Performed By</th>
+          <th class="px-4 py-3">When</th>
+          <th class="px-4 py-3">Reason / After</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (e of entries(); track e.id) {
+          <tr class="border-b" [class.bg-red-50]="e.action === 'ACCESS_DENIED'">
+            <td class="px-4 py-3">{{ e.entityName }}</td>
+            <td class="px-4 py-3">{{ e.entityId }}</td>
+            <td class="px-4 py-3">
+              <span class="px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-700">{{ e.action }}</span>
+            </td>
+            <td class="px-4 py-3">{{ e.performedByUsername ?? '&mdash;' }}</td>
+            <td class="px-4 py-3">{{ e.performedAt | date: 'short' }}</td>
+            <td class="px-4 py-3 text-gray-600">{{ e.reason ?? e.afterValue ?? '&mdash;' }}</td>
+          </tr>
+        }
+        @if (entries().length === 0) {
+          <tr>
+            <td colspan="6" class="px-4 py-6 text-center text-gray-500">No audit entries found</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+    <mat-paginator
+      [length]="totalElements()"
+      [pageSize]="pageSize()"
+      [pageIndex]="pageIndex()"
+      [pageSizeOptions]="[25, 50, 100]"
+      (page)="onPage($event)"
+    ></mat-paginator>
+  </div>
+</div>

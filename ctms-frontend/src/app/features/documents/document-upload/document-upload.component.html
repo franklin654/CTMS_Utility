@@ -1,0 +1,44 @@
+<div class="max-w-2xl mx-auto bg-white rounded-lg shadow p-8">
+  <h1 class="text-xl font-semibold text-gray-900 mb-6">Upload Document</h1>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col gap-4">
+    <mat-form-field appearance="outline">
+      <mat-label>Title</mat-label>
+      <input matInput formControlName="title" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Category</mat-label>
+      <mat-select formControlName="category">
+        @for (c of categories; track c) {
+          <mat-option [value]="c">{{ c }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Study (optional)</mat-label>
+      <mat-select formControlName="studyId">
+        <mat-option [value]="null">&mdash; None &mdash;</mat-option>
+        @for (s of studies(); track s.id) {
+          <mat-option [value]="s.id">{{ s.studyCode }} &ndash; {{ s.name }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">File</label>
+      <input type="file" (change)="onFileSelected($event)" class="block w-full text-sm text-gray-600" />
+    </div>
+
+    @if (errorMessage()) {
+      <p class="text-sm text-red-600">{{ errorMessage() }}</p>
+    }
+
+    <div>
+      <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid || !selectedFile()">
+        Upload
+      </button>
+    </div>
+  </form>
+</div>

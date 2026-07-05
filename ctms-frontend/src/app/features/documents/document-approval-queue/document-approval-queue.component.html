@@ -1,0 +1,54 @@
+<div class="max-w-4xl mx-auto">
+  <h1 class="text-xl font-semibold text-gray-900 mb-6">Document Approval Queue</h1>
+
+  @if (errorMessage()) {
+    <p class="text-sm text-red-600 mb-4">{{ errorMessage() }}</p>
+  }
+
+  <mat-tab-group>
+    <mat-tab label="Review ({{ reviewQueue().length }})">
+      <div class="bg-white rounded-lg shadow p-4 mt-4">
+        @if (reviewQueue().length === 0) {
+          <p class="text-sm text-gray-500 py-4 text-center">Nothing pending review.</p>
+        }
+        @for (v of reviewQueue(); track v.id) {
+          <div class="flex items-center justify-between border-b py-3 last:border-0">
+            <div>
+              <a [routerLink]="['/documents', v.documentId]" class="font-medium text-blue-600 hover:underline">
+                {{ v.documentTitle }} v{{ v.versionNumber }}
+              </a>
+              <p class="text-xs text-gray-500">Uploaded by {{ v.uploadedByUsername }}</p>
+            </div>
+            <div class="flex gap-2">
+              <button mat-button color="primary" (click)="reviewerDecide(v, 'APPROVED')">Approve</button>
+              <button mat-button (click)="reviewerDecide(v, 'CHANGES_REQUESTED')">Request Changes</button>
+              <button mat-button color="warn" (click)="reviewerDecide(v, 'REJECTED')">Reject</button>
+            </div>
+          </div>
+        }
+      </div>
+    </mat-tab>
+
+    <mat-tab label="Approval ({{ approvalQueueList().length }})">
+      <div class="bg-white rounded-lg shadow p-4 mt-4">
+        @if (approvalQueueList().length === 0) {
+          <p class="text-sm text-gray-500 py-4 text-center">Nothing pending final approval.</p>
+        }
+        @for (v of approvalQueueList(); track v.id) {
+          <div class="flex items-center justify-between border-b py-3 last:border-0">
+            <div>
+              <a [routerLink]="['/documents', v.documentId]" class="font-medium text-blue-600 hover:underline">
+                {{ v.documentTitle }} v{{ v.versionNumber }}
+              </a>
+              <p class="text-xs text-gray-500">Uploaded by {{ v.uploadedByUsername }}</p>
+            </div>
+            <div class="flex gap-2">
+              <button mat-flat-button color="warn" (click)="finalApprove(v)">Final Approve</button>
+              <button mat-button (click)="finalReject(v)">Reject</button>
+            </div>
+          </div>
+        }
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+</div>

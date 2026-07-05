@@ -1,5 +1,10 @@
 package com.ctms.ctms_backend.security.exception;
 
+import com.ctms.ctms_backend.document.exception.DocumentAccessDeniedException;
+import com.ctms.ctms_backend.document.exception.DocumentLockedException;
+import com.ctms.ctms_backend.document.exception.DocumentNotFoundException;
+import com.ctms.ctms_backend.document.exception.DocumentVersionNotFoundException;
+import com.ctms.ctms_backend.document.exception.InvalidDocumentTransitionException;
 import com.ctms.ctms_backend.rules.RuleCompilationException;
 import com.ctms.ctms_backend.study.exception.DuplicateProtocolIdException;
 import com.ctms.ctms_backend.study.exception.InvalidStudyTransitionException;
@@ -16,6 +21,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -61,6 +67,26 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({InvalidStudyTransitionException.class, StudyFieldLockedException.class, StudyClosedException.class})
     public ResponseEntity<Object> handleStudyStateViolation(RuntimeException e) {
         return error(HttpStatus.BAD_REQUEST, e.getMessage());
+    }
+
+    @ExceptionHandler({DocumentNotFoundException.class, DocumentVersionNotFoundException.class})
+    public ResponseEntity<Object> handleDocumentNotFound(RuntimeException e) {
+        return error(HttpStatus.NOT_FOUND, e.getMessage());
+    }
+
+    @ExceptionHandler({InvalidDocumentTransitionException.class, DocumentLockedException.class})
+    public ResponseEntity<Object> handleDocumentStateViolation(RuntimeException e) {
+        return error(HttpStatus.BAD_REQUEST, e.getMessage());
+    }
+
+    @ExceptionHandler(DocumentAccessDeniedException.class)
+    public ResponseEntity<Object> handleDocumentAccessDenied(DocumentAccessDeniedException e) {
+        return error(HttpStatus.FORBIDDEN, e.getMessage());
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<Object> handleMaxUploadSizeExceeded(MaxUploadSizeExceededException e) {
+        return error(HttpStatus.PAYLOAD_TOO_LARGE, "File exceeds the maximum allowed upload size");
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

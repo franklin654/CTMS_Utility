@@ -1,5 +1,6 @@
 package com.ctms.ctms_backend.document;
 
+import com.ctms.ctms_backend.study.entity.Study;
 import com.ctms.ctms_backend.user.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -38,6 +39,12 @@ public class Document {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "owner_id")
     private User owner;
+
+    /** Nullable -- Phase 0 documents may predate Study Management or be platform-level (not
+     * study-specific); tighten to NOT NULL later if the product decision solidifies. */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "study_id")
+    private Study study;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "current_version_id")

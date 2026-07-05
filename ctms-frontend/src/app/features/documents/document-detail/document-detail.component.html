@@ -1,0 +1,115 @@
+@if (document(); as doc) {
+  <div class="max-w-4xl mx-auto flex flex-col gap-6">
+    <div class="bg-white rounded-lg shadow p-6">
+      <h1 class="text-xl font-semibold text-gray-900">{{ doc.title }}</h1>
+      <p class="text-sm text-gray-500">
+        {{ doc.category ?? 'Uncategorized' }}
+        @if (doc.studyCode) { &middot; Study {{ doc.studyCode }} }
+        &middot; Owner {{ doc.ownerUsername }}
+      </p>
+
+      @if (errorMessage()) {
+        <p class="text-sm text-red-600 mt-3">{{ errorMessage() }}</p>
+      }
+
+      <div *appHasRole="['STUDY_MANAGER', 'SITE_COORDINATOR', 'ADMIN']" class="mt-4 flex items-center gap-3">
+        <input type="file" (change)="onFileSelected($event)" class="text-sm text-gray-600" />
+        <button mat-flat-button color="primary" [disabled]="!selectedFile()" (click)="addVersion()">
+          Add Version
+        </button>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6">
+      <h2 class="text-sm font-semibold text-gray-700 mb-3">Versions</h2>
+      <table class="w-full text-sm text-left">
+        <thead class="text-gray-500 border-b">
+          <tr>
+            <th class="py-2 pr-2">Compare</th>
+            <th class="py-2 pr-2">Version</th>
+            <th class="py-2 pr-2">Status</th>
+            <th class="py-2 pr-2">Uploaded By</th>
+            <th class="py-2 pr-2">Uploaded At</th>
+            <th class="py-2 pr-2">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (v of versions(); track v.id) {
+            <tr class="border-b">
+              <td class="py-2 pr-2">
+                <input type="checkbox" [checked]="compareSelection().includes(v.id)" (change)="toggleCompare(v.id)" />
+              </td>
+              <td class="py-2 pr-2 font-medium">v{{ v.versionNumber }}</td>
+              <td class="py-2 pr-2">
+                <span class="px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-700">{{ v.status }}</span>
+              </td>
+              <td class="py-2 pr-2">{{ v.uploadedByUsername }}</td>
+              <td class="py-2 pr-2">{{ v.uploadedAt | date: 'short' }}</td>
+              <td class="py-2 pr-2">
+                <div class="flex flex-wrap gap-2">
+                  <a mat-button [href]="downloadUrl(v.versionNumber)" target="_blank">Download</a>
+
+                  @if (v.status === 'DRAFT') {
+                    <button *appHasRole="['STUDY_MANAGER', 'SITE_COORDINATOR', 'ADMIN']" mat-button
+                            (click)="submitForReview(v.versionNumber)">
+                      Submit for Review
+                    </button>
+                  }
+                  @if (v.status === 'PENDING_REVIEW') {
+                    <span *appHasRole="['STUDY_MANAGER', 'QA_COMPLIANCE_AUDITOR', 'ADMIN']" class="flex gap-2">
+                      <button mat-button color="primary" (click)="reviewerDecide(v.versionNumber, 'APPROVED')">Approve</button>
+                      <button mat-button (click)="reviewerDecide(v.versionNumber, 'CHANGES_REQUESTED')">Request Changes</button>
+                      <button mat-button color="warn" (click)="reviewerDecide(v.versionNumber, 'REJECTED')">Reject</button>
+                    </span>
+                  }
+                  @if (v.status === 'PENDING_APPROVAL') {
+                    <span *appHasRole="['STUDY_MANAGER', 'QA_COMPLIANCE_AUDITOR', 'ADMIN']" class="flex gap-2">
+                      <button mat-flat-button color="warn" (click)="finalApprove(v.versionNumber)">Final Approve</button>
+                      <button mat-button (click)="finalReject(v.versionNumber)">Reject</button>
+                    </span>
+                  }
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    @if (compareVersions().length === 2) {
+      <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-sm font-semibold text-gray-700 mb-3">Version Comparison (metadata only)</h2>
+        <table class="w-full text-sm text-left">
+          <thead class="text-gray-500 border-b">
+            <tr>
+              <th class="py-2 pr-2">Field</th>
+              @for (v of compareVersions(); track v.id) {
+                <th class="py-2 pr-2">v{{ v.versionNumber }}</th>
+              }
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="border-b"><td class="py-2 pr-2 text-gray-500">File name</td>
+              @for (v of compareVersions(); track v.id) { <td class="py-2 pr-2">{{ v.fileName }}</td> }
+            </tr>
+            <tr class="border-b"><td class="py-2 pr-2 text-gray-500">Uploaded by</td>
+              @for (v of compareVersions(); track v.id) { <td class="py-2 pr-2">{{ v.uploadedByUsername }}</td> }
+            </tr>
+            <tr class="border-b"><td class="py-2 pr-2 text-gray-500">Effective date</td>
+              @for (v of compareVersions(); track v.id) { <td class="py-2 pr-2">{{ v.effectiveDate ?? '&mdash;' }}</td> }
+            </tr>
+            <tr class="border-b"><td class="py-2 pr-2 text-gray-500">Size (bytes)</td>
+              @for (v of compareVersions(); track v.id) { <td class="py-2 pr-2">{{ v.sizeBytes }}</td> }
+            </tr>
+            <tr class="border-b"><td class="py-2 pr-2 text-gray-500">Checksum (SHA-256)</td>
+              @for (v of compareVersions(); track v.id) { <td class="py-2 pr-2 font-mono text-xs">{{ v.checksumSha256 }}</td> }
+            </tr>
+            <tr><td class="py-2 pr-2 text-gray-500">Status</td>
+              @for (v of compareVersions(); track v.id) { <td class="py-2 pr-2">{{ v.status }}</td> }
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+}

@@ -2,7 +2,11 @@ package com.ctms.ctms_backend.document;
 
 import com.ctms.ctms_backend.audit.AuditAction;
 import com.ctms.ctms_backend.audit.AuditService;
+import com.ctms.ctms_backend.document.entity.DocumentVersionStatus;
+import com.ctms.ctms_backend.document.service.DocumentAccessControlService;
 import com.ctms.ctms_backend.security.exception.InvalidCredentialsException;
+import com.ctms.ctms_backend.study.entity.Study;
+import com.ctms.ctms_backend.study.repository.StudyRepository;
 import com.ctms.ctms_backend.user.User;
 import com.ctms.ctms_backend.user.UserRepository;
 import java.io.ByteArrayInputStream;
@@ -27,32 +31,45 @@ public class DocumentService {
     private final DocumentVersionRepository documentVersionRepository;
     private final StorageService storageService;
     private final UserRepository userRepository;
+    private final StudyRepository studyRepository;
     private final AuditService auditService;
+    private final DocumentAccessControlService accessControlService;
 
     public DocumentService(
             DocumentRepository documentRepository,
             DocumentVersionRepository documentVersionRepository,
             StorageService storageService,
             UserRepository userRepository,
-            AuditService auditService) {
+            StudyRepository studyRepository,
+            AuditService auditService,
+            DocumentAccessControlService accessControlService) {
         this.documentRepository = documentRepository;
         this.documentVersionRepository = documentVersionRepository;
         this.storageService = storageService;
         this.userRepository = userRepository;
+        this.studyRepository = studyRepository;
         this.auditService = auditService;
+        this.accessControlService = accessControlService;
     }
 
+    /** The first version of a new document is trusted content from its own upload (no prior
+     * CURRENT version to protect) and goes straight to CURRENT; only *additional* versions must
+     * pass through the Phase 2 approval workflow before superseding it (see {@link #addVersion}). */
     @Transactional
-    public DocumentResponse createDocument(String title, String category, String uploaderUsername, MultipartFile file) {
+    public DocumentResponse createDocument(
+            String title, String category, Long studyId, String uploaderUsername, MultipartFile file) {
         User uploader = currentUser(uploaderUsername);
 
         Document document = new Document();
         document.setTitle(title);
         document.setCategory(category);
         document.setOwner(uploader);
+        if (studyId != null) {
+            document.setStudy(resolveStudy(studyId));
+        }
         document = documentRepository.save(document);
 
-        DocumentVersion version = storeVersion(document, file, uploader, 1);
+        DocumentVersion version = storeVersion(document, file, uploader, 1, DocumentVersionStatus.CURRENT);
         document.setCurrentVersion(version);
         document = documentRepository.save(document);
 
@@ -60,21 +77,16 @@ public class DocumentService {
         return DocumentResponse.from(document);
     }
 
+    /** New versions start as DRAFT and must pass through DocumentWorkflowService's
+     * submit-for-review / reviewer-approve / approver-final-approve steps before superseding the
+     * current version -- unlike Phase 0's original behavior, this no longer auto-promotes. */
     @Transactional
     public DocumentVersionResponse addVersion(Long documentId, String uploaderUsername, MultipartFile file) {
         Document document = documentRepository.findById(documentId).orElseThrow(NoSuchElementException::new);
         User uploader = currentUser(uploaderUsername);
 
         int nextVersionNumber = documentVersionRepository.countByDocumentId(documentId) + 1;
-        DocumentVersion previousCurrent = document.getCurrentVersion();
-        if (previousCurrent != null) {
-            previousCurrent.setStatus(DocumentVersion.STATUS_ARCHIVED);
-            documentVersionRepository.save(previousCurrent);
-        }
-
-        DocumentVersion version = storeVersion(document, file, uploader, nextVersionNumber);
-        document.setCurrentVersion(version);
-        documentRepository.save(document);
+        DocumentVersion version = storeVersion(document, file, uploader, nextVersionNumber, DocumentVersionStatus.DRAFT);
 
         auditService.record(
                 "Document", String.valueOf(documentId), AuditAction.UPDATE, null,
@@ -82,7 +94,22 @@ public class DocumentService {
         return DocumentVersionResponse.from(version);
     }
 
-    private DocumentVersion storeVersion(Document document, MultipartFile file, User uploader, int versionNumber) {
+    /** Archives the document's current CURRENT version (if any) and promotes {@code newVersion} in
+     * its place. Called both by {@link #createDocument} implicitly (no prior version to archive)
+     * and by DocumentWorkflowService's final-approval step once a new version clears the workflow. */
+    public void promoteToCurrent(DocumentVersion newVersion) {
+        Document document = newVersion.getDocument();
+        DocumentVersion previousCurrent = document.getCurrentVersion();
+        if (previousCurrent != null && !previousCurrent.getId().equals(newVersion.getId())) {
+            previousCurrent.setStatus(DocumentVersionStatus.ARCHIVED);
+            documentVersionRepository.save(previousCurrent);
+        }
+        document.setCurrentVersion(newVersion);
+        documentRepository.save(document);
+    }
+
+    private DocumentVersion storeVersion(
+            Document document, MultipartFile file, User uploader, int versionNumber, DocumentVersionStatus initialStatus) {
         byte[] bytes;
         try {
             bytes = file.getBytes();
@@ -100,13 +127,15 @@ public class DocumentService {
         version.setContentType(file.getContentType());
         version.setSizeBytes(file.getSize());
         version.setChecksumSha256(checksum);
-        version.setStatus(DocumentVersion.STATUS_CURRENT);
+        version.setStatus(initialStatus);
         version.setUploadedBy(uploader);
         return documentVersionRepository.save(version);
     }
 
     @Transactional(readOnly = true)
     public InputStream downloadVersion(Long documentId, int versionNumber) {
+        Document document = documentRepository.findById(documentId).orElseThrow(NoSuchElementException::new);
+        accessControlService.assertReadable(document);
         DocumentVersion version = documentVersionRepository
                 .findByDocumentIdAndVersionNumber(documentId, versionNumber)
                 .orElseThrow(NoSuchElementException::new);
@@ -134,12 +163,19 @@ public class DocumentService {
 
     @Transactional(readOnly = true)
     public Page<DocumentResponse> list(Pageable pageable) {
-        return documentRepository.findAll(pageable).map(DocumentResponse::from);
+        return documentRepository.findVisibleTo(accessControlService.currentRoleCodes(), pageable)
+                .map(DocumentResponse::from);
     }
 
     @Transactional(readOnly = true)
     public DocumentResponse get(Long documentId) {
-        return DocumentResponse.from(documentRepository.findById(documentId).orElseThrow(NoSuchElementException::new));
+        Document document = documentRepository.findById(documentId).orElseThrow(NoSuchElementException::new);
+        accessControlService.assertReadable(document);
+        return DocumentResponse.from(document);
+    }
+
+    private Study resolveStudy(Long studyId) {
+        return studyRepository.findById(studyId).orElseThrow(NoSuchElementException::new);
     }
 
     private User currentUser(String username) {

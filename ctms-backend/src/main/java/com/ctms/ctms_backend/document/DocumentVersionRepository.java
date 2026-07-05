@@ -1,7 +1,10 @@
 package com.ctms.ctms_backend.document;
 
+import com.ctms.ctms_backend.document.entity.DocumentVersionStatus;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface DocumentVersionRepository extends JpaRepository<DocumentVersion, Long> {
@@ -11,4 +14,6 @@ public interface DocumentVersionRepository extends JpaRepository<DocumentVersion
     Optional<DocumentVersion> findByDocumentIdAndVersionNumber(Long documentId, int versionNumber);
 
     int countByDocumentId(Long documentId);
+
+    Page<DocumentVersion> findByStatus(DocumentVersionStatus status, Pageable pageable);
 }

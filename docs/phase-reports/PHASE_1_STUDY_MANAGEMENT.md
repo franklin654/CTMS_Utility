@@ -19,6 +19,7 @@ Partway through planning, a `CLAUDE.md` governance file appeared in the repo (cr
 ## 2. What Was Built
 
 ### Backend (`com.ctms.ctms_backend.study`)
+
 - **Schema** (`V3__study_management.sql`): `study` table (with `study_code`, lifecycle `status`, `createdBy`/`modifiedBy`) and `study_status_history` (queryable transition log, with an optional FK to `e_signature` for the closeout transition).
 - **State machine**: strictly sequential `DRAFT → ACTIVE → CONDUCT → CLOSEOUT`, no skipping, no going backward, enforced in `StudyService` via a `Map<StudyStatus, StudyStatus>`.
 - **Two transition endpoints**, split per the e-signature requirement:
@@ -31,6 +32,7 @@ Partway through planning, a `CLAUDE.md` governance file appeared in the repo (cr
 - **5 new exceptions** wired into the existing single `GlobalExceptionHandler` (not a new per-feature handler), matching the established convention.
 
 ### Frontend (`features/studies/`)
+
 - `study-list` (search + pagination), `study-create` (form), `study-detail` (overview, status-chip row, inline edit with field locking, transition history).
 - Two distinct `MatDialog` flows: a plain justification dialog for the first two transitions, and a visually distinct (red/warn) password+reason dialog specifically for closeout.
 - `StudyService` HTTP client, wired into `app.routes.ts` and the shell nav, following Phase 0's established patterns exactly (lazy-loaded standalone components, `FormGroup`/`FormControl` built directly rather than via `FormBuilder`, `*appHasRole` for UX gating backed by server-side `@PreAuthorize`).

@@ -1,8 +1,11 @@
 package com.ctms.ctms_backend.document;
 
+import com.ctms.ctms_backend.document.entity.DocumentVersionStatus;
 import com.ctms.ctms_backend.user.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -18,16 +21,13 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /** Once created, a version's storage/checksum fields are never mutated -- only {@code status}
- * transitions (e.g. CURRENT -> ARCHIVED when superseded, or the Phase 2 approval workflow states). */
+ * transitions through the Phase 2 approval workflow (see {@link DocumentVersionStatus}). */
 @Entity
 @Table(name = "document_version")
 @Getter
 @Setter
 @NoArgsConstructor
 public class DocumentVersion {
-
-    public static final String STATUS_CURRENT = "CURRENT";
-    public static final String STATUS_ARCHIVED = "ARCHIVED";
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -58,8 +58,9 @@ public class DocumentVersion {
     @Column(name = "effective_date")
     private LocalDate effectiveDate;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)
-    private String status = "DRAFT";
+    private DocumentVersionStatus status = DocumentVersionStatus.DRAFT;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "uploaded_by", nullable = false)

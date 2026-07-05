@@ -47,6 +47,40 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/studies/study-detail/study-detail.component').then((m) => m.StudyDetailComponent),
       },
+      {
+        path: 'documents',
+        loadComponent: () =>
+          import('./features/documents/document-list/document-list.component').then((m) => m.DocumentListComponent),
+      },
+      {
+        path: 'documents/new',
+        canActivate: [roleGuard(['STUDY_MANAGER', 'SITE_COORDINATOR', 'ADMIN'])],
+        loadComponent: () =>
+          import('./features/documents/document-upload/document-upload.component').then(
+            (m) => m.DocumentUploadComponent,
+          ),
+      },
+      {
+        path: 'documents/approval-queue',
+        canActivate: [roleGuard(['STUDY_MANAGER', 'QA_COMPLIANCE_AUDITOR', 'ADMIN'])],
+        loadComponent: () =>
+          import('./features/documents/document-approval-queue/document-approval-queue.component').then(
+            (m) => m.DocumentApprovalQueueComponent,
+          ),
+      },
+      {
+        path: 'documents/:id',
+        loadComponent: () =>
+          import('./features/documents/document-detail/document-detail.component').then(
+            (m) => m.DocumentDetailComponent,
+          ),
+      },
+      {
+        path: 'admin/audit-log',
+        canActivate: [roleGuard(['ADMIN', 'QA_COMPLIANCE_AUDITOR'])],
+        loadComponent: () =>
+          import('./features/admin/audit-log/audit-log.component').then((m) => m.AuditLogComponent),
+      },
       { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
     ],
   },
