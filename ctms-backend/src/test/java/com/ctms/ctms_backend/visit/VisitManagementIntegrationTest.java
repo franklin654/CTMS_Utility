@@ -163,7 +163,7 @@ class VisitManagementIntegrationTest {
         VisitResponse visit3 = visits.get(2);
 
         visitService.markCompleted(visit1.id(), new MarkVisitCompletedRequest(visit1.scheduledDate(), null, "done"));
-        visitService.markMissed(visit2.id(), new MarkVisitMissedRequest("Subject unreachable"));
+        visitService.markMissed(visit2.id(), new MarkVisitMissedRequest("Subject unreachable"), coordinator.getUsername());
 
         SubjectVisitScheduleResponse midSchedule = visitService.schedule(subject.id());
         assertEquals(0.5, midSchedule.complianceRate());
@@ -233,7 +233,7 @@ class VisitManagementIntegrationTest {
         assertEquals(null, adHocVisit.visitTemplateId());
 
         // Mark the ad-hoc visit missed -- it must NOT drag down the protocol compliance rate.
-        visitService.markMissed(adHocVisit.id(), new MarkVisitMissedRequest("Subject rescheduled"));
+        visitService.markMissed(adHocVisit.id(), new MarkVisitMissedRequest("Subject rescheduled"), coordinator.getUsername());
 
         SubjectVisitScheduleResponse schedule = visitService.schedule(subject.id());
         assertEquals(2, schedule.visits().size());

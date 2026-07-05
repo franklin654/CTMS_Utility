@@ -9,8 +9,10 @@ import static org.mockito.Mockito.when;
 import com.ctms.ctms_backend.audit.AuditService;
 import com.ctms.ctms_backend.notification.NotificationService;
 import com.ctms.ctms_backend.site.entity.Site;
+import com.ctms.ctms_backend.study.entity.Study;
 import com.ctms.ctms_backend.subject.entity.Subject;
 import com.ctms.ctms_backend.subject.repository.SubjectRepository;
+import com.ctms.ctms_backend.task.service.TaskService;
 import com.ctms.ctms_backend.user.User;
 import com.ctms.ctms_backend.user.UserRepository;
 import com.ctms.ctms_backend.visit.dto.CreateAdHocVisitRequest;
@@ -43,6 +45,7 @@ class VisitServiceTest {
     @Mock private UserRepository userRepository;
     @Mock private AuditService auditService;
     @Mock private NotificationService notificationService;
+    @Mock private TaskService taskService;
 
     @InjectMocks
     private VisitService visitService;
@@ -60,10 +63,15 @@ class VisitServiceTest {
         site.setId(20L);
         site.setSiteCode("SITE-001");
 
+        Study study = new Study();
+        study.setId(10L);
+        study.setCreatedBy(creator);
+
         subject = new Subject();
         subject.setId(1000L);
         subject.setSubjectCode("SUBJ-001000");
         subject.setSite(site);
+        subject.setStudy(study);
         subject.setCreatedBy(creator);
         subject.setScreeningDate(LocalDate.now().minusDays(30));
 
@@ -118,7 +126,7 @@ class VisitServiceTest {
     @Test
     void markMissed_setsStatusAndReasonCode() {
         MarkVisitMissedRequest req = new MarkVisitMissedRequest("Subject unreachable");
-        VisitResponse response = visitService.markMissed(1L, req);
+        VisitResponse response = visitService.markMissed(1L, req, "coordinator1");
         assertEquals("MISSED", response.status());
         assertEquals("Subject unreachable", response.reasonCode());
     }

@@ -25,6 +25,7 @@ import com.ctms.ctms_backend.subject.repository.EligibilityCriterionRepository;
 import com.ctms.ctms_backend.subject.repository.SubjectEligibilityAnswerRepository;
 import com.ctms.ctms_backend.subject.repository.SubjectRepository;
 import com.ctms.ctms_backend.subject.rules.EligibilityAnswerFact;
+import com.ctms.ctms_backend.task.service.TaskService;
 import com.ctms.ctms_backend.user.User;
 import com.ctms.ctms_backend.user.UserRepository;
 import com.ctms.ctms_backend.visit.service.VisitSchedulingService;
@@ -53,6 +54,7 @@ public class SubjectService {
     private final AuditService auditService;
     private final RuleSetService ruleSetService;
     private final VisitSchedulingService visitSchedulingService;
+    private final TaskService taskService;
 
     public SubjectService(
             SubjectRepository subjectRepository,
@@ -63,7 +65,8 @@ public class SubjectService {
             UserRepository userRepository,
             AuditService auditService,
             RuleSetService ruleSetService,
-            VisitSchedulingService visitSchedulingService) {
+            VisitSchedulingService visitSchedulingService,
+            TaskService taskService) {
         this.subjectRepository = subjectRepository;
         this.criterionRepository = criterionRepository;
         this.answerRepository = answerRepository;
@@ -73,6 +76,7 @@ public class SubjectService {
         this.auditService = auditService;
         this.ruleSetService = ruleSetService;
         this.visitSchedulingService = visitSchedulingService;
+        this.taskService = taskService;
     }
 
     @Transactional
@@ -143,6 +147,14 @@ public class SubjectService {
                 null, "enrolled subject " + subject.getSubjectCode() + " under study " + study.getStudyCode(), null);
 
         visitSchedulingService.generateForSubject(subject);
+
+        User taskOwner = site.getAssignedCra() != null ? site.getAssignedCra() : creator;
+        User escalationTarget = study.getCreatedBy();
+        taskService.createTask(
+                "SUBJECT_ENROLLED",
+                "Review new subject enrollment: " + subject.getSubjectCode(),
+                "Subject " + subject.getSubjectCode() + " was enrolled under study " + study.getStudyCode() + ".",
+                "Subject", subject.getId(), taskOwner.getId(), escalationTarget.getId(), creatorUsername);
 
         return SubjectResponse.from(subject, currentRoleCodes());
     }

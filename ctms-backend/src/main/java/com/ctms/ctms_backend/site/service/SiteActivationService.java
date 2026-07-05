@@ -19,6 +19,8 @@ import com.ctms.ctms_backend.site.exception.SiteActivationBlockedException;
 import com.ctms.ctms_backend.site.exception.SiteNotFoundException;
 import com.ctms.ctms_backend.site.repository.SiteActivationChecklistItemRepository;
 import com.ctms.ctms_backend.site.repository.SiteRepository;
+import com.ctms.ctms_backend.task.service.TaskService;
+import com.ctms.ctms_backend.user.Role;
 import com.ctms.ctms_backend.user.User;
 import com.ctms.ctms_backend.user.UserRepository;
 import java.time.LocalDate;
@@ -46,18 +48,21 @@ public class SiteActivationService {
     private final UserRepository userRepository;
     private final AuditService auditService;
     private final NotificationService notificationService;
+    private final TaskService taskService;
 
     public SiteActivationService(
             SiteRepository siteRepository,
             SiteActivationChecklistItemRepository checklistRepository,
             UserRepository userRepository,
             AuditService auditService,
-            NotificationService notificationService) {
+            NotificationService notificationService,
+            TaskService taskService) {
         this.siteRepository = siteRepository;
         this.checklistRepository = checklistRepository;
         this.userRepository = userRepository;
         this.auditService = auditService;
         this.notificationService = notificationService;
+        this.taskService = taskService;
     }
 
     @Transactional(readOnly = true)
@@ -154,6 +159,26 @@ public class SiteActivationService {
                 "all activation prerequisites complete");
 
         notifyActivation(site);
+
+        if (site.getAssignedCra() == null) {
+            createCraAssignmentTask(site, actor);
+        }
+    }
+
+    /** BRD Epic 5 Story 01: auto-create a task when a site activates with no CRA assigned yet --
+     * skipped entirely if a CRA is already assigned, to avoid a noisy no-op task. */
+    private void createCraAssignmentTask(Site site, User actor) {
+        List<User> admins = userRepository.findByRoles_Code(Role.ADMIN);
+        if (admins.isEmpty()) {
+            return;
+        }
+        User admin = admins.get(0);
+        taskService.createTask(
+                "SITE_ACTIVATED",
+                "Assign CRA to newly activated site: " + site.getSiteCode(),
+                "Site " + site.getSiteCode() + " under study " + site.getStudy().getStudyCode()
+                        + " is now Active but has no assigned CRA.",
+                "Site", site.getId(), site.getStudy().getCreatedBy().getId(), admin.getId(), actor.getUsername());
     }
 
     private void notifyActivation(Site site) {

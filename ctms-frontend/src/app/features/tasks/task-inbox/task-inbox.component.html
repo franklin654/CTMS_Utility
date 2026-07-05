@@ -1,0 +1,59 @@
+<div class="max-w-3xl mx-auto flex flex-col gap-6">
+  <div class="bg-white rounded-lg shadow p-6">
+    <div class="flex items-center justify-between mb-3">
+      <h1 class="text-xl font-semibold text-gray-900">{{ showAllTasks() ? 'All Tasks' : 'My Tasks' }}</h1>
+      <button
+        *appHasRole="['STUDY_MANAGER', 'ADMIN']"
+        mat-stroked-button
+        (click)="toggleAllTasks()"
+      >
+        {{ showAllTasks() ? 'Show My Tasks' : 'Show All Tasks' }}
+      </button>
+    </div>
+
+    @if (errorMessage()) {
+      <p class="text-sm text-red-600 mb-3">{{ errorMessage() }}</p>
+    }
+
+    <div class="flex flex-col gap-3">
+      @for (t of page()?.content; track t.id) {
+        <div class="border rounded p-3" [class.border-amber-300]="t.escalated" [class.bg-amber-50]="t.escalated">
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="text-sm font-medium text-gray-900">
+                {{ t.title }}
+                <span class="ml-2 text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-600">{{ t.priority }}</span>
+                @if (t.escalated) {
+                  <span class="ml-2 text-xs px-2 py-0.5 rounded bg-red-100 text-red-700">Escalated</span>
+                }
+              </div>
+              <div class="text-xs text-gray-500">
+                {{ t.entityName }} #{{ t.entityId }} &middot; Owner: {{ t.ownerUsername }}
+                &middot; Due {{ t.dueAt | date: 'medium' }}
+              </div>
+              @if (t.description) {
+                <div class="text-xs text-gray-600 mt-1">{{ t.description }}</div>
+              }
+            </div>
+            <div class="flex flex-col items-end gap-2">
+              <span class="px-2 py-1 rounded text-xs font-medium" [class]="urgencyClass(t.dueAt, t.status)">
+                {{ t.status === 'COMPLETED' ? 'Completed' : urgencyLabel(t.dueAt, t.status) }}
+              </span>
+              @if (t.status !== 'COMPLETED') {
+                <div class="flex gap-2">
+                  @if (t.status === 'OPEN') {
+                    <button mat-button (click)="start(t.id)">Start</button>
+                  }
+                  <button mat-button (click)="complete(t.id)">Complete</button>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      }
+      @if (!page()?.content?.length) {
+        <p class="text-sm text-gray-500 text-center py-4">No tasks to show.</p>
+      }
+    </div>
+  </div>
+</div>

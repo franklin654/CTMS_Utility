@@ -55,8 +55,8 @@ public class VisitController {
 
     @PostMapping("/api/visits/{id}/miss")
     @PreAuthorize(WRITE_ROLES)
-    public VisitResponse miss(@PathVariable Long id, @Valid @RequestBody MarkVisitMissedRequest req) {
-        return visitService.markMissed(id, req);
+    public VisitResponse miss(Principal principal, @PathVariable Long id, @Valid @RequestBody MarkVisitMissedRequest req) {
+        return visitService.markMissed(id, req, principal.getName());
     }
 
     @PostMapping("/api/visits/{id}/reschedule")

@@ -15,6 +15,14 @@
         >
           Approval Queue
         </a>
+        <a
+          *appHasRole="['STUDY_MANAGER', 'ADMIN', 'SITE_COORDINATOR', 'INVESTIGATOR', 'CRA_MONITOR', 'DATA_MANAGEMENT', 'FINANCE_MANAGER', 'QA_COMPLIANCE_AUDITOR', 'CLINICAL_LEADERSHIP', 'EXECUTIVE', 'SPONSOR_CRO_LEADERSHIP']"
+          routerLink="/tasks"
+          class="text-gray-700 hover:text-gray-900"
+        >
+          Tasks
+        </a>
+        <a routerLink="/notifications" class="text-gray-700 hover:text-gray-900">Notifications</a>
         <a *appHasRole="['ADMIN']" routerLink="/admin/rule-sets" class="text-gray-700 hover:text-gray-900">
           Rule Sets
         </a>

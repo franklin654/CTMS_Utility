@@ -126,6 +126,24 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/admin/audit-log/audit-log.component').then((m) => m.AuditLogComponent),
       },
+      {
+        path: 'tasks',
+        canActivate: [
+          roleGuard([
+            'STUDY_MANAGER', 'ADMIN', 'SITE_COORDINATOR', 'INVESTIGATOR', 'CRA_MONITOR',
+            'DATA_MANAGEMENT', 'FINANCE_MANAGER', 'QA_COMPLIANCE_AUDITOR', 'CLINICAL_LEADERSHIP',
+            'EXECUTIVE', 'SPONSOR_CRO_LEADERSHIP',
+          ]),
+        ],
+        loadComponent: () => import('./features/tasks/task-inbox/task-inbox.component').then((m) => m.TaskInboxComponent),
+      },
+      {
+        path: 'notifications',
+        loadComponent: () =>
+          import('./features/notifications/notification-list/notification-list.component').then(
+            (m) => m.NotificationListComponent,
+          ),
+      },
       { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
     ],
   },

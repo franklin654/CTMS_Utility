@@ -46,7 +46,7 @@ class NotificationServiceIntegrationTest {
         notificationService.notify(
                 recipient.getId(), "TEST", "A test notification", "body text", "/somewhere");
 
-        var page = notificationService.list(recipient, false, Pageable.ofSize(10));
+        var page = notificationService.list(recipient, null, false, Pageable.ofSize(10));
         assertEquals(1, page.getContent().size());
         assertEquals("A test notification", page.getContent().get(0).title());
         assertEquals(1, notificationService.unreadCount(recipient));

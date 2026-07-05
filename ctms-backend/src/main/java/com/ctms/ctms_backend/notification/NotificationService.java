@@ -55,11 +55,9 @@ public class NotificationService {
     }
 
     @Transactional(readOnly = true)
-    public Page<NotificationResponse> list(User recipient, boolean unreadOnly, Pageable pageable) {
-        Page<Notification> page = unreadOnly
-                ? notificationRepository.findByRecipientAndReadFalseOrderByCreatedAtDesc(recipient, pageable)
-                : notificationRepository.findByRecipientOrderByCreatedAtDesc(recipient, pageable);
-        return page.map(NotificationResponse::from);
+    public Page<NotificationResponse> list(User recipient, String type, boolean unreadOnly, Pageable pageable) {
+        String normalizedType = (type == null || type.isBlank()) ? "" : type;
+        return notificationRepository.search(recipient, normalizedType, unreadOnly, pageable).map(NotificationResponse::from);
     }
 
     public long unreadCount(User recipient) {

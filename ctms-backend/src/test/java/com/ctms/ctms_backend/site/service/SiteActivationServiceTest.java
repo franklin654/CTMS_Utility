@@ -25,6 +25,8 @@ import com.ctms.ctms_backend.site.exception.SiteActivationBlockedException;
 import com.ctms.ctms_backend.site.repository.SiteActivationChecklistItemRepository;
 import com.ctms.ctms_backend.site.repository.SiteRepository;
 import com.ctms.ctms_backend.study.entity.Study;
+import com.ctms.ctms_backend.task.service.TaskService;
+import com.ctms.ctms_backend.user.Role;
 import com.ctms.ctms_backend.user.User;
 import com.ctms.ctms_backend.user.UserRepository;
 import java.util.ArrayList;
@@ -50,6 +52,8 @@ class SiteActivationServiceTest {
     private AuditService auditService;
     @Mock
     private NotificationService notificationService;
+    @Mock
+    private TaskService taskService;
 
     @InjectMocks
     private SiteActivationService siteActivationService;
@@ -68,6 +72,9 @@ class SiteActivationServiceTest {
         Study study = new Study();
         study.setId(10L);
         study.setStudyCode("ST-000010");
+        study.setCreatedBy(actor);
+
+        lenient().when(userRepository.findByRoles_Code(Role.ADMIN)).thenReturn(List.of());
 
         site = new Site();
         site.setId(100L);

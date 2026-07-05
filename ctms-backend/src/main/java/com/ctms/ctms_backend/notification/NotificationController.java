@@ -31,9 +31,10 @@ public class NotificationController {
     @GetMapping
     public Page<NotificationResponse> list(
             Principal principal,
+            @RequestParam(required = false) String type,
             @RequestParam(defaultValue = "false") boolean unreadOnly,
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
-        return notificationService.list(currentUser(principal), unreadOnly, pageable);
+        return notificationService.list(currentUser(principal), type, unreadOnly, pageable);
     }
 
     @GetMapping("/unread-count")

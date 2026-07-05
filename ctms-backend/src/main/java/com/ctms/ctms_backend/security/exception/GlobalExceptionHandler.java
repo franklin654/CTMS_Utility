@@ -23,6 +23,8 @@ import com.ctms.ctms_backend.subject.exception.IncompleteEligibilityAnswersExcep
 import com.ctms.ctms_backend.subject.exception.InvalidSubjectTransitionException;
 import com.ctms.ctms_backend.subject.exception.StudySiteMismatchException;
 import com.ctms.ctms_backend.subject.exception.SubjectNotFoundException;
+import com.ctms.ctms_backend.task.exception.InvalidTaskTransitionException;
+import com.ctms.ctms_backend.task.exception.TaskNotFoundException;
 import com.ctms.ctms_backend.visit.exception.InvalidVisitTransitionException;
 import com.ctms.ctms_backend.visit.exception.VisitNotFoundException;
 import com.ctms.ctms_backend.visit.exception.VisitTemplateNotFoundException;
@@ -144,6 +146,16 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler({InvalidVisitTransitionException.class, VisitTemplateWindowInvalidException.class})
     public ResponseEntity<Object> handleVisitStateViolation(RuntimeException e) {
+        return error(HttpStatus.BAD_REQUEST, e.getMessage());
+    }
+
+    @ExceptionHandler(TaskNotFoundException.class)
+    public ResponseEntity<Object> handleTaskNotFound(TaskNotFoundException e) {
+        return error(HttpStatus.NOT_FOUND, e.getMessage());
+    }
+
+    @ExceptionHandler(InvalidTaskTransitionException.class)
+    public ResponseEntity<Object> handleTaskStateViolation(InvalidTaskTransitionException e) {
         return error(HttpStatus.BAD_REQUEST, e.getMessage());
     }
 

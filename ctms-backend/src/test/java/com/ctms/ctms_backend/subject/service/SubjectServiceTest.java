@@ -28,6 +28,7 @@ import com.ctms.ctms_backend.subject.exception.StudySiteMismatchException;
 import com.ctms.ctms_backend.subject.repository.EligibilityCriterionRepository;
 import com.ctms.ctms_backend.subject.repository.SubjectEligibilityAnswerRepository;
 import com.ctms.ctms_backend.subject.repository.SubjectRepository;
+import com.ctms.ctms_backend.task.service.TaskService;
 import com.ctms.ctms_backend.user.Role;
 import com.ctms.ctms_backend.user.User;
 import com.ctms.ctms_backend.user.UserRepository;
@@ -57,6 +58,7 @@ class SubjectServiceTest {
     @Mock private AuditService auditService;
     @Mock private RuleSetService ruleSetService;
     @Mock private VisitSchedulingService visitSchedulingService;
+    @Mock private TaskService taskService;
 
     @InjectMocks
     private SubjectService subjectService;
@@ -77,6 +79,7 @@ class SubjectServiceTest {
         study = new Study();
         study.setId(10L);
         study.setStudyCode("ST-000010");
+        study.setCreatedBy(creator);
         lenient().when(studyRepository.findById(10L)).thenReturn(Optional.of(study));
 
         site = new Site();

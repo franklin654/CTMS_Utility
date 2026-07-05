@@ -14,16 +14,22 @@ export interface NotificationItem {
 
 interface Page<T> {
   content: T[];
+  totalElements: number;
+  totalPages: number;
+  number: number;
+  size: number;
 }
 
 @Injectable({ providedIn: 'root' })
 export class NotificationService {
   constructor(private readonly http: HttpClient) {}
 
-  list(unreadOnly = false): Observable<Page<NotificationItem>> {
-    return this.http.get<Page<NotificationItem>>('/api/notifications', {
-      params: { unreadOnly },
-    });
+  list(unreadOnly = false, type?: string, page = 0, size = 20): Observable<Page<NotificationItem>> {
+    const params: Record<string, string | number | boolean> = { unreadOnly, page, size };
+    if (type) {
+      params['type'] = type;
+    }
+    return this.http.get<Page<NotificationItem>>('/api/notifications', { params });
   }
 
   unreadCount(): Observable<number> {

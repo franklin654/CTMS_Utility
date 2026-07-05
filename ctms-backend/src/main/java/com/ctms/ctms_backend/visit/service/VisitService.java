@@ -7,6 +7,7 @@ import com.ctms.ctms_backend.security.exception.InvalidCredentialsException;
 import com.ctms.ctms_backend.subject.entity.Subject;
 import com.ctms.ctms_backend.subject.exception.SubjectNotFoundException;
 import com.ctms.ctms_backend.subject.repository.SubjectRepository;
+import com.ctms.ctms_backend.task.service.TaskService;
 import com.ctms.ctms_backend.user.User;
 import com.ctms.ctms_backend.user.UserRepository;
 import com.ctms.ctms_backend.visit.dto.CreateAdHocVisitRequest;
@@ -42,18 +43,21 @@ public class VisitService {
     private final UserRepository userRepository;
     private final AuditService auditService;
     private final NotificationService notificationService;
+    private final TaskService taskService;
 
     public VisitService(
             VisitRepository visitRepository,
             SubjectRepository subjectRepository,
             UserRepository userRepository,
             AuditService auditService,
-            NotificationService notificationService) {
+            NotificationService notificationService,
+            TaskService taskService) {
         this.visitRepository = visitRepository;
         this.subjectRepository = subjectRepository;
         this.userRepository = userRepository;
         this.auditService = auditService;
         this.notificationService = notificationService;
+        this.taskService = taskService;
     }
 
     @Transactional(readOnly = true)
@@ -86,7 +90,7 @@ public class VisitService {
     }
 
     @Transactional
-    public VisitResponse markMissed(Long id, MarkVisitMissedRequest req) {
+    public VisitResponse markMissed(Long id, MarkVisitMissedRequest req, String actorUsername) {
         Visit visit = findVisit(id);
         guardScheduled(visit);
 
@@ -98,8 +102,21 @@ public class VisitService {
                 "Visit", String.valueOf(id), AuditAction.STATE_CHANGE, VisitStatus.SCHEDULED.name(), VisitStatus.MISSED.name(), req.reasonCode());
         notificationService.clearByLink(visitLink(visit));
         notifyVisitMissed(visit);
+        createMissedVisitTask(visit, actorUsername);
 
         return VisitResponse.from(visit);
+    }
+
+    /** BRD Epic 5 Story 01 (Auto-Create Tasks): a missed visit auto-creates a follow-up task. */
+    private void createMissedVisitTask(Visit visit, String actorUsername) {
+        Subject subject = visit.getSubject();
+        User owner = subject.getSite().getAssignedCra() != null ? subject.getSite().getAssignedCra() : subject.getCreatedBy();
+        User escalationTarget = subject.getStudy().getCreatedBy();
+        taskService.createTask(
+                "VISIT_MISSED",
+                "Follow up with subject on missed visit: " + subject.getSubjectCode(),
+                "Subject " + subject.getSubjectCode() + "'s visit \"" + visit.getName() + "\" was marked missed. Reason: " + visit.getReasonCode(),
+                "Visit", visit.getId(), owner.getId(), escalationTarget.getId(), actorUsername);
     }
 
     @Transactional
