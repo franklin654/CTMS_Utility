@@ -1,6 +1,8 @@
 package com.ctms.ctms_backend.subject.repository;
 
 import com.ctms.ctms_backend.subject.entity.Subject;
+import com.ctms.ctms_backend.subject.entity.SubjectStatus;
+import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -23,4 +25,6 @@ public interface SubjectRepository extends JpaRepository<Subject, Long> {
             @Param("siteId") Long siteId,
             @Param("search") String search,
             Pageable pageable);
+
+    List<Subject> findByStudyIdAndStatusNotIn(Long studyId, List<SubjectStatus> excludedStatuses);
 }

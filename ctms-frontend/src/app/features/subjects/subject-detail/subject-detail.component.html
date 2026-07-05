@@ -95,6 +95,197 @@
       </div>
     </div>
 
+    @if (visitSchedule(); as vs) {
+      <div class="bg-white rounded-lg shadow p-6">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="text-sm font-semibold text-gray-700">Visit Schedule</h2>
+          <span class="text-xs px-2 py-1 rounded bg-gray-100 text-gray-700">
+            Compliance: {{ vs.complianceRate * 100 | number: '1.0-0' }}%
+          </span>
+        </div>
+
+        @if (visitErrorMessage()) {
+          <p class="text-sm text-red-600 mb-3">{{ visitErrorMessage() }}</p>
+        }
+
+        <div *appHasRole="['SITE_COORDINATOR', 'INVESTIGATOR', 'STUDY_MANAGER', 'ADMIN']" class="mb-4">
+          @if (!showAdHocForm()) {
+            <button mat-stroked-button (click)="openAdHocForm()">Schedule Ad-Hoc Visit</button>
+          } @else {
+            <form [formGroup]="adHocVisitForm" class="grid grid-cols-1 sm:grid-cols-2 gap-3 border rounded p-3">
+              <mat-form-field appearance="outline" class="sm:col-span-2">
+                <mat-label>Visit Name</mat-label>
+                <input matInput formControlName="name" />
+                <mat-hint>e.g. AE Follow-up</mat-hint>
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Scheduled Date</mat-label>
+                <input matInput type="date" formControlName="scheduledDate" />
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Visit Type</mat-label>
+                <mat-select formControlName="visitType">
+                  <mat-option value="ONSITE">Onsite</mat-option>
+                  <mat-option value="REMOTE">Remote</mat-option>
+                </mat-select>
+              </mat-form-field>
+              <mat-form-field appearance="outline" class="sm:col-span-2">
+                <mat-label>Required Procedures</mat-label>
+                <input matInput formControlName="requiredProcedures" />
+              </mat-form-field>
+              <mat-form-field appearance="outline" class="sm:col-span-2">
+                <mat-label>Reason</mat-label>
+                <input matInput formControlName="reasonCode" />
+                <mat-hint>Why is this visit needed?</mat-hint>
+              </mat-form-field>
+              <div class="sm:col-span-2 flex gap-2">
+                <button
+                  mat-flat-button
+                  color="primary"
+                  type="button"
+                  (click)="submitAdHoc()"
+                  [disabled]="adHocVisitForm.invalid"
+                >
+                  Schedule
+                </button>
+                <button mat-button type="button" (click)="cancelAdHocForm()">Cancel</button>
+              </div>
+            </form>
+          }
+        </div>
+
+        <div class="flex flex-col gap-3">
+          @for (v of vs.visits; track v.id) {
+            <div
+              class="border rounded p-3"
+              [class.bg-amber-50]="isVisitHighlighted(v.status)"
+              [class.border-amber-200]="isVisitHighlighted(v.status)"
+            >
+              <div class="flex items-center justify-between">
+                <div>
+                  <div class="text-sm font-medium text-gray-900">
+                    @if (v.adHoc) {
+                      <span class="text-xs px-2 py-0.5 rounded bg-purple-100 text-purple-700 mr-1">Ad-hoc</span>
+                    } @else {
+                      {{ v.sequenceNumber }}.
+                    }
+                    {{ v.name }}
+                    <span class="ml-2 text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-600">{{ v.visitType }}</span>
+                  </div>
+                  <div class="text-xs text-gray-500">
+                    Scheduled {{ v.scheduledDate | date: 'mediumDate' }}
+                    @if (v.actualDate) {
+                      &middot; Actual {{ v.actualDate | date: 'mediumDate' }}
+                    }
+                    @if (v.reasonCode) {
+                      &middot; {{ v.reasonCode }}
+                    }
+                    @if (v.rescheduledFromVisitId) {
+                      &middot; rescheduled from visit #{{ v.rescheduledFromVisitId }}
+                    }
+                  </div>
+                </div>
+                <span
+                  class="px-2 py-1 rounded text-xs font-medium"
+                  [class.bg-green-100]="v.status === 'COMPLETED'"
+                  [class.text-green-700]="v.status === 'COMPLETED'"
+                  [class.bg-red-100]="v.status === 'MISSED'"
+                  [class.text-red-700]="v.status === 'MISSED'"
+                  [class.bg-amber-100]="v.status === 'RESCHEDULED'"
+                  [class.text-amber-700]="v.status === 'RESCHEDULED'"
+                  [class.bg-blue-100]="v.status === 'SCHEDULED'"
+                  [class.text-blue-700]="v.status === 'SCHEDULED'"
+                >
+                  {{ v.status }}
+                </span>
+              </div>
+
+              @if (v.status === 'SCHEDULED') {
+                <div *appHasRole="['SITE_COORDINATOR', 'STUDY_MANAGER', 'ADMIN']" class="mt-3">
+                  @if (openVisitAction()?.visitId !== v.id) {
+                    <div class="flex gap-2">
+                      <button mat-button (click)="openComplete(v.id)">Mark Completed</button>
+                      <button mat-button (click)="openMiss(v.id)">Mark Missed</button>
+                      <button mat-button (click)="openReschedule(v.id)">Reschedule</button>
+                    </div>
+                  } @else if (openVisitAction()?.type === 'complete') {
+                    <form [formGroup]="completeVisitForm" class="flex items-end gap-3 border-t pt-3">
+                      <mat-form-field appearance="outline">
+                        <mat-label>Actual Date</mat-label>
+                        <input matInput type="date" formControlName="actualDate" />
+                      </mat-form-field>
+                      <mat-form-field appearance="outline">
+                        <mat-label>Actual Time</mat-label>
+                        <input matInput type="time" formControlName="actualTime" />
+                      </mat-form-field>
+                      <mat-form-field appearance="outline" class="flex-1">
+                        <mat-label>Notes</mat-label>
+                        <input matInput formControlName="notes" />
+                      </mat-form-field>
+                      <button
+                        mat-flat-button
+                        color="primary"
+                        type="button"
+                        (click)="submitComplete(v.id)"
+                        [disabled]="completeVisitForm.invalid"
+                        class="mb-4"
+                      >
+                        Confirm
+                      </button>
+                      <button mat-button type="button" (click)="cancelVisitAction()" class="mb-4">Cancel</button>
+                    </form>
+                  } @else if (openVisitAction()?.type === 'miss') {
+                    <form [formGroup]="missVisitForm" class="flex items-end gap-3 border-t pt-3">
+                      <mat-form-field appearance="outline" class="flex-1">
+                        <mat-label>Reason Code</mat-label>
+                        <input matInput formControlName="reasonCode" />
+                      </mat-form-field>
+                      <button
+                        mat-flat-button
+                        color="warn"
+                        type="button"
+                        (click)="submitMiss(v.id)"
+                        [disabled]="missVisitForm.invalid"
+                        class="mb-4"
+                      >
+                        Confirm Missed
+                      </button>
+                      <button mat-button type="button" (click)="cancelVisitAction()" class="mb-4">Cancel</button>
+                    </form>
+                  } @else {
+                    <form [formGroup]="rescheduleVisitForm" class="flex items-end gap-3 border-t pt-3">
+                      <mat-form-field appearance="outline">
+                        <mat-label>New Date</mat-label>
+                        <input matInput type="date" formControlName="newDate" />
+                      </mat-form-field>
+                      <mat-form-field appearance="outline" class="flex-1">
+                        <mat-label>Reason Code</mat-label>
+                        <input matInput formControlName="reasonCode" />
+                      </mat-form-field>
+                      <button
+                        mat-flat-button
+                        color="primary"
+                        type="button"
+                        (click)="submitReschedule(v.id)"
+                        [disabled]="rescheduleVisitForm.invalid"
+                        class="mb-4"
+                      >
+                        Confirm Reschedule
+                      </button>
+                      <button mat-button type="button" (click)="cancelVisitAction()" class="mb-4">Cancel</button>
+                    </form>
+                  }
+                </div>
+              }
+            </div>
+          }
+          @if (vs.visits.length === 0) {
+            <p class="text-sm text-gray-500 text-center py-4">No visits scheduled yet.</p>
+          }
+        </div>
+      </div>
+    }
+
     <div class="bg-white rounded-lg shadow p-6">
       <h2 class="text-sm font-semibold text-gray-700 mb-3">Status History</h2>
       <table class="w-full text-sm text-left">

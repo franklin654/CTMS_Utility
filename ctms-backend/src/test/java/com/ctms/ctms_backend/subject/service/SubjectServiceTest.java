@@ -31,6 +31,7 @@ import com.ctms.ctms_backend.subject.repository.SubjectRepository;
 import com.ctms.ctms_backend.user.Role;
 import com.ctms.ctms_backend.user.User;
 import com.ctms.ctms_backend.user.UserRepository;
+import com.ctms.ctms_backend.visit.service.VisitSchedulingService;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -55,6 +56,7 @@ class SubjectServiceTest {
     @Mock private UserRepository userRepository;
     @Mock private AuditService auditService;
     @Mock private RuleSetService ruleSetService;
+    @Mock private VisitSchedulingService visitSchedulingService;
 
     @InjectMocks
     private SubjectService subjectService;

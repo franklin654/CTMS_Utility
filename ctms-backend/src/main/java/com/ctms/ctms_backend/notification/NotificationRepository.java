@@ -1,6 +1,7 @@
 package com.ctms.ctms_backend.notification;
 
 import com.ctms.ctms_backend.user.User;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -15,4 +16,8 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     long countByRecipientAndReadFalse(User recipient);
 
     Optional<Notification> findByIdAndRecipient(Long id, User recipient);
+
+    Optional<Notification> findByRecipientAndTypeAndLink(User recipient, String type, String link);
+
+    List<Notification> findByLinkAndReadFalse(String link);
 }

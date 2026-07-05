@@ -14,6 +14,13 @@
           >
             Eligibility Criteria
           </a>
+          <a
+            *appHasRole="['STUDY_MANAGER', 'ADMIN']"
+            [routerLink]="['/studies', s.id, 'visit-templates']"
+            mat-stroked-button
+          >
+            Visit Templates
+          </a>
           @if (!isFullyLocked()) {
             <button *appHasRole="['STUDY_MANAGER', 'ADMIN']" mat-stroked-button (click)="toggleEdit()">
               {{ editMode() ? 'Cancel' : 'Edit' }}

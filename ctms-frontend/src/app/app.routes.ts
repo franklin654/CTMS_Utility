@@ -87,6 +87,12 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'studies/:studyId/visit-templates',
+        canActivate: [roleGuard(['STUDY_MANAGER', 'ADMIN'])],
+        loadComponent: () =>
+          import('./features/visit-templates/visit-templates.component').then((m) => m.VisitTemplatesComponent),
+      },
+      {
         path: 'documents',
         loadComponent: () =>
           import('./features/documents/document-list/document-list.component').then((m) => m.DocumentListComponent),

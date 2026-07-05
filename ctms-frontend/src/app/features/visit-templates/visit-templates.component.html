@@ -1,0 +1,84 @@
+@if (study(); as s) {
+  <div class="max-w-4xl mx-auto flex flex-col gap-6">
+    <div class="bg-white rounded-lg shadow p-6">
+      <h1 class="text-xl font-semibold text-gray-900">Visit Templates</h1>
+      <p class="text-sm text-gray-500">Study {{ s.studyCode }} &ndash; {{ s.name }}</p>
+
+      @if (errorMessage()) {
+        <p class="text-sm text-red-600 mt-3">{{ errorMessage() }}</p>
+      }
+
+      <form [formGroup]="form" (ngSubmit)="save()" class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+        <mat-form-field appearance="outline" class="sm:col-span-2">
+          <mat-label>Visit Name</mat-label>
+          <input matInput formControlName="name" placeholder="e.g. Screening Visit" />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Sequence Number</mat-label>
+          <input matInput type="number" formControlName="sequenceNumber" />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Visit Type</mat-label>
+          <mat-select formControlName="visitType">
+            <mat-option value="ONSITE">Onsite</mat-option>
+            <mat-option value="REMOTE">Remote</mat-option>
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Target Day</mat-label>
+          <input matInput type="number" formControlName="targetDay" />
+          <mat-hint>Days after the subject's screening date</mat-hint>
+        </mat-form-field>
+        <div class="grid grid-cols-2 gap-4">
+          <mat-form-field appearance="outline">
+            <mat-label>Early Window (days)</mat-label>
+            <input matInput type="number" formControlName="windowEarlyDays" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Late Window (days)</mat-label>
+            <input matInput type="number" formControlName="windowLateDays" />
+          </mat-form-field>
+        </div>
+        <mat-form-field appearance="outline" class="sm:col-span-2">
+          <mat-label>Required Procedures</mat-label>
+          <textarea matInput formControlName="requiredProcedures" rows="2"></textarea>
+        </mat-form-field>
+
+        <div class="sm:col-span-2 flex gap-3">
+          <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid">
+            {{ editingId() ? 'Save Changes' : 'Add Template' }}
+          </button>
+          @if (editingId()) {
+            <button mat-stroked-button type="button" (click)="cancelEdit()">Cancel</button>
+          }
+        </div>
+      </form>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-4">
+      @for (t of templates(); track t.id) {
+        <div class="flex items-center justify-between border-b py-3 last:border-0">
+          <div>
+            <div class="text-sm font-medium text-gray-900">
+              {{ t.sequenceNumber }}. {{ t.name }}
+              <span class="ml-2 text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-600">{{ t.visitType }}</span>
+            </div>
+            <div class="text-xs text-gray-500">
+              Day {{ t.targetDay }} (&plusmn;{{ t.windowEarlyDays }}/{{ t.windowLateDays }} days)
+              @if (t.requiredProcedures) {
+                &middot; {{ t.requiredProcedures }}
+              }
+            </div>
+          </div>
+          <div class="flex gap-2">
+            <button mat-button (click)="edit(t)">Edit</button>
+            <button mat-button (click)="deactivate(t.id)">Deactivate</button>
+          </div>
+        </div>
+      }
+      @if (templates().length === 0) {
+        <p class="text-sm text-gray-500 py-4 text-center">No visit templates defined yet.</p>
+      }
+    </div>
+  </div>
+}

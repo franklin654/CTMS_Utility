@@ -27,6 +27,7 @@ import com.ctms.ctms_backend.subject.repository.SubjectRepository;
 import com.ctms.ctms_backend.subject.rules.EligibilityAnswerFact;
 import com.ctms.ctms_backend.user.User;
 import com.ctms.ctms_backend.user.UserRepository;
+import com.ctms.ctms_backend.visit.service.VisitSchedulingService;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -51,6 +52,7 @@ public class SubjectService {
     private final UserRepository userRepository;
     private final AuditService auditService;
     private final RuleSetService ruleSetService;
+    private final VisitSchedulingService visitSchedulingService;
 
     public SubjectService(
             SubjectRepository subjectRepository,
@@ -60,7 +62,8 @@ public class SubjectService {
             SiteRepository siteRepository,
             UserRepository userRepository,
             AuditService auditService,
-            RuleSetService ruleSetService) {
+            RuleSetService ruleSetService,
+            VisitSchedulingService visitSchedulingService) {
         this.subjectRepository = subjectRepository;
         this.criterionRepository = criterionRepository;
         this.answerRepository = answerRepository;
@@ -69,6 +72,7 @@ public class SubjectService {
         this.userRepository = userRepository;
         this.auditService = auditService;
         this.ruleSetService = ruleSetService;
+        this.visitSchedulingService = visitSchedulingService;
     }
 
     @Transactional
@@ -137,6 +141,8 @@ public class SubjectService {
         auditService.record(
                 "Subject", String.valueOf(subject.getId()), AuditAction.CREATE,
                 null, "enrolled subject " + subject.getSubjectCode() + " under study " + study.getStudyCode(), null);
+
+        visitSchedulingService.generateForSubject(subject);
 
         return SubjectResponse.from(subject, currentRoleCodes());
     }

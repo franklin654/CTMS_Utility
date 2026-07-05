@@ -23,6 +23,10 @@ import com.ctms.ctms_backend.subject.exception.IncompleteEligibilityAnswersExcep
 import com.ctms.ctms_backend.subject.exception.InvalidSubjectTransitionException;
 import com.ctms.ctms_backend.subject.exception.StudySiteMismatchException;
 import com.ctms.ctms_backend.subject.exception.SubjectNotFoundException;
+import com.ctms.ctms_backend.visit.exception.InvalidVisitTransitionException;
+import com.ctms.ctms_backend.visit.exception.VisitNotFoundException;
+import com.ctms.ctms_backend.visit.exception.VisitTemplateNotFoundException;
+import com.ctms.ctms_backend.visit.exception.VisitTemplateWindowInvalidException;
 import java.time.Instant;
 import java.util.Map;
 import org.slf4j.Logger;
@@ -131,6 +135,16 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Object> handleEligibilityFailed(EligibilityFailedException e) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(Map.of("timestamp", Instant.now(), "message", e.getMessage(), "violations", e.getViolations()));
+    }
+
+    @ExceptionHandler({VisitNotFoundException.class, VisitTemplateNotFoundException.class})
+    public ResponseEntity<Object> handleVisitNotFound(RuntimeException e) {
+        return error(HttpStatus.NOT_FOUND, e.getMessage());
+    }
+
+    @ExceptionHandler({InvalidVisitTransitionException.class, VisitTemplateWindowInvalidException.class})
+    public ResponseEntity<Object> handleVisitStateViolation(RuntimeException e) {
+        return error(HttpStatus.BAD_REQUEST, e.getMessage());
     }
 
     @ExceptionHandler(MaxUploadSizeExceededException.class)

@@ -3,6 +3,7 @@ package com.ctms.ctms_backend.notification;
 import com.ctms.ctms_backend.user.User;
 import com.ctms.ctms_backend.user.UserRepository;
 import java.time.Instant;
+import java.util.List;
 import java.util.NoSuchElementException;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
@@ -86,5 +87,28 @@ public class NotificationService {
             n.setReadAt(now);
         });
         notificationRepository.saveAll(unread);
+    }
+
+    /** True if a notification of this exact type+link was already sent to this recipient --
+     * used by VisitAlertService to avoid re-sending the same due-tomorrow/overdue alert daily. */
+    @Transactional(readOnly = true)
+    public boolean alreadyNotified(Long recipientUserId, String type, String link) {
+        return userRepository.findById(recipientUserId)
+                .flatMap(recipient -> notificationRepository.findByRecipientAndTypeAndLink(recipient, type, link))
+                .isPresent();
+    }
+
+    /** Marks all unread notifications pointing at this link as read -- used when a visit's status
+     * changes away from SCHEDULED so stale due-tomorrow/overdue alerts stop showing as pending
+     * (BRD Epic 4 Story 03 AC4: "Alerts cleared when visit status is updated"). */
+    @Transactional
+    public void clearByLink(String link) {
+        List<Notification> pending = notificationRepository.findByLinkAndReadFalse(link);
+        Instant now = Instant.now();
+        pending.forEach(n -> {
+            n.setRead(true);
+            n.setReadAt(now);
+        });
+        notificationRepository.saveAll(pending);
     }
 }

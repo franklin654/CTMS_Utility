@@ -1,9 +1,10 @@
-import { DatePipe } from '@angular/common';
+import { DatePipe, DecimalPipe } from '@angular/common';
 import { Component, OnInit, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
 import { ActivatedRoute } from '@angular/router';
 import { HasRoleDirective } from '../../../core/auth/has-role.directive';
 import {
@@ -11,6 +12,9 @@ import {
   SubjectService,
   SubjectStatusHistoryResponse,
 } from '../../../core/subjects/subject.service';
+import { SubjectVisitScheduleResponse, VisitService } from '../../../core/visits/visit.service';
+
+type VisitActionType = 'complete' | 'miss' | 'reschedule';
 
 const NEXT_STATUS: Record<string, string> = {
   SCREENED: 'ENROLLED',
@@ -29,7 +33,16 @@ const STATUS_LABELS: Record<string, string> = {
 @Component({
   selector: 'app-subject-detail',
   standalone: true,
-  imports: [MatButtonModule, MatFormFieldModule, MatInputModule, ReactiveFormsModule, DatePipe, HasRoleDirective],
+  imports: [
+    MatButtonModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    ReactiveFormsModule,
+    DatePipe,
+    DecimalPipe,
+    HasRoleDirective,
+  ],
   templateUrl: './subject-detail.component.html',
 })
 export class SubjectDetailComponent implements OnInit {
@@ -39,8 +52,36 @@ export class SubjectDetailComponent implements OnInit {
   readonly editing = signal(false);
   readonly showWithdrawForm = signal(false);
 
+  readonly visitSchedule = signal<SubjectVisitScheduleResponse | null>(null);
+  readonly visitErrorMessage = signal<string | null>(null);
+  readonly openVisitAction = signal<{ visitId: number; type: VisitActionType } | null>(null);
+  readonly showAdHocForm = signal(false);
+
   readonly justificationControl = new FormControl('', { nonNullable: true, validators: Validators.required });
   readonly reasonCodeControl = new FormControl('', { nonNullable: true, validators: Validators.required });
+
+  readonly completeVisitForm = new FormGroup({
+    actualDate: new FormControl('', { nonNullable: true, validators: Validators.required }),
+    actualTime: new FormControl<string | null>(null),
+    notes: new FormControl<string | null>(null),
+  });
+
+  readonly missVisitForm = new FormGroup({
+    reasonCode: new FormControl('', { nonNullable: true, validators: Validators.required }),
+  });
+
+  readonly rescheduleVisitForm = new FormGroup({
+    newDate: new FormControl('', { nonNullable: true, validators: Validators.required }),
+    reasonCode: new FormControl('', { nonNullable: true, validators: Validators.required }),
+  });
+
+  readonly adHocVisitForm = new FormGroup({
+    name: new FormControl('', { nonNullable: true, validators: Validators.required }),
+    scheduledDate: new FormControl('', { nonNullable: true, validators: Validators.required }),
+    visitType: new FormControl<'ONSITE' | 'REMOTE'>('ONSITE', { nonNullable: true }),
+    requiredProcedures: new FormControl<string | null>(null),
+    reasonCode: new FormControl('', { nonNullable: true, validators: Validators.required }),
+  });
 
   readonly editForm = new FormGroup({
     firstName: new FormControl('', { nonNullable: true, validators: Validators.required }),
@@ -59,6 +100,7 @@ export class SubjectDetailComponent implements OnInit {
   constructor(
     private readonly route: ActivatedRoute,
     private readonly subjectService: SubjectService,
+    private readonly visitService: VisitService,
   ) {}
 
   ngOnInit(): void {
@@ -69,6 +111,122 @@ export class SubjectDetailComponent implements OnInit {
   load(): void {
     this.subjectService.get(this.subjectId).subscribe((s) => this.subject.set(s));
     this.subjectService.history(this.subjectId).subscribe((h) => this.history.set(h));
+    this.loadVisits();
+  }
+
+  loadVisits(): void {
+    this.visitService.schedule(this.subjectId).subscribe((schedule) => this.visitSchedule.set(schedule));
+  }
+
+  isVisitHighlighted(status: string): boolean {
+    return status === 'MISSED' || status === 'RESCHEDULED';
+  }
+
+  openComplete(visitId: number): void {
+    this.visitErrorMessage.set(null);
+    this.completeVisitForm.reset({ actualDate: new Date().toISOString().slice(0, 10), actualTime: null, notes: null });
+    this.openVisitAction.set({ visitId, type: 'complete' });
+  }
+
+  openMiss(visitId: number): void {
+    this.visitErrorMessage.set(null);
+    this.missVisitForm.reset({ reasonCode: '' });
+    this.openVisitAction.set({ visitId, type: 'miss' });
+  }
+
+  openReschedule(visitId: number): void {
+    this.visitErrorMessage.set(null);
+    this.rescheduleVisitForm.reset({ newDate: '', reasonCode: '' });
+    this.openVisitAction.set({ visitId, type: 'reschedule' });
+  }
+
+  cancelVisitAction(): void {
+    this.openVisitAction.set(null);
+  }
+
+  submitComplete(visitId: number): void {
+    if (this.completeVisitForm.invalid) {
+      return;
+    }
+    const raw = this.completeVisitForm.getRawValue();
+    this.visitErrorMessage.set(null);
+    this.visitService
+      .complete(visitId, { actualDate: raw.actualDate, actualTime: raw.actualTime || null, notes: raw.notes || null })
+      .subscribe({
+        next: () => {
+          this.openVisitAction.set(null);
+          this.loadVisits();
+        },
+        error: (err) => this.visitErrorMessage.set(err.error?.message ?? 'Could not mark visit completed.'),
+      });
+  }
+
+  submitMiss(visitId: number): void {
+    if (this.missVisitForm.invalid) {
+      return;
+    }
+    this.visitErrorMessage.set(null);
+    this.visitService.miss(visitId, { reasonCode: this.missVisitForm.getRawValue().reasonCode }).subscribe({
+      next: () => {
+        this.openVisitAction.set(null);
+        this.loadVisits();
+      },
+      error: (err) => this.visitErrorMessage.set(err.error?.message ?? 'Could not mark visit missed.'),
+    });
+  }
+
+  submitReschedule(visitId: number): void {
+    if (this.rescheduleVisitForm.invalid) {
+      return;
+    }
+    const raw = this.rescheduleVisitForm.getRawValue();
+    this.visitErrorMessage.set(null);
+    this.visitService.reschedule(visitId, { newDate: raw.newDate, reasonCode: raw.reasonCode }).subscribe({
+      next: () => {
+        this.openVisitAction.set(null);
+        this.loadVisits();
+      },
+      error: (err) => this.visitErrorMessage.set(err.error?.message ?? 'Could not reschedule visit.'),
+    });
+  }
+
+  openAdHocForm(): void {
+    this.visitErrorMessage.set(null);
+    this.adHocVisitForm.reset({
+      name: '',
+      scheduledDate: '',
+      visitType: 'ONSITE',
+      requiredProcedures: null,
+      reasonCode: '',
+    });
+    this.showAdHocForm.set(true);
+  }
+
+  cancelAdHocForm(): void {
+    this.showAdHocForm.set(false);
+  }
+
+  submitAdHoc(): void {
+    if (this.adHocVisitForm.invalid) {
+      return;
+    }
+    const raw = this.adHocVisitForm.getRawValue();
+    this.visitErrorMessage.set(null);
+    this.visitService
+      .scheduleAdHoc(this.subjectId, {
+        name: raw.name,
+        scheduledDate: raw.scheduledDate,
+        visitType: raw.visitType,
+        requiredProcedures: raw.requiredProcedures || null,
+        reasonCode: raw.reasonCode,
+      })
+      .subscribe({
+        next: () => {
+          this.showAdHocForm.set(false);
+          this.loadVisits();
+        },
+        error: (err) => this.visitErrorMessage.set(err.error?.message ?? 'Could not schedule ad-hoc visit.'),
+      });
   }
 
   statusLabel(status: string): string {
