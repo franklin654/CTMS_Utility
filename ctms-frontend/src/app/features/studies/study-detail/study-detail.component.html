@@ -6,11 +6,20 @@
           <h1 class="text-xl font-semibold text-gray-900">{{ s.name }}</h1>
           <p class="text-sm text-gray-500">{{ s.studyCode }} &middot; Protocol {{ s.protocolId }}</p>
         </div>
-        @if (!isFullyLocked()) {
-          <button *appHasRole="['STUDY_MANAGER', 'ADMIN']" mat-stroked-button (click)="toggleEdit()">
-            {{ editMode() ? 'Cancel' : 'Edit' }}
-          </button>
-        }
+        <div class="flex gap-2">
+          <a
+            *appHasRole="['STUDY_MANAGER', 'ADMIN']"
+            [routerLink]="['/studies', s.id, 'eligibility-criteria']"
+            mat-stroked-button
+          >
+            Eligibility Criteria
+          </a>
+          @if (!isFullyLocked()) {
+            <button *appHasRole="['STUDY_MANAGER', 'ADMIN']" mat-stroked-button (click)="toggleEdit()">
+              {{ editMode() ? 'Cancel' : 'Edit' }}
+            </button>
+          }
+        </div>
       </div>
 
       <!-- Status chip row -->

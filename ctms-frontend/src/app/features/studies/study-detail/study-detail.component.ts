@@ -5,7 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { HasRoleDirective } from '../../../core/auth/has-role.directive';
 import {
   StudyResponse,
@@ -34,6 +34,7 @@ const ALL_STATUSES = ['DRAFT', 'ACTIVE', 'CONDUCT', 'CLOSEOUT'];
     MatInputModule,
     DatePipe,
     HasRoleDirective,
+    RouterLink,
   ],
   templateUrl: './study-detail.component.html',
 })

@@ -63,6 +63,30 @@ export const routes: Routes = [
           import('./features/sites/site-detail/site-detail.component').then((m) => m.SiteDetailComponent),
       },
       {
+        path: 'subjects',
+        loadComponent: () =>
+          import('./features/subjects/subject-list/subject-list.component').then((m) => m.SubjectListComponent),
+      },
+      {
+        path: 'subjects/new',
+        canActivate: [roleGuard(['SITE_COORDINATOR', 'STUDY_MANAGER', 'ADMIN'])],
+        loadComponent: () =>
+          import('./features/subjects/subject-enroll/subject-enroll.component').then((m) => m.SubjectEnrollComponent),
+      },
+      {
+        path: 'subjects/:id',
+        loadComponent: () =>
+          import('./features/subjects/subject-detail/subject-detail.component').then((m) => m.SubjectDetailComponent),
+      },
+      {
+        path: 'studies/:studyId/eligibility-criteria',
+        canActivate: [roleGuard(['STUDY_MANAGER', 'ADMIN'])],
+        loadComponent: () =>
+          import('./features/eligibility-criteria/eligibility-criteria.component').then(
+            (m) => m.EligibilityCriteriaComponent,
+          ),
+      },
+      {
         path: 'documents',
         loadComponent: () =>
           import('./features/documents/document-list/document-list.component').then((m) => m.DocumentListComponent),

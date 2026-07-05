@@ -1,0 +1,124 @@
+@if (subject(); as s) {
+  <div class="max-w-3xl mx-auto flex flex-col gap-6">
+    <div class="bg-white rounded-lg shadow p-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-xl font-semibold text-gray-900">{{ s.firstName }} {{ s.lastName }}</h1>
+          <p class="text-sm text-gray-500">
+            {{ s.subjectCode }} &middot; Study {{ s.studyCode }} &middot; Site {{ s.siteCode }}
+          </p>
+        </div>
+        <span
+          class="px-3 py-1 rounded text-sm font-medium"
+          [class.bg-green-100]="s.status === 'COMPLETED'"
+          [class.text-green-700]="s.status === 'COMPLETED'"
+          [class.bg-red-100]="s.status === 'WITHDRAWN'"
+          [class.text-red-700]="s.status === 'WITHDRAWN'"
+          [class.bg-blue-100]="s.status !== 'COMPLETED' && s.status !== 'WITHDRAWN'"
+          [class.text-blue-700]="s.status !== 'COMPLETED' && s.status !== 'WITHDRAWN'"
+        >
+          {{ statusLabel(s.status) }}
+        </span>
+      </div>
+
+      @if (errorMessage()) {
+        <p class="text-sm text-red-600 mt-3">{{ errorMessage() }}</p>
+      }
+
+      @if (!editing()) {
+        <div class="grid grid-cols-2 gap-4 mt-4 text-sm">
+          <div><p class="text-gray-500">Date of Birth</p><p class="text-gray-900">{{ s.dateOfBirth | date: 'mediumDate' }}</p></div>
+          <div><p class="text-gray-500">Gender</p><p class="text-gray-900">{{ s.gender || '&mdash;' }}</p></div>
+          <div><p class="text-gray-500">Screening Date (locked)</p><p class="text-gray-900">{{ s.screeningDate | date: 'mediumDate' }}</p></div>
+          <div><p class="text-gray-500">Contact</p><p class="text-gray-900">{{ s.contactPhone || '&mdash;' }} &middot; {{ s.contactEmail || '&mdash;' }}</p></div>
+          <div class="col-span-2"><p class="text-gray-500">Address</p><p class="text-gray-900">{{ s.address || '&mdash;' }}</p></div>
+          <div class="col-span-2"><p class="text-gray-500">Emergency Contact</p><p class="text-gray-900">{{ s.emergencyContact || '&mdash;' }}</p></div>
+          <div class="col-span-2"><p class="text-gray-500">Notes</p><p class="text-gray-900">{{ s.notes || '&mdash;' }}</p></div>
+          @if (s.medicalHistory !== null) {
+            <div class="col-span-2"><p class="text-gray-500">Medical History</p><p class="text-gray-900">{{ s.medicalHistory }}</p></div>
+          }
+        </div>
+
+        <div *appHasRole="['SITE_COORDINATOR', 'STUDY_MANAGER', 'ADMIN']" class="mt-4">
+          <button mat-stroked-button (click)="startEdit()">Edit Details</button>
+        </div>
+      } @else {
+        <form [formGroup]="editForm" class="grid grid-cols-2 gap-4 mt-4">
+          <mat-form-field appearance="outline"><mat-label>First Name</mat-label><input matInput formControlName="firstName" /></mat-form-field>
+          <mat-form-field appearance="outline"><mat-label>Last Name</mat-label><input matInput formControlName="lastName" /></mat-form-field>
+          <mat-form-field appearance="outline"><mat-label>Gender</mat-label><input matInput formControlName="gender" /></mat-form-field>
+          <mat-form-field appearance="outline"><mat-label>Contact Phone</mat-label><input matInput formControlName="contactPhone" /></mat-form-field>
+          <mat-form-field appearance="outline"><mat-label>Contact Email</mat-label><input matInput formControlName="contactEmail" /></mat-form-field>
+          <mat-form-field appearance="outline" class="col-span-2"><mat-label>Address</mat-label><input matInput formControlName="address" /></mat-form-field>
+          <mat-form-field appearance="outline" class="col-span-2"><mat-label>Emergency Contact</mat-label><input matInput formControlName="emergencyContact" /></mat-form-field>
+          <mat-form-field appearance="outline" class="col-span-2"><mat-label>Notes</mat-label><textarea matInput formControlName="notes" rows="2"></textarea></mat-form-field>
+          <mat-form-field appearance="outline" class="col-span-2"><mat-label>Medical History</mat-label><textarea matInput formControlName="medicalHistory" rows="2"></textarea></mat-form-field>
+          <div class="col-span-2 flex gap-2">
+            <button mat-flat-button color="primary" type="button" (click)="saveEdit()" [disabled]="editForm.invalid">Save</button>
+            <button mat-button type="button" (click)="cancelEdit()">Cancel</button>
+          </div>
+        </form>
+      }
+    </div>
+
+    <div *appHasRole="['SITE_COORDINATOR', 'STUDY_MANAGER', 'ADMIN']" class="bg-white rounded-lg shadow p-6">
+      <h2 class="text-sm font-semibold text-gray-700 mb-3">Lifecycle</h2>
+      <div class="flex flex-col gap-3">
+        @if (nextStatus(s.status); as next) {
+          <div class="flex items-end gap-3">
+            <mat-form-field appearance="outline" class="flex-1">
+              <mat-label>Justification to move to {{ statusLabel(next) }}</mat-label>
+              <input matInput [formControl]="justificationControl" />
+            </mat-form-field>
+            <button mat-flat-button color="primary" (click)="advance()" [disabled]="justificationControl.invalid" class="mb-4">
+              Move to {{ statusLabel(next) }}
+            </button>
+          </div>
+        }
+
+        @if (isWithdrawable(s.status)) {
+          @if (!showWithdrawForm()) {
+            <button mat-button color="warn" (click)="showWithdrawForm.set(true)">Withdraw Subject</button>
+          } @else {
+            <div class="flex items-end gap-3 border-t pt-3">
+              <mat-form-field appearance="outline" class="flex-1">
+                <mat-label>Reason for withdrawal</mat-label>
+                <input matInput [formControl]="reasonCodeControl" />
+              </mat-form-field>
+              <button mat-flat-button color="warn" (click)="confirmWithdraw()" [disabled]="reasonCodeControl.invalid" class="mb-4">
+                Confirm Withdrawal
+              </button>
+              <button mat-button (click)="showWithdrawForm.set(false)" class="mb-4">Cancel</button>
+            </div>
+          }
+        }
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6">
+      <h2 class="text-sm font-semibold text-gray-700 mb-3">Status History</h2>
+      <table class="w-full text-sm text-left">
+        <thead class="text-gray-500 border-b">
+          <tr>
+            <th class="py-2 pr-2">From</th>
+            <th class="py-2 pr-2">To</th>
+            <th class="py-2 pr-2">Reason</th>
+            <th class="py-2 pr-2">By</th>
+            <th class="py-2 pr-2">When</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (h of history(); track h.id) {
+            <tr class="border-b">
+              <td class="py-2 pr-2">{{ h.fromStatus ? statusLabel(h.fromStatus) : '&mdash;' }}</td>
+              <td class="py-2 pr-2">{{ statusLabel(h.toStatus) }}</td>
+              <td class="py-2 pr-2">{{ h.reasonCode || '&mdash;' }}</td>
+              <td class="py-2 pr-2">{{ h.changedByUsername }}</td>
+              <td class="py-2 pr-2">{{ h.changedAt | date: 'short' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+}

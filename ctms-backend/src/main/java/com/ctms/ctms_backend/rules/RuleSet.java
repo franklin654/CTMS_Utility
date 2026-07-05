@@ -30,6 +30,7 @@ public class RuleSet {
     public static final String CATEGORY_DOCUMENT = "DOCUMENT";
     public static final String CATEGORY_NOTIFICATION = "NOTIFICATION";
     public static final String CATEGORY_PAYMENT = "PAYMENT";
+    public static final String CATEGORY_ELIGIBILITY = "ELIGIBILITY";
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

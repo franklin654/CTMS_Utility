@@ -1,0 +1,50 @@
+@if (study(); as s) {
+  <div class="max-w-3xl mx-auto flex flex-col gap-6">
+    <div class="bg-white rounded-lg shadow p-6">
+      <h1 class="text-xl font-semibold text-gray-900">Eligibility Criteria</h1>
+      <p class="text-sm text-gray-500">Study {{ s.studyCode }} &ndash; {{ s.name }}</p>
+
+      @if (errorMessage()) {
+        <p class="text-sm text-red-600 mt-3">{{ errorMessage() }}</p>
+      }
+
+      <form [formGroup]="form" (ngSubmit)="addCriterion()" class="flex items-end gap-3 mt-4">
+        <mat-form-field appearance="outline" class="flex-1">
+          <mat-label>Criterion Label</mat-label>
+          <input matInput formControlName="label" placeholder="e.g. Age >= 18" />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Type</mat-label>
+          <mat-select formControlName="criterionType">
+            <mat-option value="INCLUSION">Inclusion</mat-option>
+            <mat-option value="EXCLUSION">Exclusion</mat-option>
+          </mat-select>
+        </mat-form-field>
+        <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid" class="mb-4">Add</button>
+      </form>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-4">
+      @for (c of criteria(); track c.id) {
+        <div class="flex items-center justify-between border-b py-3 last:border-0">
+          <div>
+            <span
+              class="px-2 py-1 rounded text-xs font-medium mr-2"
+              [class.bg-green-100]="c.criterionType === 'INCLUSION'"
+              [class.text-green-700]="c.criterionType === 'INCLUSION'"
+              [class.bg-amber-100]="c.criterionType === 'EXCLUSION'"
+              [class.text-amber-700]="c.criterionType === 'EXCLUSION'"
+            >
+              {{ c.criterionType === 'INCLUSION' ? 'Inclusion' : 'Exclusion' }}
+            </span>
+            <span class="text-sm text-gray-900">{{ c.label }}</span>
+          </div>
+          <button mat-button (click)="deactivate(c.id)">Deactivate</button>
+        </div>
+      }
+      @if (criteria().length === 0) {
+        <p class="text-sm text-gray-500 py-4 text-center">No eligibility criteria defined yet.</p>
+      }
+    </div>
+  </div>
+}

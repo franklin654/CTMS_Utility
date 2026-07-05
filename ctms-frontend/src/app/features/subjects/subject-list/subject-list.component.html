@@ -1,0 +1,49 @@
+<div class="max-w-5xl mx-auto">
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-xl font-semibold text-gray-900">Subjects</h1>
+    <a *appHasRole="['SITE_COORDINATOR', 'STUDY_MANAGER', 'ADMIN']" routerLink="/subjects/new" mat-flat-button color="primary">
+      Enroll Subject
+    </a>
+  </div>
+
+  <div class="bg-white rounded-lg shadow overflow-x-auto">
+    <table class="w-full text-sm text-left">
+      <thead class="bg-gray-50 text-gray-600 border-b">
+        <tr>
+          <th class="px-4 py-3">Subject Code</th>
+          <th class="px-4 py-3">Name</th>
+          <th class="px-4 py-3">Study</th>
+          <th class="px-4 py-3">Site</th>
+          <th class="px-4 py-3">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (subject of subjects(); track subject.id) {
+          <tr class="border-b hover:bg-gray-50 cursor-pointer" [routerLink]="['/subjects', subject.id]">
+            <td class="px-4 py-3 font-medium text-gray-900">{{ subject.subjectCode }}</td>
+            <td class="px-4 py-3">{{ subject.firstName }} {{ subject.lastName }}</td>
+            <td class="px-4 py-3">{{ subject.studyCode }}</td>
+            <td class="px-4 py-3">{{ subject.siteCode }}</td>
+            <td class="px-4 py-3">
+              <span class="px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-700">
+                {{ statusLabel(subject.status) }}
+              </span>
+            </td>
+          </tr>
+        }
+        @if (subjects().length === 0) {
+          <tr>
+            <td colspan="5" class="px-4 py-6 text-center text-gray-500">No subjects found</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+    <mat-paginator
+      [length]="totalElements()"
+      [pageSize]="pageSize()"
+      [pageIndex]="pageIndex()"
+      [pageSizeOptions]="[10, 20, 50]"
+      (page)="onPage($event)"
+    ></mat-paginator>
+  </div>
+</div>

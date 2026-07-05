@@ -17,6 +17,12 @@ import com.ctms.ctms_backend.study.exception.InvalidStudyTransitionException;
 import com.ctms.ctms_backend.study.exception.StudyClosedException;
 import com.ctms.ctms_backend.study.exception.StudyFieldLockedException;
 import com.ctms.ctms_backend.study.exception.StudyNotFoundException;
+import com.ctms.ctms_backend.subject.exception.EligibilityCriterionNotFoundException;
+import com.ctms.ctms_backend.subject.exception.EligibilityFailedException;
+import com.ctms.ctms_backend.subject.exception.IncompleteEligibilityAnswersException;
+import com.ctms.ctms_backend.subject.exception.InvalidSubjectTransitionException;
+import com.ctms.ctms_backend.subject.exception.StudySiteMismatchException;
+import com.ctms.ctms_backend.subject.exception.SubjectNotFoundException;
 import java.time.Instant;
 import java.util.Map;
 import org.slf4j.Logger;
@@ -109,6 +115,22 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Object> handleSiteActivationBlocked(SiteActivationBlockedException e) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(Map.of("timestamp", Instant.now(), "message", e.getMessage(), "missingItems", e.getMissingItems()));
+    }
+
+    @ExceptionHandler({SubjectNotFoundException.class, EligibilityCriterionNotFoundException.class})
+    public ResponseEntity<Object> handleSubjectNotFound(RuntimeException e) {
+        return error(HttpStatus.NOT_FOUND, e.getMessage());
+    }
+
+    @ExceptionHandler({InvalidSubjectTransitionException.class, StudySiteMismatchException.class, IncompleteEligibilityAnswersException.class})
+    public ResponseEntity<Object> handleSubjectStateViolation(RuntimeException e) {
+        return error(HttpStatus.BAD_REQUEST, e.getMessage());
+    }
+
+    @ExceptionHandler(EligibilityFailedException.class)
+    public ResponseEntity<Object> handleEligibilityFailed(EligibilityFailedException e) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("timestamp", Instant.now(), "message", e.getMessage(), "violations", e.getViolations()));
     }
 
     @ExceptionHandler(MaxUploadSizeExceededException.class)
