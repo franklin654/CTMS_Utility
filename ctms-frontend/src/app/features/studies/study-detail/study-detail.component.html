@@ -1,0 +1,149 @@
+@if (study(); as s) {
+  <div class="max-w-3xl mx-auto flex flex-col gap-6">
+    <div class="bg-white rounded-lg shadow p-6">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h1 class="text-xl font-semibold text-gray-900">{{ s.name }}</h1>
+          <p class="text-sm text-gray-500">{{ s.studyCode }} &middot; Protocol {{ s.protocolId }}</p>
+        </div>
+        @if (!isFullyLocked()) {
+          <button *appHasRole="['STUDY_MANAGER', 'ADMIN']" mat-stroked-button (click)="toggleEdit()">
+            {{ editMode() ? 'Cancel' : 'Edit' }}
+          </button>
+        }
+      </div>
+
+      <!-- Status chip row -->
+      <div class="flex items-center gap-2 mb-6">
+        @for (status of allStatuses; track status) {
+          <span
+            class="px-3 py-1 rounded-full text-xs font-medium"
+            [class.bg-blue-600]="status === s.status"
+            [class.text-white]="status === s.status"
+            [class.bg-gray-100]="status !== s.status"
+            [class.text-gray-500]="status !== s.status"
+          >
+            {{ status }}
+          </span>
+        }
+      </div>
+
+      @if (isFullyLocked()) {
+        <p class="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded p-3 mb-4">
+          This study is closed out and locked from further edits.
+        </p>
+      }
+
+      @if (!editMode()) {
+        <dl class="grid grid-cols-2 gap-4 text-sm">
+          <div><dt class="text-gray-500">Protocol Version</dt><dd>{{ s.protocolVersion }}</dd></div>
+          <div><dt class="text-gray-500">Phase</dt><dd>{{ s.phase }}</dd></div>
+          <div><dt class="text-gray-500">Sponsor</dt><dd>{{ s.sponsor }}</dd></div>
+          <div><dt class="text-gray-500">Status</dt><dd>{{ s.status }}</dd></div>
+          <div><dt class="text-gray-500">Planned Start</dt><dd>{{ s.plannedStartDate ?? '&mdash;' }}</dd></div>
+          <div><dt class="text-gray-500">Planned End</dt><dd>{{ s.plannedEndDate ?? '&mdash;' }}</dd></div>
+          <div><dt class="text-gray-500">Actual Start</dt><dd>{{ s.actualStartDate ?? '&mdash;' }}</dd></div>
+          <div><dt class="text-gray-500">Actual End</dt><dd>{{ s.actualEndDate ?? '&mdash;' }}</dd></div>
+          <div class="col-span-2"><dt class="text-gray-500">Description</dt><dd>{{ s.description ?? '&mdash;' }}</dd></div>
+          <div><dt class="text-gray-500">Created By</dt><dd>{{ s.createdByUsername }}</dd></div>
+          <div><dt class="text-gray-500">Last Modified By</dt><dd>{{ s.modifiedByUsername }}</dd></div>
+        </dl>
+      } @else {
+        <form [formGroup]="form" (ngSubmit)="saveEdit()" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <mat-form-field appearance="outline" class="sm:col-span-2">
+            <mat-label>Study Name</mat-label>
+            <input matInput formControlName="name" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Protocol ID</mat-label>
+            <input matInput formControlName="protocolId" />
+            @if (form.controls.protocolId.disabled) {
+              <mat-hint>Locked once study leaves DRAFT</mat-hint>
+            }
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Protocol Version</mat-label>
+            <input matInput formControlName="protocolVersion" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Phase</mat-label>
+            <input matInput formControlName="phase" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Sponsor</mat-label>
+            <input matInput formControlName="sponsor" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Planned Start Date</mat-label>
+            <input matInput type="date" formControlName="plannedStartDate" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Planned End Date</mat-label>
+            <input matInput type="date" formControlName="plannedEndDate" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Actual Start Date</mat-label>
+            <input matInput type="date" formControlName="actualStartDate" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Actual End Date</mat-label>
+            <input matInput type="date" formControlName="actualEndDate" />
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="sm:col-span-2">
+            <mat-label>Description</mat-label>
+            <textarea matInput formControlName="description" rows="3"></textarea>
+          </mat-form-field>
+
+          @if (errorMessage()) {
+            <p class="text-sm text-red-600 sm:col-span-2">{{ errorMessage() }}</p>
+          }
+
+          <div class="sm:col-span-2">
+            <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid">Save</button>
+          </div>
+        </form>
+      }
+    </div>
+
+    <!-- Lifecycle actions -->
+    <div *appHasRole="['STUDY_MANAGER', 'ADMIN']" class="bg-white rounded-lg shadow p-6">
+      <h2 class="text-sm font-semibold text-gray-700 mb-3">Lifecycle</h2>
+      @if (transitionErrorMessage()) {
+        <p class="text-sm text-red-600 mb-3">{{ transitionErrorMessage() }}</p>
+      }
+      <div class="flex gap-3">
+        @if (canAdvance()) {
+          <button mat-flat-button color="primary" (click)="advance()">Advance to {{ nextStatus() }}</button>
+        }
+        @if (canCloseOut()) {
+          <button mat-flat-button color="warn" (click)="closeOut()">Close Out Study</button>
+        }
+        @if (!canAdvance() && !canCloseOut()) {
+          <span class="text-sm text-gray-500">No further transitions available.</span>
+        }
+      </div>
+    </div>
+
+    <!-- Transition history -->
+    <div class="bg-white rounded-lg shadow p-6">
+      <h2 class="text-sm font-semibold text-gray-700 mb-3">Transition History</h2>
+      @if (history().length === 0) {
+        <p class="text-sm text-gray-500">No transitions yet.</p>
+      }
+      <ul class="flex flex-col gap-3">
+        @for (h of history(); track h.id) {
+          <li class="border-l-2 border-gray-200 pl-3">
+            <div class="text-sm font-medium text-gray-900">
+              {{ h.fromStatus ?? 'START' }} &rarr; {{ h.toStatus }}
+              @if (h.signed) {
+                <span class="ml-2 text-xs px-2 py-0.5 rounded bg-green-100 text-green-700">e-signed</span>
+              }
+            </div>
+            <div class="text-xs text-gray-500">{{ h.changedByUsername }} &middot; {{ h.changedAt | date: 'medium' }}</div>
+            <div class="text-sm text-gray-600 mt-1">{{ h.justification }}</div>
+          </li>
+        }
+      </ul>
+    </div>
+  </div>
+}

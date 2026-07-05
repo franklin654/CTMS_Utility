@@ -1,0 +1,60 @@
+<div class="max-w-5xl mx-auto">
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-xl font-semibold text-gray-900">Studies</h1>
+    <a
+      *appHasRole="['STUDY_MANAGER', 'ADMIN']"
+      routerLink="/studies/new"
+      mat-flat-button
+      color="primary"
+    >
+      New Study
+    </a>
+  </div>
+
+  <mat-form-field appearance="outline" class="w-full mb-4">
+    <mat-label>Search by name or protocol ID</mat-label>
+    <input matInput [formControl]="search" />
+  </mat-form-field>
+
+  <div class="bg-white rounded-lg shadow overflow-x-auto">
+    <table class="w-full text-sm text-left">
+      <thead class="bg-gray-50 text-gray-600 border-b">
+        <tr>
+          <th class="px-4 py-3">Study Code</th>
+          <th class="px-4 py-3">Name</th>
+          <th class="px-4 py-3">Protocol ID</th>
+          <th class="px-4 py-3">Phase</th>
+          <th class="px-4 py-3">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (study of studies(); track study.id) {
+          <tr
+            class="border-b hover:bg-gray-50 cursor-pointer"
+            [routerLink]="['/studies', study.id]"
+          >
+            <td class="px-4 py-3 font-medium text-gray-900">{{ study.studyCode }}</td>
+            <td class="px-4 py-3">{{ study.name }}</td>
+            <td class="px-4 py-3">{{ study.protocolId }}</td>
+            <td class="px-4 py-3">{{ study.phase }}</td>
+            <td class="px-4 py-3">
+              <span class="px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-700">{{ study.status }}</span>
+            </td>
+          </tr>
+        }
+        @if (studies().length === 0) {
+          <tr>
+            <td colspan="5" class="px-4 py-6 text-center text-gray-500">No studies found</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+    <mat-paginator
+      [length]="totalElements()"
+      [pageSize]="pageSize()"
+      [pageIndex]="pageIndex()"
+      [pageSizeOptions]="[10, 20, 50]"
+      (page)="onPage($event)"
+    ></mat-paginator>
+  </div>
+</div>

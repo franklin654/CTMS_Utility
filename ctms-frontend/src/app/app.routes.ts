@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard } from './core/auth/auth.guard';
+import { authGuard, roleGuard } from './core/auth/auth.guard';
 import { ShellComponent } from './layout/shell/shell.component';
 
 export const routes: Routes = [
@@ -30,6 +30,22 @@ export const routes: Routes = [
       {
         path: 'dashboard',
         loadComponent: () => import('./features/dashboard/dashboard.component').then((m) => m.DashboardComponent),
+      },
+      {
+        path: 'studies',
+        loadComponent: () =>
+          import('./features/studies/study-list/study-list.component').then((m) => m.StudyListComponent),
+      },
+      {
+        path: 'studies/new',
+        canActivate: [roleGuard(['STUDY_MANAGER', 'ADMIN'])],
+        loadComponent: () =>
+          import('./features/studies/study-create/study-create.component').then((m) => m.StudyCreateComponent),
+      },
+      {
+        path: 'studies/:id',
+        loadComponent: () =>
+          import('./features/studies/study-detail/study-detail.component').then((m) => m.StudyDetailComponent),
       },
       { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
     ],

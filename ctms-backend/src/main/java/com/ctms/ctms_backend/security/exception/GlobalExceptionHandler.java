@@ -1,6 +1,11 @@
 package com.ctms.ctms_backend.security.exception;
 
 import com.ctms.ctms_backend.rules.RuleCompilationException;
+import com.ctms.ctms_backend.study.exception.DuplicateProtocolIdException;
+import com.ctms.ctms_backend.study.exception.InvalidStudyTransitionException;
+import com.ctms.ctms_backend.study.exception.StudyClosedException;
+import com.ctms.ctms_backend.study.exception.StudyFieldLockedException;
+import com.ctms.ctms_backend.study.exception.StudyNotFoundException;
 import java.time.Instant;
 import java.util.Map;
 import org.slf4j.Logger;
@@ -40,6 +45,21 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(RuleCompilationException.class)
     public ResponseEntity<Object> handleRuleCompilation(RuleCompilationException e) {
+        return error(HttpStatus.BAD_REQUEST, e.getMessage());
+    }
+
+    @ExceptionHandler(StudyNotFoundException.class)
+    public ResponseEntity<Object> handleStudyNotFound(StudyNotFoundException e) {
+        return error(HttpStatus.NOT_FOUND, e.getMessage());
+    }
+
+    @ExceptionHandler(DuplicateProtocolIdException.class)
+    public ResponseEntity<Object> handleDuplicateProtocolId(DuplicateProtocolIdException e) {
+        return error(HttpStatus.CONFLICT, e.getMessage());
+    }
+
+    @ExceptionHandler({InvalidStudyTransitionException.class, StudyFieldLockedException.class, StudyClosedException.class})
+    public ResponseEntity<Object> handleStudyStateViolation(RuntimeException e) {
         return error(HttpStatus.BAD_REQUEST, e.getMessage());
     }
 

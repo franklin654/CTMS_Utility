@@ -20,16 +20,19 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     catchError((error: unknown) => {
       if (error instanceof HttpErrorResponse && error.status === 401 && !skipToken && tokenStorage.getRefreshToken()) {
         return authService.refresh().pipe(
+          catchError((refreshError) => {
+            // Only a failure of the refresh call itself means the session is actually dead.
+            tokenStorage.clear();
+            router.navigate(['/login']);
+            return throwError(() => refreshError);
+          }),
           switchMap(() => {
             const retried = req.clone({
               setHeaders: { Authorization: `Bearer ${tokenStorage.accessToken()}` },
             });
+            // If the retried request fails (e.g. a legitimate 401 from wrong-password on an
+            // e-signature endpoint), let it propagate as-is -- do NOT treat it as a dead session.
             return next(retried);
-          }),
-          catchError((refreshError) => {
-            tokenStorage.clear();
-            router.navigate(['/login']);
-            return throwError(() => refreshError);
           }),
         );
       }

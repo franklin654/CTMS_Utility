@@ -1,0 +1,53 @@
+<div class="max-w-2xl mx-auto bg-white rounded-lg shadow p-8">
+  <h1 class="text-xl font-semibold text-gray-900 mb-6">Create Study</h1>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <mat-form-field appearance="outline" class="sm:col-span-2">
+      <mat-label>Study Name</mat-label>
+      <input matInput formControlName="name" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Protocol ID</mat-label>
+      <input matInput formControlName="protocolId" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Protocol Version</mat-label>
+      <input matInput formControlName="protocolVersion" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Phase (e.g. PHASE_III)</mat-label>
+      <input matInput formControlName="phase" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Sponsor</mat-label>
+      <input matInput formControlName="sponsor" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Planned Start Date</mat-label>
+      <input matInput type="date" formControlName="plannedStartDate" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Planned End Date</mat-label>
+      <input matInput type="date" formControlName="plannedEndDate" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="sm:col-span-2">
+      <mat-label>Description</mat-label>
+      <textarea matInput formControlName="description" rows="3"></textarea>
+    </mat-form-field>
+
+    @if (errorMessage()) {
+      <p class="text-sm text-red-600 sm:col-span-2">{{ errorMessage() }}</p>
+    }
+
+    <div class="sm:col-span-2">
+      <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid">Create Study</button>
+    </div>
+  </form>
+</div>
