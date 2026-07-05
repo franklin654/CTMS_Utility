@@ -1,4 +1,5 @@
 # Clinical Trial Management System (CTMS) — Phased Feature Implementation Plan
+
 **Project:** Pharma CTMS (per `Pharma_BRD_V0_1.pdf` & `pharma_problemStatement_V0_2.pdf`)
 **Tech Stack:** Java Spring Boot (backend) · Angular + Tailwind CSS (frontend) · PostgreSQL
 **Backlog Source:** `Product_Backlog_0_2__1_.xlsx` (46 stories / 11 epics) + Clinical Safety epic carried forward from `Product_Backlog_based_on_review.xlsx` (per your confirmation)
@@ -26,6 +27,7 @@
 ## 1. Tech Stack & Architecture
 
 ### Backend — Java Spring Boot
+
 | Concern | Component |
 |---|---|
 | Web layer | Spring Boot 3.x, REST controllers, springdoc-openapi |
@@ -41,6 +43,7 @@
 | Testing | JUnit 5, Mockito, Testcontainers (Postgres) |
 
 ### Frontend — Angular + Tailwind CSS (+ Angular Material where useful)
+
 | Concern | Component |
 |---|---|
 | Framework | Angular standalone components, Reactive Forms, Angular Router |
@@ -52,6 +55,7 @@
 | Patient Portal | Same Angular workspace, separate route module + role-scoped shell (simplified nav, mobile-friendly layout) |
 
 ### Cross-Cutting Platform Services (built once in Phase 0, reused everywhere)
+
 - **AuthN/AuthZ** — login, JWT, password policy, account lockout, RBAC roles (single-factor: username/password only)
 - **Audit Log** — generic who/what/when/before-after, immutable, exportable
 - **E-Signature** — reason-for-signing capture, password re-authentication, record locking (21 CFR Part 11)
@@ -60,10 +64,13 @@
 - **Rules/Config Engine** — the mechanism that makes visit templates, document requirements, and workflow logic editable without code
 
 ### Architectural Decision — Design for Configurability from Day One
+
 Several epics (Visit Management, Document Management, Workflow & Automation) assume their *rules* are configurable (Epic: System Configuration, stories 01–04). Rather than hardcoding visit windows / document requirements / task-trigger logic per study and refactoring later, **Phases 1–8 should store these as data driven by the rules engine from the start**, even before the no-code *admin UI* for editing them exists. Phase 10 (System Configuration) then delivers the UI on top of an already-configurable backend, instead of retrofitting configurability into hardcoded logic.
 
 ### Architectural Decision — Security & Notifications Without MFA or External APIs
+
 Per organizational constraint, this system will **not** use OTP-based MFA or any external/third-party API (SMS gateways, OTP providers, identity providers, etc.). Practical implications carried through the plan:
+
 - **Authentication** is single-factor: username/password over Spring Security + JWT, hardened with strong password policy, account lockout after repeated failed attempts, and short-lived tokens with refresh — compensating controls rather than a second factor.
 - **Notifications** are limited to **in-app + email** (via internal/self-hosted SMTP, not a third-party transactional-email API). Any story referencing SMS (Visit alerts, Task notifications, Patient Portal notifications) is scoped down to in-app + email only.
 - **E-signatures (21 CFR Part 11, Phase 12)** rely on password re-authentication plus reason-for-signing capture, rather than MFA-backed signing. This is a legitimate implementation pattern in many validated systems, but **flag it explicitly to QA/Compliance stakeholders** during validation planning, since a single-factor e-signature is a more scrutinized control than a multi-factor one under some interpretations of Part 11 — better to document the accepted risk now than discover it during audit prep.

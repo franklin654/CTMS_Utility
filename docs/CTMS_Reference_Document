@@ -1,0 +1,1274 @@
+# CTMS Requirements Reference (BRD + Problem Statement + Product Backlog)
+
+**Purpose:** A single, text-searchable reference consolidating everything referenced by section/story number in `CTMS_Phased_Implementation_Plan.md`. The source BRD and Problem Statement are scanned/print-to-PDF files with no text layer (image-only pages) — this document is a full transcription so tools like Claude Code can `grep`/read them directly instead of OCR'ing images.
+
+**Source documents transcribed here:**
+
+- `Pharma_BRD_V0_1.pdf` (19 pages) → Part A
+- `pharma_problemStatement_V0_2.pdf` (4 pages) → Part B
+- `Product_Backlog_0_2__1_.xlsx` (46 stories / 11 epics) → Part C
+- `Product_Backlog_based_on_review.xlsx` (11 items, earlier backlog) → Part D
+- Traceability between old and new backlogs → Part E
+- Cross-reference from Implementation Plan phases back to this document → Part F
+
+---
+
+## Table of Contents
+
+- [Part A — BRD Full Reference](#part-a--brd-full-reference)
+  - [A.1 Business Objective](#a1-business-objective-brd-1)
+  - [A.2 Background](#a2-background-brd-2)
+  - [A.3 Scope](#a3-scope-of-the-clinical-trial-management-solution-brd-3)
+  - [A.4 Stakeholders](#a4-stakeholders-brd-4)
+  - [A.5 Business Requirements](#a5-business-requirements-brd-5)
+  - [A.6 Core Functional Requirements](#a6-core-functional-requirements-brd-6)
+  - [A.7 Non-Functional Requirements](#a7-non-functional-requirements-brd-7)
+  - [A.8 Dependencies](#a8-dependencies-brd-8)
+  - [A.9 Key Risks](#a9-key-risks-brd-9)
+  - [A.10 Glossary](#a10-glossary-brd-10)
+- [Part B — Problem Statement & Proposed Solution](#part-b--problem-statement--proposed-solution)
+- [Part C — Product Backlog v0.2 (46 stories / 11 epics)](#part-c--product-backlog-v02-full-story-reference)
+- [Part D — Clinical Safety Epic, Carried Forward](#part-d--clinical-safety-epic-carried-forward-from-earlier-backlog)
+- [Part E — Old Backlog → v0.2 Traceability Map](#part-e--old-backlog--v02-traceability-map)
+- [Part F — Cross-Reference: Implementation Plan Phase ↔ This Document](#part-f--cross-reference-implementation-plan-phase--this-document)
+
+---
+
+# PART A — BRD Full Reference
+
+*(Transcribed from `Pharma_BRD_V0_1.pdf`)*
+
+## A.1 Business Objective (BRD §1)
+
+The primary business objective is to enable efficient, compliant, and scalable execution of clinical trials by replacing manual, fragmented trial operations with a deterministic, rules-driven Clinical Trial Management System (CTMS) that actively manages clinical workflows rather than passively recording data.
+
+Specifically, the solution aims to:
+
+- **Reduce operational inefficiency and errors** by automating study, site, subject, visit, document, task, and financial workflows through configuration-based, deterministic rules.
+- **Increase real-time visibility and control** over trial progress, risks, and compliance status across studies, sites, and regions using a centralized single source of truth.
+- **Ensure regulatory compliance and inspection readiness by design**, with complete audit trails, traceability, controlled access, and explainable system behavior.
+- **Lower validation and maintenance cost** by avoiding opaque AI-driven logic and focusing on transparent, predictable processes that are easy to validate and upgrade.
+- **Improve scalability and adaptability** to protocol amendments, geographic expansion, and increasing operational complexity without requiring custom code.
+- **Minimize administrative burden and reconciliation errors** by tightly integrating operational milestones with financial rules and payment controls.
+- **Enhance patient engagement and retention** through a secure patient portal that supports self-management, timely communication, and reduced dependency on site staff.
+- **Enable teams to focus on exception management and decision-making**, rather than routine tracking and manual coordination.
+
+Overall, the objective is to run clinical trials more predictably, compliantly, and cost-effectively, accelerating study timelines while increasing confidence among sponsors, CROs, QA teams, and regulators.
+
+## A.2 Background (BRD §2)
+
+Clinical trial execution involves managing many interdependent processes across studies, sites, subjects, visits, documents, finances, and compliance. In many organizations, these activities are handled through manual and fragmented tools such as spreadsheets, emails, and disconnected systems, resulting in inefficiency, errors, and delays.
+
+The lack of automation and integration makes real-time visibility into trial progress difficult, limiting proactive risk management and operational control. At the same time, clinical trials are highly compliance-sensitive, requiring complete audit trails, traceability, and controlled access — needs that manual systems struggle to meet consistently.
+
+As trial complexity increases with more sites, geographies, and regulatory oversight, these approaches do not scale effectively. Although several CTMS platforms exist, many rely on complex AI-driven features that increase validation effort, maintenance cost, and system opacity, making them unsuitable for organizations that primarily need predictable, explainable, and rule-based process automation.
+
+This creates a clear need for a CTMS that actively manages trial operations, improves transparency and compliance, and scales through deterministic, configuration-driven workflows rather than AI-based abstraction.
+
+## A.3 Scope of the Clinical Trial Management Solution (BRD §3)
+
+The scope of this solution covers the end-to-end operational execution of clinical trials, focusing on deterministic, rules-based automation across all core trial processes. It is designed to replace manual, fragmented workflows with a centralized, compliant, and configurable CTMS that actively manages trial activities.
+
+### A.3.1 In Scope
+
+- **Study & Site Management:** End-to-end lifecycle management including study setup, site activation, approvals, status transitions, and prerequisite enforcement.
+- **Subject & Visit Management:** Protocol-driven subject enrollment, visit scheduling, visit tracking, and management of missed or overdue visits with version control.
+- **Workflow & Task Automation:** Automated creation, assignment, tracking, and escalation of tasks based on system events, schedules, and SLA rules.
+- **Monitoring & Oversight:** CRA assignment, monitoring visit planning, report tracking, follow-up actions, and automated milestone calculations (e.g., FPI, LPI, DBL).
+- **Document & Compliance Management:** Controlled document storage, classification, versioning, approval workflows, and immutable audit trails for inspection readiness.
+- **Financial Management:** Visit- and activity-based payment rules, compliance-linked payment releases, budget management, and protocol amendment alignment.
+- **Reporting & Transparency:** Real-time dashboards, operational metrics across studies and portfolios, and exportable reports for internal review and regulatory inspections.
+- **Patient Portal:** Secure patient access for visit visibility, task completion, reminders, document uploads (where permitted), and self-service updates.
+- **Configuration & Validation:** Configuration-driven rules, workflows, and schedules with full traceability, enabling easier validation and regulatory acceptance.
+
+### A.3.2 Out of Scope
+
+- Advanced AI/ML-based predictive analytics or black-box decision-making.
+- Clinical data analysis (EDC), safety systems, or lab data management **beyond operational linkage**.
+
+Overall, the scope emphasizes running and enforcing clinical trial operations through transparent, scalable, and compliance-first automation rather than passive tracking or predictive intelligence.
+
+## A.4 Stakeholders (BRD §4)
+
+### A.4.1 Primary Business Stakeholders
+
+**A.4.1.1 Clinical Operations Team (Primary Users)** — Clinical Trial Managers (CTMs), Clinical Research Associates (CRAs)/Monitors, Study Coordinators.
+
+- *Interests:* Reduced manual work and duplicate data entry; clear workflows and task tracking; real-time study/site visibility.
+- *Value from solution:* Deterministic workflows → less confusion; automated tasking → focus on exceptions; transparent status tracking.
+
+**A.4.1.2 Site Personnel** — Investigators, Site Coordinators.
+
+- *Interests:* Simple systems (not overly complex AI tools); clear visit schedules and requirements; minimal admin burden.
+- *Value:* Protocol-driven visits and tasks; document checklists; reduced communication overhead.
+
+**A.4.1.3 Patients / Trial Participants** *(via Patient Portal)*
+
+- *Interests:* Clarity on visits and responsibilities; easy communication and reminders; minimal dependency on site staff.
+- *Value:* Self-service portal; reminders and notifications; improved engagement and compliance.
+
+### A.4.2 Organizational Stakeholders
+
+**A.4.2.1 Clinical Project Management / Program Leadership**
+
+- *Interests:* Study timelines and milestones (FPI, LPI, DBL); portfolio-level visibility; risk identification.
+- *Value:* Real-time dashboards; cross-study analytics; predictable execution without AI complexity.
+
+**A.4.2.2 Regulatory & Quality Assurance (QA)**
+
+- *Interests:* Compliance (GCP, 21 CFR Part 11, audit readiness); traceability and audit trails; system validation.
+- *Value:* Deterministic logic; full audit logs and explanation trails; easier validation and inspection readiness.
+
+**A.4.2.3 Data Management Team**
+
+- *Interests:* Data accuracy and consistency; clean subject and visit data; integration with EDC systems.
+- *Value:* Structured workflows → fewer errors; single source of truth; traceable data lineage.
+
+**A.4.2.4 Finance & Clinical Finance Teams**
+
+- *Interests:* Accurate site payments; budget tracking and forecasting; reduced reconciliation work.
+- *Value:* Rule-based payments tied to activity; automatic holds/releases; budget versioning.
+
+**A.4.2.5 IT / Engineering Teams**
+
+- *Interests:* Maintainability and scalability; system performance; avoiding overly complex AI components.
+- *Value:* Java/Kotlin + PostgreSQL stack (reliable, scalable); configuration-driven architecture; easier debugging and support.
+
+### A.4.3 External Stakeholders
+
+**A.4.3.1 Sponsors (Pharma / Biotech Companies)**
+
+- *Interests:* Timely trial execution; cost control; regulatory compliance.
+- *Value:* Faster study startup; better oversight; reduced operational risk.
+
+**A.4.3.2 CRO Leadership** *(if applicable)*
+
+- *Interests:* Operational efficiency; standardization across trials; profitability.
+- *Value:* Reduced manual effort; reusable configurations; lower training costs.
+
+**A.4.3.3 Regulatory Authorities** — FDA, EMA, MHRA, CDSCO, etc.
+
+- *Interests:* Data integrity; auditability; compliance adherence.
+- *Value:* Transparent workflows; complete traceability; inspection-ready outputs.
+
+**A.4.3.4 Auditors / Inspectors**
+
+- *Interests:* Clear evidence of processes; traceable decisions and actions.
+- *Value:* Immutable audit trails; explainable rule-based decisions; easy export of audit packages.
+
+### A.4.4 Product & Strategy Stakeholders
+
+**A.4.4.1 Product Owners / Business Analysts**
+
+- *Interests:* Configurability without code; alignment with clinical workflows; user adoption.
+- *Value:* Configuration-driven rules engine; flexible protocol modeling; feature simplicity over AI complexity.
+
+**A.4.4.2 Executive Leadership**
+
+- *Interests:* ROI; risk reduction; competitive advantage.
+- *Value:* Lower operational costs; faster trial timelines; scalable platform without heavy AI investment.
+
+## A.5 Business Requirements (BRD §5)
+
+- **5.1 Centralized Data Management** — Single system for studies, sites, subjects, documents, tasks, and finances; eliminate spreadsheets and disconnected tools.
+- **5.2 Workflow Automation** — Automate study, site, subject, and visit lifecycles; event-based task creation, reminders, and escalations; SLA enforcement with minimal manual intervention.
+- **5.3 Configuration-Driven Flexibility** — Ability to configure protocols, visit schedules, and document requirements; no code changes for amendments.
+- **5.4 Real-Time Visibility & Tracking** — Dashboards for study, site, and portfolio status; real-time tracking of tasks, visits, and milestones; alerts for delays, risks, and overdue activities.
+- **5.5 Compliance & Auditability** — Complete audit trails for all actions and changes; role-based access control and data security; inspection-ready data and reports.
+- **5.6 Subject & Visit Management** — Protocol-based visit scheduling with version control; automatic tracking of completed, missed, and overdue visits.
+- **5.7 Document Management** — Centralized document repository with versioning; mandatory document checklists and approval workflows; easy retrieval for audits.
+- **5.8 Financial Management** — Rule-based payments linked to visits and activities; budget tracking and version control; automated payment holds/releases.
+- **5.9 Monitoring & Oversight** — CRA assignment and visit scheduling; monitoring reports tracking and follow-ups; automated milestone calculations (FPI, LPI, DBL).
+- **5.10 Patient Engagement (Portal)** — Secure patient access to visits, tasks, and notifications; ability to update details and upload documents; automated reminders to reduce missed visits.
+- **5.11 Scalability & Performance** — Support multiple studies, regions, and users simultaneously; maintain performance as trial complexity grows.
+- **5.12 Deterministic & Validation-Friendly Design** — Rule-based (non-AI) decision-making; clear traceability of system behavior; easy validation and regulatory approval.
+
+## A.6 Core Functional Requirements (BRD §6)
+
+**Top-level (BRD §6):**
+
+- **Study Management:** Create and manage studies, protocols, and lifecycle states.
+- **Site Management:** Register sites, track activation, enforce prerequisites.
+- **Subject Management:** Enroll subjects and track lifecycle status.
+- **Visit Management:** Configure schedules, track completed/missed visits.
+
+**6.1 Automation & Workflow**
+
+- Auto-create tasks based on events.
+- SLA-based task tracking and escalation.
+- Notifications for tasks, visits, and delays.
+
+**6.2 Monitoring & Reporting**
+
+- CRA assignment and monitoring visit tracking.
+- Real-time dashboards and reports.
+- Milestone tracking (FPI, LPI, DBL).
+
+**6.3 Document & Compliance**
+
+- Document upload, versioning, approvals.
+- Mandatory checklists per study phase.
+- Full audit trail and role-based access.
+
+**6.4 Financial Management**
+
+- Rule-based payments linked to activities.
+- Budget tracking and version control.
+- Payment holds/releases.
+
+**6.5 Configuration**
+
+- Configure workflows, visits, and document rules.
+- No code required for updates.
+
+**6.6 Patient Portal**
+
+- Secure login for patients.
+- View visits, tasks, notifications.
+- Upload documents and update details.
+
+**6.7 Compliance**
+
+- Adhere to regulatory standards (GCP, 21 CFR Part 11).
+- Maintain complete audit trails.
+- Ensure data integrity and traceability.
+
+## A.7 Non-Functional Requirements (BRD §7)
+
+**7.1 Performance**
+
+- System should handle multiple concurrent users (sites, studies, patients).
+- Response time ≤ 2–3 seconds for key operations.
+- Support bulk data processing without performance degradation.
+
+**7.2 Scalability**
+
+- Support increasing number of studies, sites, subjects.
+- Handle multi-region/global trials efficiently.
+
+**7.3 Security**
+
+- Role-based access control (RBAC).
+- Data encryption (in transit and at rest).
+- Secure authentication (e.g., MFA support). *[Note: per organizational constraint communicated during implementation planning, MFA/OTP and external identity/API services are NOT used in the actual build — see the Implementation Plan's Architectural Decision section and Open Items. This BRD requirement is retained here verbatim as the original source-of-truth for traceability.]*
+
+**7.4 Reliability & Availability**
+
+- System availability ≥ 99.9%.
+- Automatic backups and disaster recovery.
+- Minimal downtime during updates.
+
+**7.5 Maintainability**
+
+- Modular architecture (Java, Kotlin, React — *implementation uses Angular instead of React, see Open Items*).
+- Easy configuration without code changes.
+- Clear separation of rules and logic.
+
+**7.6 Testability & Validation**
+
+- Deterministic behavior (no AI ambiguity).
+- Support system validation and audit readiness.
+- Easy to test workflows and configurations.
+
+**7.7 Usability**
+
+- User-friendly interface for clinical and site users.
+- Minimal training required.
+
+**7.8 Interoperability**
+
+- Ability to integrate with external systems (e.g., EDC).
+- Standard APIs for data exchange.
+
+**7.9 Auditability**
+
+- Log all user actions and system events.
+- Provide exportable audit reports.
+- Ensure inspection-ready data at all times.
+
+## A.8 Dependencies (BRD §8)
+
+**8.1 Technology Dependencies**
+
+- Backend: Java / Kotlin frameworks.
+- Frontend: React *(implementation uses Angular + Tailwind + Angular Material — see Open Items in Implementation Plan)*.
+- Database: PostgreSQL.
+- API layer for integrations.
+
+**8.2 System Integrations**
+
+- EDC (Electronic Data Capture) systems.
+- Document storage systems.
+- Email/SMS notification services *(implementation limits this to email + in-app only — see Open Items)*.
+- Identity & authentication systems (SSO/MFA) *(implementation does not use external SSO/MFA — see Open Items)*.
+
+**8.3 Data Dependencies**
+
+- Accurate study protocols and visit schedules.
+- Site and investigator data.
+- Subject enrollment data.
+- Financial/budget data.
+
+**8.4 Operational Dependencies**
+
+- Defined clinical workflows and SOPs.
+- User roles and responsibilities.
+- CRA/site coordination processes.
+
+**8.5 Compliance & Regulatory**
+
+- GCP and 21 CFR Part 11 requirements.
+- Audit and validation standards.
+- Data privacy regulations (e.g., GDPR, HIPAA).
+
+**8.6 User Adoption**
+
+- Training for clinical staff and site users.
+- Change management readiness.
+- Process alignment across teams.
+
+**8.7 Infrastructure**
+
+- Cloud/on-prem hosting environment.
+- Backup and disaster recovery setup.
+- Network reliability and security.
+
+## A.9 Key Risks (BRD §9)
+
+**9.1 Implementation Risk**
+
+- Complexity in configuring workflows and rules correctly → may lead to errors and misalignment if workflows are not clearly designed and tested.
+- Delays in system development and deployment → can occur due to poor planning, resource constraints, or unexpected technical challenges.
+
+**9.2 Integration Risk**
+
+- Challenges integrating with EDC, finance, or external systems → may lead to compatibility issues, requiring additional customization and causing delays.
+- Data synchronization issues between systems → can result in inconsistent or inaccurate data due to timing gaps or integration failures.
+
+**9.3 Data Quality Risk**
+
+- Inaccurate or incomplete input data (protocols, subjects, sites) → may lead to incorrect outputs, impacting system reliability and decision-making.
+- Migration errors from legacy systems → can cause data loss, corruption, or inconsistencies during transition.
+
+**9.4 User Adoption Risk**
+
+- Resistance to change from manual processes → slows adoption and reduces system effectiveness.
+- Insufficient training leading to misuse → leads to incorrect usage and errors.
+
+**9.5 Security & Compliance Risk**
+
+- Data breaches or unauthorized access → risk to sensitive clinical data.
+- Non-compliance with GCP, 21 CFR Part 11, GDPR/HIPAA → regulatory penalties and delays.
+
+**9.6 Configuration Risk**
+
+- Incorrect rule configurations causing workflow errors → causes workflow failures or wrong outputs.
+- Misinterpretation of protocol logic → leads to inaccurate system behavior.
+
+**9.7 Scalability Risk**
+
+- Performance issues as number of studies/users grows → slows system response.
+- Infrastructure limitations → affects system stability and expansion.
+
+**9.8 Validation Risk**
+
+- Delays in system validation and regulatory approval → impacts go-live timelines.
+- Incomplete audit trails → compliance and traceability issues.
+
+**9.9 Financial Risk**
+
+- Incorrect payment rules leading to billing errors → billing errors and financial discrepancies.
+- Budget misalignment → cost overruns due to protocol changes.
+
+**9.10 Operational Risk**
+
+- Dependency on system availability (downtime impacts trial execution) → disrupts trial operations.
+- Poor exception handling → delays issue resolution and affects workflows.
+
+## A.10 Glossary (BRD §10)
+
+| Term | Meaning |
+|---|---|
+| CTMS (Clinical Trial Management System) | Software used to manage clinical trial operations (studies, sites, subjects, tasks, finances). |
+| Study | A clinical trial conducted to evaluate a treatment or drug. |
+| Site | A location (hospital/clinic) where the trial is conducted. |
+| Subject (Patient) | An individual participating in the clinical trial. |
+| Protocol | A document defining trial objectives, design, and visit schedule. |
+| Visit | A scheduled interaction between subject and site as per protocol. |
+| Workflow | A sequence of steps or processes managed by the system. |
+| Task | An action assigned to a user, often triggered by system events. |
+| SLA (Service Level Agreement) | Defined timeline for completing tasks. |
+| CRA (Clinical Research Associate) | Person responsible for monitoring trial sites. |
+| Monitoring Visit | Visit conducted by CRA to review trial progress and compliance. |
+| FPI (First Patient In) | Date when the first subject is enrolled. |
+| LPI (Last Patient In) | Date when the last subject is enrolled. |
+| DBL (Database Lock) | Point when trial data is finalized for analysis. |
+| Audit Trail | Record of all system actions and changes for compliance. |
+| Compliance | Adherence to regulatory standards (e.g., GCP, 21 CFR Part 11). |
+| GCP (Good Clinical Practice) | International quality standard for clinical trials. |
+| Configuration-Driven | System behavior controlled through settings instead of coding. |
+| Deterministic Workflow | Rule-based process with predictable outcomes (no AI ambiguity). |
+| Document Management | Handling of trial documents with versioning and approvals. |
+| EDC (Electronic Data Capture) | System for collecting clinical trial data. |
+| RBAC (Role-Based Access Control) | Access control based on user roles. |
+| Patient Portal | Interface for patients to view visits, tasks, and updates. |
+
+---
+
+# PART B — Problem Statement & Proposed Solution
+
+*(Transcribed from `pharma_problemStatement_V0_2.pdf`)*
+
+## B.1 Problem Statement
+
+Clinical trial execution involves managing a large volume of structured processes across studies, sites, subjects, visits, documents, finances, and compliance activities. In many organizations, these processes are:
+
+- **Manual and fragmented**, relying on spreadsheets, emails, and disconnected tools.
+- **Error-prone and slow**, due to repeated data entry and lack of automation.
+- **Difficult to track in real time**, limiting visibility into trial progress and risks.
+- **Compliance-sensitive**, with high dependency on audit trails, traceability, and controlled access.
+- **Poorly scalable**, as trial complexity, geography, and oversight requirements increase.
+
+Existing CTMS platforms often introduce unnecessary complexity by relying on advanced AI-driven features, making them harder to validate, costlier to maintain, and unsuitable for organizations that primarily require reliable, deterministic process automation.
+
+## B.2 Proposed Solution
+
+Implement a rules-driven, configuration-based CTMS using **Java, Kotlin, PostgreSQL, and React** *(implementation deviates to Angular + Tailwind + Angular Material, per instruction)* that actively manages clinical trial operations through deterministic workflows, transparent rules, and compliance-first design.
+
+**How this solution resolves the problem:**
+
+- A **centralized platform** provides a single source of truth for all study, site, subject, document, task, and financial data.
+- **Deterministic workflows** automate lifecycle management for studies, sites, subjects, visits, and tasks — eliminating manual tracking.
+- **Event- and schedule-based automation** proactively creates tasks, sends reminders, enforces SLAs, and escalates issues.
+- **Configuration-driven setup** enables protocol changes, visit schedule updates, and document rule changes without custom code.
+- **Built-in auditability and explainability** ensure every action, decision, and status change is traceable and inspection-ready.
+- **Operational and financial processes are tightly linked**, reducing reconciliation errors and administrative burden.
+
+The system focuses on **running the trial**, not just recording its status.
+
+## B.3 Key Features (as pitched in the Problem Statement)
+
+**Study & Site Lifecycle Management**
+
+- Status-driven workflows with prerequisite enforcement.
+- Configurable activation rules (e.g., required documents, approvals).
+- Transparent explanations for blocked transitions.
+- *Value:* Faster, error-free site activation with clear accountability.
+
+**Subject & Visit Management**
+
+- Protocol-based visit templates with version control.
+- Deterministic subject and visit state transitions.
+- Automatic detection of overdue or missed visits.
+- *Value:* Accurate visit tracking without manual reconciliation.
+
+**Workflow & Task Automation**
+
+- Automatic task creation based on system events (e.g., site activation, visit completion).
+- SLA-based due dates and escalation rules.
+- Workflow decision logs explaining why tasks were created or escalated.
+- *Value:* Users manage exceptions instead of routine operational work.
+
+**Monitoring & Oversight**
+
+- CRA assignment and monitoring visit scheduling.
+- Tracking of monitoring reports and follow-up actions.
+- Automated milestone calculation (FPI, LPI, DBL).
+- *Value:* Improved operational visibility and consistent oversight.
+
+**Document & Compliance Management**
+
+- Metadata-driven document classification and versioning.
+- Mandatory document checklists per study phase.
+- Approval workflows with immutable audit trails.
+- Inspection-ready, read-only views and exportable audit packages.
+- *Value:* Reduced audit stress and improved regulatory confidence.
+
+**Financial Management**
+
+- Visit- and activity-based payment rules.
+- Payment holds and releases tied to operational compliance.
+- Budget versioning aligned with protocol amendments.
+- *Value:* Eliminates billing errors and spreadsheet dependency.
+
+**Reporting & Operational Transparency**
+
+- Real-time dashboards for study, site, and portfolio views.
+- Cross-study operational metrics (performance, workload, compliance).
+- Exportable reports for internal review and inspections.
+- *Value:* Better decision-making without predictive AI.
+
+**Validation- and Regulator-Friendly Design**
+
+- Fully deterministic logic with no AI black boxes.
+- Clear separation of configuration and business logic.
+- Complete change history and traceability.
+- *Value:* Faster validation, easier upgrades, and higher trust from QA and regulators.
+
+## B.4 Patient Portal: Patient Access & Self-Management *(New Feature, as pitched)*
+
+**What it does:** Allows patients to view their own status and complete required actions during the study.
+
+**How it works:**
+
+- Patients get secure login access via a portal or mobile-friendly interface.
+- They can see: upcoming visits, completed visits, study tasks assigned to them (surveys, diaries, confirmations), notifications or reminders.
+- They can upload required files (if allowed), update personal details, or confirm visit attendance.
+- The portal is connected to the main CTMS in real time.
+
+**Why it helps:**
+
+- Patients stay informed without depending on site staff.
+- Fewer missed visits because patients get reminders.
+- Easy for patients to complete forms or upload documents.
+- Improves patient engagement and reduces manual coordination.
+
+---
+
+# PART C — Product Backlog v0.2, Full Story Reference
+
+*(Transcribed from `Product_Backlog_0_2__1_.xlsx`, sheet `03_Product_Backlog`. Columns: Story, User Story / Detailed Description, Acceptance Criteria, IPO Notes (Inputs/Processing/Outputs, given once per epic), Size, Priority)*
+
+## Epic 1: Study Management
+
+### Story 01 – Create a New Study
+
+**User Story:** As a Study Manager, I want to create a study with protocol details so that the study can be tracked and managed throughout its lifecycle.
+**Detailed Description:** User should enter study metadata (study name, protocol ID, phase, sponsor, protocol version, dates). System validates required fields and ensures unique protocol ID. Automatically assigns a Study ID and sets state to "Draft."
+**Acceptance Criteria:**
+
+1. User can open "Create Study" interface.
+2. Mandatory fields must be filled.
+3. System prevents duplicate protocol IDs.
+4. Study ID is automatically generated.
+5. Study saved in "Draft" state.
+6. Audit trail logs creation.
+**Size:** 5 (medium) | **Priority:** High
+
+### Story 02 – Update Study Details
+
+**User Story:** As a Study Manager, I want to update study details so that changes are reflected throughout the system.
+**Detailed Description:** Editable fields depend on the study lifecycle. Changes to locked fields (like protocol ID after activation) are restricted. System logs all changes.
+**Acceptance Criteria:**
+
+1. Editable and non-editable fields displayed correctly.
+2. Mandatory validations enforced.
+3. Updated information saved.
+4. Full audit trail captured.
+**Size:** 3 (small) | **Priority:** Medium
+
+### Story 03 – Manage Study Lifecycle States
+
+**User Story:** As a Study Manager, I want to modify the study lifecycle state so that the study progresses in alignment with regulatory expectations.
+**Detailed Description:** State changes require validation: Draft → Active → Conduct → Closeout. Some transitions require justification or documentation.
+**Acceptance Criteria:**
+
+1. State transitions follow rules.
+2. Incomplete prerequisites block transition.
+3. Notifications sent when state changes.
+4. Audit trail captures old and new state.
+**Size:** 8 (large) | **Priority:** High
+
+### Story 04 – View Study Details
+
+**User Story:** As a User, I want to view complete study details so that I can understand study metadata and current progress.
+**Detailed Description:** Displays the overview, lifecycle, sites, subjects, documents, and milestones in read-only mode.
+**Acceptance Criteria:**
+
+1. Study overview loads without errors.
+2. All metadata displayed.
+3. Role-based restricted fields hidden.
+**Size:** 3 (small) | **Priority:** Medium
+
+**Epic IPO Notes:** *Inputs:* Study metadata, dates, lifecycle state triggers, user credentials. *Processing:* Validate mandatory fields, check protocol ID uniqueness, assign Study ID, enforce lifecycle rules. *Outputs:* Created/updated study record, study dashboard view, lifecycle status, audit log entry.
+
+---
+
+## Epic 2: Site Management
+
+### Story 01 – Register a New Site
+
+**User Story:** As a Study Manager, I want to register new study sites so that they can participate in the clinical study.
+**Detailed Description:** User must be able to enter site metadata including site name, code, location details, PI details, contact information, feasibility status, and regulatory information. System validates mandatory fields and ensures site code uniqueness.
+**Acceptance Criteria:**
+
+1. User can open "Register Site" form.
+2. System enforces mandatory field validation.
+3. Duplicate site codes are blocked.
+4. Newly registered site defaults to "Pending Activation."
+5. Site appears under the correct study.
+6. Audit trail captures creation details.
+**Size:** 5 (medium) | **Priority:** High
+
+### Story 02 – Track Site Activation Status
+
+**User Story:** As a Study Manager, I want to track the activation progress of each site so that I can monitor readiness for subject enrollment.
+**Detailed Description:** System displays activation prerequisites such as feasibility completion, IRB/EC approval, contract completion, essential documents submission, and site initiation visit. Each milestone has a date and status.
+**Acceptance Criteria:**
+
+1. Activation dashboard displays all prerequisites.
+2. Completed items shown as green; pending as red.
+3. Site status switches automatically to "Active" once all prerequisites are met.
+4. System records activation date.
+5. Notifications sent to CRA and Study Manager.
+**Size:** 8 (large) | **Priority:** High
+
+### Story 03 – Enforce Activation Prerequisites
+
+**User Story:** As a Study Manager, I want the system to enforce activation prerequisites so that sites cannot activate without required approvals and documents.
+**Detailed Description:** System prevents activation if any required document or milestone is missing. System must list missing items and provide links to complete them.
+**Acceptance Criteria:**
+
+1. Activation blocked if any required item is incomplete.
+2. Blocking message displays missing prerequisites clearly.
+3. After completing prerequisites, system reevaluates status.
+4. Activation attempt logged in audit trail.
+**Size:** 8 (large) | **Priority:** High
+
+### Story 04 – View Site Information
+
+**User Story:** As a User, I want to view site information so that I can understand site status and operational progress.
+**Detailed Description:** Displays full site details: metadata, activation timeline, documents, visit history, enrollment metrics, CRA assignments, monitoring visits, and contact details.
+**Acceptance Criteria:**
+
+1. Site overview page loads with all required data.
+2. Restricted fields hidden based on user role.
+3. Site activation status visible and updated.
+**Size:** 3 (small) | **Priority:** Medium
+
+**Epic IPO Notes:** *Inputs:* Site details, activation checklist data, uploaded documents, CRA assignment. *Processing:* Validate required site fields, check prerequisite completion, evaluate activation rules, link site to study. *Outputs:* Site record, activation status, site dashboard, notifications, audit logs.
+
+---
+
+## Epic 3: Subject Management
+
+### Story 01 – Enroll a New Subject
+
+**User Story:** As a Site Coordinator, I want to enroll new subjects so that they can participate in the study and be tracked throughout the clinical trial.
+**Detailed Description:** System should enable capturing subject demographic details, assign a unique subject ID, validate eligibility criteria before enrollment, record the screening date, and initiate subject lifecycle in "Screened" state. System must prevent enrollment if the subject fails eligibility.
+**Acceptance Criteria:**
+
+1. User can open "Enroll Subject" screen.
+2. System captures all required demographic fields.
+3. System validates inclusion/exclusion criteria.
+4. Enrollment blocked if eligibility fails.
+5. Unique subject ID auto-generated.
+6. Subject defaults to "Screened" state.
+7. Audit trail logs creation.
+**Size:** 8 (large) | **Priority:** High
+
+### Story 02 – Track Subject Lifecycle Status
+
+**User Story:** As a Site Coordinator, I want to track and update subject lifecycle status so that subject progress is accurately reflected.
+**Detailed Description:** System supports transitions: Screened → Enrolled → In Treatment → Completed → Withdrawn/Dropout. Some transitions require reason codes or supporting documents. System prevents invalid transitions (e.g., Completed → Screened).
+**Acceptance Criteria:**
+
+1. User can initiate status updates.
+2. System enforces valid lifecycle transitions.
+3. Certain transitions require reason codes (e.g., withdrawal).
+4. Timestamps automatically applied.
+5. Audit trail captures status updates.
+**Size:** 5 (medium) | **Priority:** High
+
+### Story 03 – Update Subject Details
+
+**User Story:** As a Site Coordinator, I want to update subject information so that the subject profile remains correct and current.
+**Detailed Description:** Updates may include address, emergency contact, notes, or medical history. Certain fields (Subject ID, original screening date) must remain locked.
+**Acceptance Criteria:**
+
+1. User can open subject profile in edit mode.
+2. Non-editable fields remain locked.
+3. Changes validated before saving.
+4. System logs before/after values in audit trail.
+**Size:** 3 (small) | **Priority:** Medium
+
+### Story 04 – View Subject Profile
+
+**User Story:** As a Study Manager, I want to view subject details so that I can monitor their progress and compliance.
+**Detailed Description:** System displays demographic data, lifecycle status, visit schedule and history, documents, notes, and any protocol deviations.
+**Acceptance Criteria:**
+
+1. Subject profile loads with all data.
+2. Role-based access controls hide sensitive fields (e.g., medical notes).
+3. Data displayed in clean, organized view.
+**Size:** 3 (small) | **Priority:** Medium
+
+**Epic IPO Notes:** *Inputs:* Subject demographic data, eligibility criteria, enrollment date, updates. *Processing:* Validate eligibility rules, generate unique Subject ID, track lifecycle transitions, apply permission rules. *Outputs:* Subject profile, lifecycle status, enrollment confirmation, subject list/dashboards, audit logs.
+
+---
+
+## Epic 4: Visit Management
+
+### Story 01 – Configure Visit Schedules
+
+**User Story:** As a Study Manager, I want to configure visit schedules so that all subjects follow standardized protocol-defined visit timelines.
+**Detailed Description:** System should allow defining visit names, sequence numbers, visit windows (target day, allowable early/late window), required procedures, and visit type (onsite/remote). Once defined, visit schedules should automatically apply to all newly enrolled subjects. Updates to the schedule should propagate based on business rules.
+**Acceptance Criteria:**
+
+1. User can create, edit, reorder, or delete visit templates.
+2. System validates visit window rules.
+3. Visit schedule applies automatically to all enrolled subjects.
+4. Updated visit definitions propagate without losing historical visit data.
+5. Audit trail records creation/modification of visit templates.
+**Size:** 8 (large) | **Priority:** High
+
+### Story 02 – Track Completed and Missed Visits
+
+**User Story:** As a Site Coordinator, I want to mark visits as completed or missed so that subject visit compliance is accurately documented.
+**Detailed Description:** User should update the status of each visit (completed/missed/rescheduled), enter visit date/time, add notes, and upload supporting documents. Missed visits should require a mandatory reason code. Completed visits should record timestamps and system should calculate compliance rates.
+**Acceptance Criteria:**
+
+1. User can update visit status (Completed/Missed).
+2. Completed visits require date, time, and optional notes.
+3. Missed visits require reason codes.
+4. System automatically recalculates visit compliance metrics.
+5. Audit trail logs all updates.
+**Size:** 5 (medium) | **Priority:** High
+
+### Story 03 – Generate Visit Alerts and Notifications
+
+**User Story:** As a Site Coordinator, I want the system to generate alerts for upcoming, missed, and overdue visits so that I can follow up with subjects in a timely manner.
+**Detailed Description:** System should generate alerts based on visit timing (e.g., "Visit due tomorrow", "Visit overdue by X days", "Visit missed"). Alerts should appear in the notification panel, be emailed, and optionally sent via SMS (if enabled). *[Implementation note: SMS channel is not built — see Implementation Plan Open Items. Email + in-app only.]*
+**Acceptance Criteria:**
+
+1. Alerts generated based on visit window rules.
+2. Alerts visible in the user's notifications center.
+3. Email/SMS alerts sent as per configuration.
+4. Alerts cleared when visit status is updated.
+5. Audit logs notification events.
+**Size:** 5 (medium) | **Priority:** Medium
+
+### Story 04 – View Visit Schedule and History
+
+**User Story:** As a Monitor or Study Manager, I want to view complete visit schedules and visit history for each subject so that I can assess protocol compliance.
+**Detailed Description:** The system shows all planned visits, actual visit dates, deviations, missed visits, rescheduling history, procedure completion, and visit notes. Data should appear in chronological order.
+**Acceptance Criteria:**
+
+1. Full visit history displayed in chronological order.
+2. Deviations and missed visits highlighted.
+3. Reschedule history visible.
+4. Role-based access controls applied.
+**Size:** 3 (small) | **Priority:** Medium
+
+**Epic IPO Notes:** *Inputs:* Visit templates, subject visit actions, visit completion data, missed visit reasons. *Processing:* Generate visit schedules per subject, validate visit windows, update visit status, trigger alerts. *Outputs:* Visit schedule, visit status, visit history logs, alerts/notifications, compliance metrics.
+
+---
+
+## Epic 5: Workflow & Automation
+
+### Story 01 – Auto-Create Tasks Based on Events
+
+**User Story:** As a System, I want to automatically create tasks based on key study events so that workflow execution remains consistent and no action is missed.
+**Detailed Description:** When an event occurs (such as subject enrollment or site activation), the system should automatically generate relevant tasks. Each task must have an owner (system-assigned), due date (SLA-driven), priority, and task metadata. Tasks must appear in the assigned user's task list and trigger notifications.
+**Acceptance Criteria:**
+
+1. System automatically generates tasks when a configured event occurs.
+2. Task owner, type, priority, and due date assigned automatically.
+3. Tasks appear in the user's task inbox instantly.
+4. Users receive notifications upon task creation.
+5. Audit trail records task auto-generation details.
+**Size:** 8 (large) | **Priority:** High
+
+### Story 02 – SLA-Based Task Tracking
+
+**User Story:** As a User, I want SLA timers applied to tasks so that I can prioritize tasks effectively and avoid delays.
+**Detailed Description:** Each task should display due date, SLA countdown, color-coded urgency indicators, escalation status, and overdue markers. System should update SLA status dynamically and reflect in user dashboards.
+**Acceptance Criteria:**
+
+1. SLA due dates auto-calculated based on task rules.
+2. Tasks visually reflect urgency (e.g., yellow for nearing SLA, red for overdue).
+3. System updates SLA status in real-time.
+4. Overdue tasks clearly flagged.
+5. SLA changes captured in audit logs.
+**Size:** 5 (medium) | **Priority:** High
+
+### Story 03 – Automatic Task Escalations
+
+**User Story:** As a Manager, I want overdue tasks to be escalated so that higher authorities are aware of potential delays and can intervene.
+**Detailed Description:** System must automatically escalate overdue tasks to predefined users. Escalation includes notifications, updating task status, and logging escalation history. Optionally, escalated tasks may be reassigned.
+**Acceptance Criteria:**
+
+1. System identifies tasks that have breached SLA.
+2. Escalations trigger automatically as per rules.
+3. Notification sent to escalation recipient.
+4. Escalation reason and timestamp logged.
+5. Escalation reflected in dashboards.
+**Size:** 8 (large) | **Priority:** High
+
+### Story 04 – Notifications for Tasks, Visits, and Delays
+
+**User Story:** As a User, I want to receive notifications for tasks, upcoming visits, missed visits, and delays so that I stay informed and take timely actions.
+**Detailed Description:** System sends in-app alerts, email, and optionally SMS notifications for task updates, visit reminders, overdue visits, document expiry, and escalations. Notification center should provide filter and history view. *[Implementation note: SMS not built — email + in-app only.]*
+**Acceptance Criteria:**
+
+1. Notifications triggered automatically based on events.
+2. Alerts visible in notification center.
+3. Email/SMS sent based on user preferences.
+4. Notifications cleared when action completed.
+5. Notification audit logs maintained.
+**Size:** 5 (medium) | **Priority:** Medium
+
+**Epic IPO Notes:** *Inputs:* Event triggers (enrollment, missed visit, doc expiry), SLA definitions, task templates, escalation rules. *Processing:* Detect events, auto-create tasks, assign owners, track SLA timers, trigger escalations. *Outputs:* Task list, SLA status, escalation alerts, notification messages, workflow logs.
+
+---
+
+## Epic 6: Monitoring & Reporting
+
+### Story 01 – Assign CRA to Sites
+
+**User Story:** As a Study Manager, I want to assign CRAs to specific sites so that monitoring responsibility is clearly defined and accountability is ensured.
+**Detailed Description:** The system should allow assigning one or more CRAs (e.g., primary and backup CRA) to each site. CRA assignments should immediately reflect in monitoring visit scheduling, dashboards, and notifications. Removing or updating assignments should be fully audit-logged.
+**Acceptance Criteria:**
+
+1. User can assign primary and secondary CRAs to a site.
+2. System validates CRA role before assignment.
+3. CRA assignment instantly reflected across monitoring modules.
+4. Notifications sent to the assigned CRA(s).
+5. Audit trail captures all changes to assignment.
+**Size:** 5 (medium) | **Priority:** High
+
+### Story 02 – Record and Track Monitoring Visits
+
+**User Story:** As a CRA, I want to record monitoring visits so that site oversight, compliance, and issues are properly documented.
+**Detailed Description:** CRAs should log planned, scheduled, and completed monitoring visits. Each visit must include visit type (SIV, IMV, COV), date, checklist, issues found, and uploaded reports. Completed visits should update monitoring KPIs.
+**Acceptance Criteria:**
+
+1. CRA can log new monitoring visits.
+2. Required fields validated (visit date, type).
+3. Visit reports can be uploaded.
+4. Monitoring visit history displayed in chronological order.
+5. Audit trail records creation/updates.
+**Size:** 5 (medium) | **Priority:** High
+
+### Story 03 – Real-Time Study Dashboards
+
+**User Story:** As an Executive, I want real-time dashboards so that I can view study performance metrics instantly and make informed decisions.
+**Detailed Description:** Dashboard includes KPIs such as: enrollment progress, site activation status, subject compliance, visit adherence, monitoring visit performance, country-wise/site-wise breakdowns, high-risk sites and data trends. Data must refresh automatically or on page load.
+**Acceptance Criteria:**
+
+1. Dashboard loads key KPIs without delay.
+2. Charts and graphs update with real-time data.
+3. Filters available (study, region, site, phase).
+4. Role-based access controls applied.
+5. Dashboard export available (PDF/Excel).
+**Size:** 8 (large) | **Priority:** High
+
+### Story 04 – Milestone Tracking (FPI, LPI, LPO, DBL)
+
+**User Story:** As a Study Manager, I want to track critical study milestones so that I can ensure timelines are met and delays are addressed proactively.
+**Detailed Description:** System must track and display milestone dates (planned vs actual), including: First Patient In (FPI), Last Patient In (LPI), Last Patient Out (LPO), Database Lock (DBL).
+**Acceptance Criteria:**
+
+1. Milestones displayed with planned vs actual dates.
+2. Delayed milestones flagged in red.
+3. System sends alerts to key stakeholders when nearing deadlines.
+4. Milestone changes captured in audit trail.
+5. Milestones visible in dashboards and reports.
+**Size:** 8 (large) | **Priority:** High
+
+**Epic IPO Notes:** *Inputs:* CRA assignments, monitoring visit data, study metrics, milestone dates. *Processing:* Aggregate study/site/subject data, calculate KPIs, track milestone progress, generate visual analytics. *Outputs:* Real-time dashboards, monitoring reports, milestone status, site performance metrics, exportable reports.
+
+---
+
+## Epic 7: Document Management & Compliance
+
+### Story 01 – Upload Study Documents
+
+**User Story:** As a User, I want to upload study documents so that essential regulatory and operational materials are stored in a central, accessible repository.
+**Detailed Description:** Users should upload documents with required metadata: category, version, effective date, owner, and optional description. System validates file format, size, version conflicts, and ensures secure storage. Uploaded documents become available to workflows and compliance checks.
+**Acceptance Criteria:**
+
+1. Document upload form captures required metadata.
+2. System validates file type and size.
+3. Duplicate versions require confirmation or version increment.
+4. Document stored securely and appears in the repository.
+5. Audit trail logs upload details (user, timestamp, metadata).
+**Size:** 5 (medium) | **Priority:** High
+
+### Story 02 – Document Version Control
+
+**User Story:** As a User, I want document versioning so that all historical versions are retained and traceable for compliance purposes.
+**Detailed Description:** Uploading a new version should automatically increment version number, archive previous version, and ensure the latest version is marked "Current". System must prevent editing old versions and maintain a complete version history.
+**Acceptance Criteria:**
+
+1. System auto-increments version number upon upload.
+2. Latest version marked as "Current."
+3. Older versions become read-only.
+4. All versions visible in a version history panel.
+5. Audit log records version uploads.
+**Size:** 8 (large) | **Priority:** High
+
+### Story 03 – Document Approval Workflow
+
+**User Story:** As a Manager, I want uploaded documents to undergo an approval workflow so that only validated documents are used during the study.
+**Detailed Description:** System should route documents through reviewer and approver steps. Reviewer can comment and request changes. Approver can approve or reject. Approved documents become locked and flagged as "Approved". Rejected documents return to the uploader for correction.
+**Acceptance Criteria:**
+
+1. Document automatically sent to reviewer(s) upon upload.
+2. Reviewer can approve, reject, or request changes.
+3. Approver can grant final approval.
+4. Approval locks the document from editing.
+5. Rejection requires mandatory comments.
+6. Workflow steps fully captured in audit trail.
+**Size:** 8 (large) | **Priority:** High
+
+### Story 04 – Full Audit Trail for All Document Activities
+
+**User Story:** As a QA Auditor, I want a full audit trail of all document activities so that every action is traceable for regulatory compliance.
+**Detailed Description:** Audit log tracks document uploads, version changes, approvals, rejections, deletions, access attempts, and metadata updates. Audit entries include timestamps, user, action, old values, and new values. Audit logs must be immutable.
+**Acceptance Criteria:**
+
+1. Every document activity is logged.
+2. Logs include user, timestamp, IP, action, and before/after values.
+3. Audit logs cannot be edited or deleted.
+4. Export available for regulatory review.
+**Size:** 8 (large) | **Priority:** High
+
+### Story 05 – Role-Based Access to Documents
+
+**User Story:** As an Admin, I want to enforce role-based access for documents so that only authorized users can view, edit, or approve sensitive documents.
+**Detailed Description:** System restricts document visibility based on roles (e.g., Patients cannot see PI documentation; CRAs cannot see financial files). Editing and approval privileges also controlled via role-based permissions.
+**Acceptance Criteria:**
+
+1. Users only see documents permitted by their role.
+2. Restricted documents remain hidden or masked.
+3. Unauthorized access attempts blocked and logged.
+4. Approvals limited to authorized roles.
+**Size:** 5 (medium) | **Priority:** High
+
+**Epic IPO Notes:** *Inputs:* Document files, metadata, approval actions, user access requests. *Processing:* Validate file type/size, apply versioning rules, execute approval workflows, enforce RBAC, log all actions. *Outputs:* Document repository, version history, approval status, audit trail logs, access-controlled views.
+
+---
+
+## Epic 8: Financial Management
+
+### Story 01 – Rule-Based Payments for Activities
+
+**User Story:** As a Finance Manager, I want payments to be automatically generated based on predefined rules so that investigator payments are accurate, timely, and compliant with study terms.
+**Detailed Description:** System should automatically generate payment line items when activities occur — for example, completion of a subject visit, site activation, or meeting enrollment milestones. Payment rules may include conditions, multipliers, caps, and currency preferences. Each generated payment must link to triggering activity and appear in the site financial ledger.
+**Acceptance Criteria:**
+
+1. Payment line items generated automatically when rules are met.
+2. Payment amount calculated based on rule configuration.
+3. Each payment links to a triggering event (e.g., Visit 1 completion).
+4. Payment items appear in site/study financial dashboard.
+5. Audit trail logs payment generation details.
+**Size:** 8 (large) | **Priority:** High
+
+### Story 02 – Budget Tracking (Planned vs Actual)
+
+**User Story:** As a Finance Manager, I want to track budgets so that I can monitor study financial health and control overspending.
+**Detailed Description:** System must show planned budget vs actual expenditure across categories such as investigator fees, monitoring, site payments, labs, and other cost buckets. Dashboard should highlight variances and allow drill-down into cost drivers.
+**Acceptance Criteria:**
+
+1. Budget overview displays planned vs actual amounts.
+2. Variance is automatically calculated.
+3. Filtering available by study, site, period, cost category.
+4. Trend graphs show spending over time.
+5. Export available (Excel/PDF).
+**Size:** 8 (large) | **Priority:** High
+
+### Story 03 – Budget Version Control
+
+**User Story:** As a Finance Manager, I want to maintain versions of study budgets so that historical financial changes are traceable and audit-ready.
+**Detailed Description:** Every modification to the budget should create a new version with timestamp, user, and reason for change. Users must be able to compare versions. Old versions should remain read-only.
+**Acceptance Criteria:**
+
+1. System automatically increments budget version.
+2. Old versions visible in a version history panel.
+3. Comparison view available between versions.
+4. Old versions cannot be edited.
+5. Audit log captures changes.
+**Size:** 5 (medium) | **Priority:** Medium
+
+### Story 04 – Payment Holds and Releases
+
+**User Story:** As a Finance Manager, I want to place holds and release payments so that I can manage financial risks and ensure compliance before money is disbursed.
+**Detailed Description:** Finance Manager can mark a payment as "On Hold" due to compliance issues, contract disputes, missing documents, or audit findings. System should require a reason code for placing the hold. A hold prevents payment processing until manually released.
+**Acceptance Criteria:**
+
+1. User can mark payment as "On Hold."
+2. Reason code required.
+3. While on hold, payment cannot be processed.
+4. User can release hold and record release reason.
+5. Hold/release events logged in audit trail.
+**Size:** 5 (medium) | **Priority:** Medium
+
+**Epic IPO Notes:** *Inputs:* Payment rules, activity triggers, budget data, hold/release actions. *Processing:* Calculate payments based on rules, track budget vs actuals, version budgets, apply hold/release controls. *Outputs:* Payment records, budget reports, payment status, financial dashboards, audit logs.
+
+---
+
+## Epic 9: System Configuration
+
+### Story 01 – Configure Workflows Without Code
+
+**User Story:** As an Admin, I want to configure workflows without any coding so that I can modify study processes quickly and efficiently without developer involvement.
+**Detailed Description:** Admins should be able to visually configure workflow steps, task assignments, conditions, escalations, transitions, and notifications. Configuration changes should apply instantly and safely across the study. System must validate workflow consistency (e.g., no orphan steps, valid transitions).
+**Acceptance Criteria:**
+
+1. Admin can access workflow configuration UI.
+2. Admin can add, edit, delete, and reorder workflow steps.
+3. System validates workflow logic before saving.
+4. No-code configuration (drag-and-drop) fully supported.
+5. Workflow updates apply instantly without downtime.
+6. Audit trail logs all workflow changes.
+**Size:** 8 (large) | **Priority:** High
+
+### Story 02 – Visit Template Configuration
+
+**User Story:** As an Admin, I want to configure visit templates so that each study can have customized visit schedules aligned to protocol requirements.
+**Detailed Description:** Admins create visit templates by defining visit names, target days, visit windows (allowable early/late margin), required assessments, visit type (onsite/remote), and dependency rules. Updated templates should apply to subjects enrolling after changes.
+**Acceptance Criteria:**
+
+1. System allows creation/editing of visit templates.
+2. Visit windows validated before saving.
+3. Dependencies between visits supported (e.g., Visit 2 cannot occur before Visit 1).
+4. Updates do not overwrite historical subject visit data.
+5. Audit trail logs changes.
+**Size:** 5 (medium) | **Priority:** Medium
+
+### Story 03 – Document Rules Configuration
+
+**User Story:** As an Admin, I want to configure mandatory document requirements per study phase so that compliance is enforced consistently.
+**Detailed Description:** Admins specify mandatory documents required at each stage (e.g., Site Activation requires IRB Approval, PI CV). During workflows, system checks for missing documents and blocks progression if required documents are incomplete.
+**Acceptance Criteria:**
+
+1. Admin can assign mandatory documents by phase (Start-Up, Conduct, Closeout).
+2. System validates required documents during workflow progression.
+3. Missing mandatory documents are flagged.
+4. Blocking rules enforced before transitioning phases.
+5. Audit trail tracks changes to document rules.
+**Size:** 5 (medium) | **Priority:** High
+
+### Story 04 – No-Code Rule Updates Across the System
+
+**User Story:** As an Admin, I want the ability to update rules (workflow, visits, documents, payments) using no-code tools so that configuration changes are flexible and fast.
+**Detailed Description:** System should support no-code configuration for rules such as: workflow logic, visit schedule rules, document requirements, notification rules, payment triggers. All updates should go live without requiring system restart or developer support.
+**Acceptance Criteria:**
+
+1. No-code rule editor available for all supported modules.
+2. System validates rule integrity before activation.
+3. Changes applied instantly.
+4. No downtime required.
+5. Audit logs store full details of rule changes.
+**Size:** 8 (large) | **Priority:** High
+
+**Epic IPO Notes:** *Inputs:* Workflow configuration inputs, visit template settings, document rule settings, business rule definitions. *Processing:* Validate configurations, apply rules dynamically, update system behavior without code. *Outputs:* Configured workflows, updated visit templates, rule-based system execution, configuration logs.
+
+---
+
+## Epic 10: Patient Portal
+
+### Story 01 – Secure Patient Login
+
+**User Story:** As a Patient, I want a secure login mechanism so that I can safely access my study-related information through the portal.
+**Detailed Description:** The login system should validate patient credentials, enforce strong password rules, support multi-factor authentication, and ensure secure session handling. Failed login attempts should be rate-limited. Password reset support must be available. *[Implementation note: MFA/2FA is NOT built — per organizational constraint, single-factor auth + account lockout + password reset instead. See Implementation Plan Open Items.]*
+**Acceptance Criteria:**
+
+1. Patients can log in with valid credentials.
+2. Incorrect passwords trigger error messages without revealing sensitive details.
+3. System enforces password policies (complexity, expiry if applicable).
+4. 2FA triggered when enabled. *(Not implemented — see note above.)*
+5. Account lockout after repeated failed attempts.
+6. All login attempts logged for security.
+**Size:** 5 (medium) | **Priority:** High
+
+### Story 02 – View Visit Schedule
+
+**User Story:** As a Patient, I want to view my upcoming and past visit schedules so that I know when to attend study visits.
+**Detailed Description:** The portal should display the patient's visit calendar, including visit names, dates, windows, instructions, and status (upcoming, completed, missed). A calendar view and list view should both be available.
+**Acceptance Criteria:**
+
+1. Patient can view all scheduled visits.
+2. Visit details include date, time, instructions, and location.
+3. Missed and completed visits are clearly marked.
+4. Calendar and list views available.
+5. Updates reflect real-time changes made by the site team.
+**Size:** 5 (medium) | **Priority:** Medium
+
+### Story 03 – Notifications for Visits and Study Activities
+
+**User Story:** As a Patient, I want to receive notifications for upcoming visits and study tasks so that I do not miss important activities.
+**Detailed Description:** System sends notifications via in-app alerts, email, and SMS (optional based on configuration). Notifications include reminders for upcoming visits, missed visits, new documents, or profile updates needed. *[Implementation note: SMS not built — email + in-app only.]*
+**Acceptance Criteria:**
+
+1. Notifications generated automatically for visit events.
+2. Alerts appear in the patient's notification center.
+3. Email/SMS alerts sent if enabled.
+4. Patient can mark notifications as read.
+5. Notification history is stored.
+**Size:** 3 (small) | **Priority:** Medium
+
+### Story 04 – Upload Patient Documents
+
+**User Story:** As a Patient, I want to upload personal documents (e.g., IDs, medical reports) so that study staff can review and approve them.
+**Detailed Description:** Patient uploads supported document formats with simple metadata (document type, date, notes). System validates file size and type and stores securely. Documents become visible to site staff for review.
+**Acceptance Criteria:**
+
+1. Patient can upload documents from desktop/mobile.
+2. System validates file type and size.
+3. Uploaded documents appear in patient's document list.
+4. Site coordinators can view uploaded items.
+5. Audit trail logs the upload event.
+**Size:** 5 (medium) | **Priority:** Medium
+
+### Story 05 – Update Patient Profile
+
+**User Story:** As a Patient, I want to update my personal profile so that my study information remains accurate and the site can contact me.
+**Detailed Description:** Patient can update contact details, address, emergency contacts, preferred communication method, and optional demographic fields. Sensitive fields (e.g., date of birth) are read-only unless updated by site staff.
+**Acceptance Criteria:**
+
+1. Editable fields clearly visible; non-editable fields locked.
+2. System validates required information (e.g., phone format).
+3. Updates saved and reflected for site team.
+4. Audit log captures profile changes.
+5. Confirmation message displayed after save.
+**Size:** 3 (small) | **Priority:** Medium
+
+**Epic IPO Notes:** *Inputs:* Login credentials, patient profile data, document uploads, notification preferences. *Processing:* Authenticate user, fetch subject-related data, validate uploads, generate alerts/reminders. *Outputs:* Patient dashboard, visit schedule, notifications, uploaded document list, updated profile.
+
+---
+
+## Epic 11: Regulatory Compliance (GCP, 21 CFR Part 11, Audit Trail, Data Integrity)
+
+### Story 01 – Enforce GCP (Good Clinical Practice) Compliance
+
+**User Story:** As a Compliance Officer, I want the system to enforce GCP guidelines so that clinical trial processes meet international ethical and scientific quality standards.
+**Detailed Description:** The system must ensure that documentation, monitoring activities, training records, data capture, and audit trails align with ICH-GCP standards. It should ensure all essential documents are present, informed consent is recorded properly, deviations are tracked, and workflows follow GCP-compliant sequences.
+**Acceptance Criteria:**
+
+1. System validates presence of required essential documents.
+2. Informed consent must be uploaded before any subject activity.
+3. Protocol deviations captured and logged.
+4. Monitoring visits must follow GCP structure.
+5. All actions captured in audit trail.
+6. Role-based access aligned with GCP requirements.
+**Size:** 8 (large) | **Priority:** High
+
+### Story 02 – Ensure 21 CFR Part 11 Compliance (Electronic Records & Signatures)
+
+**User Story:** As a Compliance Officer, I want full 21 CFR Part 11 compliance so that electronic records and signatures are legally valid, secure, and traceable.
+**Detailed Description:** System must enforce identity verification, secure audit trails, restricted access, electronic signature timestamps, reason-for-signing, and validation of electronic records. Signed documents must be locked and protected. *[Implementation note: identity verification uses password re-authentication only — no MFA-backed signing. See Implementation Plan Open Items for the recommended QA/Compliance sign-off on this deviation.]*
+**Acceptance Criteria:**
+
+1. eSignatures require username, password, and reason for signing.
+2. Signed records locked from editing.
+3. Audit trail includes signature details (user, timestamp).
+4. Access to sensitive documents restricted by roles.
+5. System prevents signature repudiation.
+**Size:** 8 (large) | **Priority:** High
+
+### Story 03 – Maintain Data Integrity Following ALCOA Principles
+
+**User Story:** As an Auditor, I want data integrity enforced using ALCOA principles so that clinical data remains reliable and audit-ready.
+**Detailed Description:** The system must ensure all data is: **A**ttributable (captured with user identity), **L**egible (clearly readable), **C**ontemporaneous (timestamped at entry), **O**riginal (preserved in original form), **A**ccurate (validated and complete). Edits should require reasons and be fully versioned.
+**Acceptance Criteria:**
+
+1. Every record has user identity, timestamp, and origin.
+2. Edits trigger versioning and require reason codes.
+3. System prevents deletion of original data.
+4. All entries must pass validation rules.
+5. Audit logs capture before/after values.
+**Size:** 8 (large) | **Priority:** High
+
+### Story 04 – Enable Full End-to-End Traceability
+
+**User Story:** As an Auditor, I want full end-to-end traceability across the system so that every action, change, and record can be traced back for regulatory review.
+**Detailed Description:** System must show complete traceability for every data element, including creation, modification, signatures, workflow changes, approvals, and user interactions. A single traceability report must be exportable for audits.
+**Acceptance Criteria:**
+
+1. Traceability logs linked to every field and document.
+2. Users can view change history including old/new values.
+3. Exportable traceability reports available.
+4. No edits allowed without audit entries.
+5. Time-stamped and user-attributed logs maintained permanently.
+**Size:** 8 (large) | **Priority:** High
+
+**Epic IPO Notes:** *Inputs:* User actions (create/update/delete), electronic signatures, data updates, access logs. *Processing:* Capture audit logs, enforce ALCOA rules, apply 21 CFR Part 11 controls, validate data integrity. *Outputs:* Audit trail reports, eSignature records, compliance validation alerts, traceability logs, regulatory reports.
+
+---
+
+# PART D — Clinical Safety Epic, Carried Forward from Earlier Backlog
+
+*(Transcribed from `Product_Backlog_based_on_review.xlsx`. These three items do not appear in v0.2 and were reintroduced as Implementation Plan Phase 7 per stakeholder decision.)*
+
+### BL-06 – Test Results
+
+**Epic:** Test Results
+**User Story:** As a doctor, I want to record and review lab/test results per participant/visit.
+**Acceptance Criteria:**
+
+- Create / review results.
+- Linked to participant and visit.
+- Result status tracked.
+
+### BL-07 – Test Results / Doc Mgmt
+
+**Epic:** Test Results / Document Management
+**User Story:** As a doctor, I want to attach the source lab report file to a test result so that the raw report is retained alongside the recorded values.
+**Acceptance Criteria:**
+
+- Upload source report file linked to a specific TestResult.
+- Download the attached file.
+- Captures uploaded-by / uploaded-at.
+- Audit-logged.
+
+### BL-08 – Adverse Events
+
+**Epic:** Adverse Events
+**User Story:** As a participant or doctor, I want to report an adverse event with severity and a status workflow so that safety events are tracked.
+**Acceptance Criteria:**
+
+- Report an AE (participant or doctor).
+- Severity levels captured.
+- Status workflow (open → ... → resolved).
+
+**Note:** These stories were not re-estimated for size/priority against the v0.2 backlog scale — see Implementation Plan Open Item #2 for the recommendation to run a sizing session with the product owner.
+
+---
+
+# PART E — Old Backlog → v0.2 Traceability Map
+
+| Old ID | Old Epic | Old Story | Where it lives now |
+|---|---|---|---|
+| BL-01 | Document Management | View participant's uploaded PMH documents | Covered by **Epic 7: Document Management & Compliance** (Stories 01, 05 — upload + role-based access) |
+| BL-02 | Informed Consent | Create consent forms, track consent status | Partially covered by **Epic 11: Regulatory Compliance**, Story 01 ("informed consent must be uploaded before any subject activity") + **Epic 7** for document handling. No dedicated "Consent Form" entity/story exists in v0.2 — **gap worth flagging** if consent-status tracking (pending/consented/withdrawn) needs to be a first-class object rather than a compliance checkbox. |
+| BL-03 | Informed Consent / Doc Mgmt | Upload signed consent doc with version history | Covered by **Epic 7: Document Management & Compliance**, Story 02 (Document Version Control) |
+| BL-04 | Visit Scheduling | Schedule/reschedule/complete visits | Covered by **Epic 4: Visit Management**, Stories 01–02 |
+| BL-05 | Visit Scheduling / Notifications | Visit reminder before scheduled visit | Covered by **Epic 4: Visit Management**, Story 03 (Generate Visit Alerts and Notifications) |
+| BL-06 | Test Results | Record/review lab/test results | **Not in v0.2** — carried forward as **Part D / Implementation Plan Phase 7 (Clinical Safety)** |
+| BL-07 | Test Results / Doc Mgmt | Attach source lab report file | **Not in v0.2** — carried forward as **Part D / Implementation Plan Phase 7 (Clinical Safety)** |
+| BL-08 | Adverse Events | Report AE with severity + status workflow | **Not in v0.2** — carried forward as **Part D / Implementation Plan Phase 7 (Clinical Safety)** |
+| BL-09 | Reporting & Analytics | Trial summary report (enrollment, visit compliance, AE counts) | Partially covered by **Epic 6: Monitoring & Reporting**, Story 03 (Real-Time Study Dashboards) — but that story predates AE existing in scope, so **AE counts should be added to the dashboard spec once Phase 7 (Clinical Safety) ships** |
+| BL-10 | Notifications | In-app + email notifications for enrollment/visit/AE events | Covered by **Epic 5: Workflow & Automation**, Story 04, and **Epic 10: Patient Portal**, Story 03 — AE-escalation trigger specifically should be added when Phase 7 ships |
+| BL-11 | Enrollment / Screening | Inclusion/exclusion eligibility checklist | Partially covered by **Epic 3: Subject Management**, Story 01 (mentions eligibility validation) — but v0.2 doesn't describe a structured, auditable **per-criterion pass/fail checklist** the way BL-11 does. **Gap worth flagging** if that structured checklist UI is a hard requirement. |
+
+**Two gaps worth a product-owner decision**, beyond the AE/Test-Results addition already agreed:
+
+1. Whether Informed Consent needs to be a first-class tracked entity (status per participant) rather than folded into general document compliance.
+2. Whether Subject enrollment needs the explicit structured inclusion/exclusion checklist UI from BL-11, or whether the general "eligibility validation" in Epic 3 Story 01 is sufficient.
+
+---
+
+# PART F — Cross-Reference: Implementation Plan Phase ↔ This Document
+
+| Implementation Plan Phase | BRD Section(s) | Backlog Epic (this doc) | Old Backlog IDs Folded In |
+|---|---|---|---|
+| Phase 0 – Platform Foundation | A.7.3 Security, A.7.9 Auditability, A.8.1–8.2 Tech/Integration Dependencies | — (cross-cutting) | — |
+| Phase 1 – Study Management | A.5 (§5.1), A.6 (Study Management) | Part C, Epic 1 | — |
+| Phase 2 – Document Management & Compliance | A.5 (§5.7), A.6 (§6.3) | Part C, Epic 7 | BL-01, BL-03 |
+| Phase 3 – Site Management | A.3.1 In Scope, A.6 (Site Management) | Part C, Epic 2 | — |
+| Phase 4 – Subject Management | A.5 (§5.6), A.6 (Subject Management) | Part C, Epic 3 | BL-11 (partial — see Part E gap) |
+| Phase 5 – Visit Management | A.5 (§5.6), A.6 (Visit Management) | Part C, Epic 4 | BL-04, BL-05 |
+| Phase 6 – Workflow & Automation | A.5 (§5.2), A.6 (§6.1) | Part C, Epic 5 | BL-10 (partial) |
+| Phase 7 – Clinical Safety (new) | A.3.2 Out of Scope note ("safety systems... beyond operational linkage") | Part D | BL-06, BL-07, BL-08 |
+| Phase 8 – Monitoring & Reporting | A.5 (§5.4, §5.9), A.6 (§6.2) | Part C, Epic 6 | BL-09 (partial — needs AE counts once Phase 7 ships) |
+| Phase 9 – Financial Management | A.5 (§5.8), A.6 (§6.4) | Part C, Epic 8 | — |
+| Phase 10 – System Configuration | A.5 (§5.3), A.6 (§6.5) | Part C, Epic 9 | — |
+| Phase 11 – Patient Portal | A.5 (§5.10), A.6 (§6.6) | Part C, Epic 10 | BL-10 (partial, patient notifications) |
+| Phase 12 – Regulatory Compliance Hardening | A.5 (§5.5, §5.12), A.6 (§6.7), A.7.6, A.7.9 | Part C, Epic 11 | — |
+| Phase 13 – UAT & Go-Live | A.7 (all NFRs), A.8 (all Dependencies) | — | — |
+
+---
+
+*This document is a direct transcription of the four source files for engineering/tooling reference. If any source document is revised, this file should be regenerated to stay in sync — it is not the system of record, the original BRD/backlog files are.*

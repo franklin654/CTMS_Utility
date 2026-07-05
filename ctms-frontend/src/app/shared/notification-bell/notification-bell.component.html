@@ -1,0 +1,41 @@
+<button
+  mat-icon-button
+  [matMenuTriggerFor]="menu"
+  (menuOpened)="onMenuOpened()"
+  [matBadge]="unreadCount() > 0 ? unreadCount() : null"
+  matBadgeColor="warn"
+  matBadgeSize="small"
+  aria-label="Notifications"
+>
+  <span class="text-xl">&#128276;</span>
+</button>
+
+<mat-menu #menu="matMenu" xPosition="before">
+  <div class="w-80 max-h-96 overflow-y-auto">
+    <div class="flex items-center justify-between px-4 py-2 border-b">
+      <span class="text-sm font-semibold text-gray-700">Notifications</span>
+      <button class="text-xs text-blue-600 hover:underline" (click)="markAllRead(); $event.stopPropagation()">
+        Mark all read
+      </button>
+    </div>
+
+    @if (notifications().length === 0) {
+      <p class="text-sm text-gray-500 px-4 py-6 text-center">No notifications</p>
+    }
+
+    @for (n of notifications(); track n.id) {
+      <button
+        type="button"
+        class="w-full text-left px-4 py-3 border-b hover:bg-gray-50 flex flex-col gap-0.5"
+        [class.bg-blue-50]="!n.read"
+        (click)="markRead(n); $event.stopPropagation()"
+      >
+        <span class="text-sm font-medium text-gray-900">{{ n.title }}</span>
+        @if (n.body) {
+          <span class="text-xs text-gray-600">{{ n.body }}</span>
+        }
+        <span class="text-xs text-gray-400">{{ n.createdAt | date: 'short' }}</span>
+      </button>
+    }
+  </div>
+</mat-menu>

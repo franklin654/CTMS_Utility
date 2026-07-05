@@ -1,0 +1,39 @@
+<div class="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+  <div class="w-full max-w-sm bg-white rounded-lg shadow p-8">
+    <h1 class="text-xl font-semibold text-gray-900 mb-6">CTMS Sign In</h1>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col gap-4">
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Username</mat-label>
+        <input matInput formControlName="username" autocomplete="username" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Password</mat-label>
+        <input matInput type="password" formControlName="password" autocomplete="current-password" />
+      </mat-form-field>
+
+      @if (errorMessage()) {
+        <p class="text-sm text-red-600">{{ errorMessage() }}</p>
+      }
+
+      <button
+        mat-flat-button
+        color="primary"
+        type="submit"
+        class="w-full"
+        [disabled]="form.invalid || submitting()"
+      >
+        @if (submitting()) {
+          <mat-spinner diameter="20" class="inline-block align-middle"></mat-spinner>
+        } @else {
+          Sign in
+        }
+      </button>
+
+      <a routerLink="/forgot-password" class="text-sm text-blue-600 hover:underline self-center">
+        Forgot password?
+      </a>
+    </form>
+  </div>
+</div>
