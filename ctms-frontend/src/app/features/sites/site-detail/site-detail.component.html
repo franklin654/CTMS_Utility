@@ -1,0 +1,138 @@
+@if (site(); as s) {
+  <div class="max-w-4xl mx-auto flex flex-col gap-6">
+    <div class="bg-white rounded-lg shadow p-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-xl font-semibold text-gray-900">{{ s.name }}</h1>
+          <p class="text-sm text-gray-500">
+            {{ s.siteCode }} &middot; Study {{ s.studyCode }} &middot; {{ s.city }}, {{ s.country }}
+          </p>
+        </div>
+        <span
+          class="px-3 py-1 rounded text-sm font-medium"
+          [class.bg-green-100]="s.status === 'ACTIVE'"
+          [class.text-green-700]="s.status === 'ACTIVE'"
+          [class.bg-amber-100]="s.status === 'PENDING_ACTIVATION'"
+          [class.text-amber-700]="s.status === 'PENDING_ACTIVATION'"
+        >
+          {{ s.status === 'ACTIVE' ? 'Active' : 'Pending Activation' }}
+        </span>
+      </div>
+
+      @if (s.activationDate) {
+        <p class="text-sm text-gray-500 mt-2">Activated on {{ s.activationDate | date: 'mediumDate' }}</p>
+      }
+
+      @if (errorMessage()) {
+        <p class="text-sm text-red-600 mt-3">{{ errorMessage() }}</p>
+      }
+
+      <div class="grid grid-cols-2 gap-4 mt-4 text-sm">
+        <div>
+          <p class="text-gray-500">Principal Investigator</p>
+          <p class="text-gray-900">{{ s.principalInvestigatorName }} ({{ s.principalInvestigatorContact }})</p>
+        </div>
+        <div>
+          <p class="text-gray-500">Contact</p>
+          <p class="text-gray-900">{{ s.contactName }} &middot; {{ s.contactEmail }} &middot; {{ s.contactPhone }}</p>
+        </div>
+        <div>
+          <p class="text-gray-500">Feasibility Status</p>
+          <p class="text-gray-900">{{ s.feasibilityStatus }}</p>
+        </div>
+        <div>
+          <p class="text-gray-500">Assigned CRA</p>
+          <p class="text-gray-900">{{ s.assignedCraUsername ?? 'Unassigned' }}</p>
+        </div>
+      </div>
+
+      <div *appHasRole="['STUDY_MANAGER', 'ADMIN']" class="mt-4 flex items-end gap-3">
+        <mat-form-field appearance="outline">
+          <mat-label>Assign CRA</mat-label>
+          <input matInput [formControl]="craUsernameControl" placeholder="Start typing a name or username" [matAutocomplete]="craAuto" />
+          <mat-autocomplete #craAuto="matAutocomplete">
+            @for (u of craSuggestions(); track u.id) {
+              <mat-option [value]="u.username" (onSelectionChange)="selectCra(u.username)">
+                {{ u.fullName }} ({{ u.username }})
+              </mat-option>
+            }
+          </mat-autocomplete>
+        </mat-form-field>
+        <button mat-stroked-button (click)="assignCra()" class="mb-4">Assign</button>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="text-sm font-semibold text-gray-700">Activation Checklist</h2>
+        @if (s.status === 'PENDING_ACTIVATION') {
+          <button *appHasRole="['STUDY_MANAGER', 'ADMIN']" mat-flat-button color="primary" (click)="attemptActivation()">
+            Attempt Activation
+          </button>
+        }
+      </div>
+
+      @if (missingItems().length > 0) {
+        <div class="bg-red-50 border border-red-200 rounded p-3 mb-4">
+          <p class="text-sm font-medium text-red-700 mb-1">Cannot activate -- missing prerequisites:</p>
+          <ul class="list-disc list-inside text-sm text-red-600">
+            @for (item of missingItems(); track item) {
+              <li>{{ item }}</li>
+            }
+          </ul>
+        </div>
+      }
+
+      <div class="flex flex-col gap-2">
+        @for (item of checklist(); track item.id) {
+          <div class="border rounded p-3">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <span
+                  class="w-3 h-3 rounded-full inline-block"
+                  [class.bg-green-500]="item.status === 'COMPLETE'"
+                  [class.bg-red-400]="item.status === 'PENDING'"
+                ></span>
+                <span class="text-sm font-medium text-gray-900">{{ label(item.itemType) }}</span>
+                @if (item.status === 'COMPLETE') {
+                  <span class="text-xs text-gray-500">
+                    completed {{ item.completedDate | date: 'mediumDate' }}
+                    @if (item.updatedByUsername) { by {{ item.updatedByUsername }} }
+                  </span>
+                }
+              </div>
+              <div *appHasRole="['STUDY_MANAGER', 'ADMIN']" class="flex gap-2">
+                @if (editingItemType() !== item.itemType) {
+                  @if (item.status === 'PENDING') {
+                    <button mat-button color="primary" (click)="startEdit(item)">Mark Complete</button>
+                  } @else {
+                    <button mat-button (click)="reopenItem(item.itemType)">Reopen</button>
+                  }
+                }
+              </div>
+            </div>
+
+            @if (item.note && item.status === 'COMPLETE') {
+              <p class="text-xs text-gray-500 mt-1 ml-6">{{ item.note }}</p>
+            }
+
+            @if (editingItemType() === item.itemType) {
+              <form [formGroup]="editForm" class="flex items-end gap-3 mt-3 ml-6">
+                <mat-form-field appearance="outline">
+                  <mat-label>Completed Date</mat-label>
+                  <input matInput type="date" formControlName="completedDate" />
+                </mat-form-field>
+                <mat-form-field appearance="outline" class="flex-1">
+                  <mat-label>Note (optional)</mat-label>
+                  <input matInput formControlName="note" />
+                </mat-form-field>
+                <button mat-flat-button color="primary" (click)="saveEdit(item.itemType)" class="mb-4">Save</button>
+                <button mat-button (click)="cancelEdit()" class="mb-4">Cancel</button>
+              </form>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+}

@@ -48,6 +48,21 @@ export const routes: Routes = [
           import('./features/studies/study-detail/study-detail.component').then((m) => m.StudyDetailComponent),
       },
       {
+        path: 'sites',
+        loadComponent: () => import('./features/sites/site-list/site-list.component').then((m) => m.SiteListComponent),
+      },
+      {
+        path: 'sites/new',
+        canActivate: [roleGuard(['STUDY_MANAGER', 'ADMIN'])],
+        loadComponent: () =>
+          import('./features/sites/site-create/site-create.component').then((m) => m.SiteCreateComponent),
+      },
+      {
+        path: 'sites/:id',
+        loadComponent: () =>
+          import('./features/sites/site-detail/site-detail.component').then((m) => m.SiteDetailComponent),
+      },
+      {
         path: 'documents',
         loadComponent: () =>
           import('./features/documents/document-list/document-list.component').then((m) => m.DocumentListComponent),

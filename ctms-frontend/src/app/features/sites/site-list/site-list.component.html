@@ -1,0 +1,55 @@
+<div class="max-w-5xl mx-auto">
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-xl font-semibold text-gray-900">Sites</h1>
+    <a *appHasRole="['STUDY_MANAGER', 'ADMIN']" routerLink="/sites/new" mat-flat-button color="primary">
+      Register Site
+    </a>
+  </div>
+
+  <div class="bg-white rounded-lg shadow overflow-x-auto">
+    <table class="w-full text-sm text-left">
+      <thead class="bg-gray-50 text-gray-600 border-b">
+        <tr>
+          <th class="px-4 py-3">Site Code</th>
+          <th class="px-4 py-3">Name</th>
+          <th class="px-4 py-3">Study</th>
+          <th class="px-4 py-3">City</th>
+          <th class="px-4 py-3">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (site of sites(); track site.id) {
+          <tr class="border-b hover:bg-gray-50 cursor-pointer" [routerLink]="['/sites', site.id]">
+            <td class="px-4 py-3 font-medium text-gray-900">{{ site.siteCode }}</td>
+            <td class="px-4 py-3">{{ site.name }}</td>
+            <td class="px-4 py-3">{{ site.studyCode }}</td>
+            <td class="px-4 py-3">{{ site.city }}</td>
+            <td class="px-4 py-3">
+              <span
+                class="px-2 py-1 rounded text-xs font-medium"
+                [class.bg-green-100]="site.status === 'ACTIVE'"
+                [class.text-green-700]="site.status === 'ACTIVE'"
+                [class.bg-amber-100]="site.status === 'PENDING_ACTIVATION'"
+                [class.text-amber-700]="site.status === 'PENDING_ACTIVATION'"
+              >
+                {{ site.status === 'ACTIVE' ? 'Active' : 'Pending Activation' }}
+              </span>
+            </td>
+          </tr>
+        }
+        @if (sites().length === 0) {
+          <tr>
+            <td colspan="5" class="px-4 py-6 text-center text-gray-500">No sites found</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+    <mat-paginator
+      [length]="totalElements()"
+      [pageSize]="pageSize()"
+      [pageIndex]="pageIndex()"
+      [pageSizeOptions]="[10, 20, 50]"
+      (page)="onPage($event)"
+    ></mat-paginator>
+  </div>
+</div>

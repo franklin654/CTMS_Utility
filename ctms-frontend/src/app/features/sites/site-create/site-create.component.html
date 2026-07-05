@@ -1,0 +1,97 @@
+<div class="max-w-2xl mx-auto bg-white rounded-lg shadow p-8">
+  <h1 class="text-xl font-semibold text-gray-900 mb-6">Register Site</h1>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" class="grid grid-cols-2 gap-4">
+    <mat-form-field appearance="outline">
+      <mat-label>Study</mat-label>
+      <mat-select formControlName="studyId">
+        @for (s of studies(); track s.id) {
+          <mat-option [value]="s.id">{{ s.studyCode }} &ndash; {{ s.name }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Site Code</mat-label>
+      <input matInput formControlName="siteCode" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="col-span-2">
+      <mat-label>Site Name</mat-label>
+      <input matInput formControlName="name" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="col-span-2">
+      <mat-label>Address Line 1</mat-label>
+      <input matInput formControlName="addressLine1" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="col-span-2">
+      <mat-label>Address Line 2 (optional)</mat-label>
+      <input matInput formControlName="addressLine2" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>City</mat-label>
+      <input matInput formControlName="city" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>State/Province</mat-label>
+      <input matInput formControlName="stateProvince" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Postal Code</mat-label>
+      <input matInput formControlName="postalCode" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Country</mat-label>
+      <input matInput formControlName="country" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Principal Investigator Name</mat-label>
+      <input matInput formControlName="principalInvestigatorName" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>PI Contact</mat-label>
+      <input matInput formControlName="principalInvestigatorContact" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Contact Name</mat-label>
+      <input matInput formControlName="contactName" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Contact Email</mat-label>
+      <input matInput type="email" formControlName="contactEmail" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Contact Phone</mat-label>
+      <input matInput formControlName="contactPhone" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Feasibility Status</mat-label>
+      <input matInput formControlName="feasibilityStatus" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="col-span-2">
+      <mat-label>Regulatory Information (optional)</mat-label>
+      <textarea matInput formControlName="regulatoryInformation" rows="3"></textarea>
+    </mat-form-field>
+
+    @if (errorMessage()) {
+      <p class="col-span-2 text-sm text-red-600">{{ errorMessage() }}</p>
+    }
+
+    <div class="col-span-2">
+      <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid">Register Site</button>
+    </div>
+  </form>
+</div>

@@ -1,0 +1,153 @@
+import { DatePipe } from '@angular/common';
+import { Component, OnInit, signal } from '@angular/core';
+import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatButtonModule } from '@angular/material/button';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { ActivatedRoute } from '@angular/router';
+import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs';
+import { HasRoleDirective } from '../../../core/auth/has-role.directive';
+import { ChecklistItemResponse, SiteResponse, SiteService } from '../../../core/sites/site.service';
+import { UserService, UserSummaryResponse } from '../../../core/users/user.service';
+
+const ITEM_LABELS: Record<string, string> = {
+  FEASIBILITY_COMPLETION: 'Feasibility Completion',
+  IRB_EC_APPROVAL: 'IRB/EC Approval',
+  CONTRACT_COMPLETION: 'Contract Completion',
+  ESSENTIAL_DOCUMENTS_SUBMISSION: 'Essential Documents Submission',
+  SITE_INITIATION_VISIT: 'Site Initiation Visit',
+};
+
+@Component({
+  selector: 'app-site-detail',
+  standalone: true,
+  imports: [
+    MatButtonModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatAutocompleteModule,
+    ReactiveFormsModule,
+    DatePipe,
+    HasRoleDirective,
+  ],
+  templateUrl: './site-detail.component.html',
+})
+export class SiteDetailComponent implements OnInit {
+  readonly site = signal<SiteResponse | null>(null);
+  readonly checklist = signal<ChecklistItemResponse[]>([]);
+  readonly errorMessage = signal<string | null>(null);
+  readonly missingItems = signal<string[]>([]);
+  readonly editingItemType = signal<string | null>(null);
+  readonly craUsernameControl = new FormControl('', { nonNullable: true });
+  readonly craSuggestions = signal<UserSummaryResponse[]>([]);
+
+  readonly editForm = new FormGroup({
+    completedDate: new FormControl<string | null>(null),
+    note: new FormControl('', { nonNullable: true }),
+  });
+
+  private siteId!: number;
+
+  constructor(
+    private readonly route: ActivatedRoute,
+    private readonly siteService: SiteService,
+    private readonly userService: UserService,
+    private readonly snackBar: MatSnackBar,
+  ) {}
+
+  ngOnInit(): void {
+    this.siteId = Number(this.route.snapshot.paramMap.get('id'));
+    this.load();
+
+    this.craUsernameControl.valueChanges
+      .pipe(
+        debounceTime(250),
+        distinctUntilChanged(),
+        switchMap((value) => this.userService.searchByRole('CRA_MONITOR', value.trim())),
+      )
+      .subscribe((users) => this.craSuggestions.set(users));
+  }
+
+  load(): void {
+    this.siteService.get(this.siteId).subscribe((s) => this.site.set(s));
+    this.siteService.checklist(this.siteId).subscribe((items) => this.checklist.set(items));
+  }
+
+  label(itemType: string): string {
+    return ITEM_LABELS[itemType] ?? itemType;
+  }
+
+  startEdit(item: ChecklistItemResponse): void {
+    this.editingItemType.set(item.itemType);
+    this.editForm.setValue({
+      completedDate: item.completedDate ?? new Date().toISOString().slice(0, 10),
+      note: item.note ?? '',
+    });
+  }
+
+  cancelEdit(): void {
+    this.editingItemType.set(null);
+  }
+
+  saveEdit(itemType: string): void {
+    const { completedDate, note } = this.editForm.getRawValue();
+    this.errorMessage.set(null);
+    this.siteService
+      .updateChecklistItem(this.siteId, itemType, { status: 'COMPLETE', completedDate, note: note || null })
+      .subscribe({
+        next: () => {
+          this.editingItemType.set(null);
+          this.load();
+        },
+        error: (err) => this.errorMessage.set(err.error?.message ?? 'Could not update checklist item.'),
+      });
+  }
+
+  reopenItem(itemType: string): void {
+    this.errorMessage.set(null);
+    this.siteService.updateChecklistItem(this.siteId, itemType, { status: 'PENDING', completedDate: null, note: null }).subscribe({
+      next: () => this.load(),
+      error: (err) => this.errorMessage.set(err.error?.message ?? 'Could not update checklist item.'),
+    });
+  }
+
+  attemptActivation(): void {
+    this.errorMessage.set(null);
+    this.missingItems.set([]);
+    this.siteService.attemptActivation(this.siteId).subscribe({
+      next: () => {
+        this.load();
+        this.snackBar.open('Site activated.', 'Dismiss', { duration: 4000 });
+      },
+      error: (err) => {
+        if (err.status === 400 && err.error?.missingItems) {
+          this.missingItems.set(err.error.missingItems);
+        } else {
+          this.errorMessage.set(err.error?.message ?? 'Activation attempt failed.');
+        }
+      },
+    });
+  }
+
+  selectCra(username: string): void {
+    this.craUsernameControl.setValue(username);
+  }
+
+  assignCra(): void {
+    const craUsername = this.craUsernameControl.value.trim();
+    if (!craUsername) {
+      return;
+    }
+    this.errorMessage.set(null);
+    this.siteService.assignCra(this.siteId, craUsername).subscribe({
+      next: () => {
+        this.craUsernameControl.setValue('');
+        this.load();
+        this.snackBar.open(`CRA "${craUsername}" assigned.`, 'Dismiss', { duration: 4000 });
+      },
+      error: (err) => this.errorMessage.set(err.error?.message ?? 'Could not assign CRA.'),
+    });
+  }
+}

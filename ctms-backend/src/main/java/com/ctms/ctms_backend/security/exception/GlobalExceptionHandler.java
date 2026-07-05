@@ -6,6 +6,12 @@ import com.ctms.ctms_backend.document.exception.DocumentNotFoundException;
 import com.ctms.ctms_backend.document.exception.DocumentVersionNotFoundException;
 import com.ctms.ctms_backend.document.exception.InvalidDocumentTransitionException;
 import com.ctms.ctms_backend.rules.RuleCompilationException;
+import com.ctms.ctms_backend.site.exception.ChecklistItemNotFoundException;
+import com.ctms.ctms_backend.site.exception.DuplicateSiteCodeException;
+import com.ctms.ctms_backend.site.exception.InvalidCraAssignmentException;
+import com.ctms.ctms_backend.site.exception.InvalidSiteTransitionException;
+import com.ctms.ctms_backend.site.exception.SiteActivationBlockedException;
+import com.ctms.ctms_backend.site.exception.SiteNotFoundException;
 import com.ctms.ctms_backend.study.exception.DuplicateProtocolIdException;
 import com.ctms.ctms_backend.study.exception.InvalidStudyTransitionException;
 import com.ctms.ctms_backend.study.exception.StudyClosedException;
@@ -82,6 +88,27 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DocumentAccessDeniedException.class)
     public ResponseEntity<Object> handleDocumentAccessDenied(DocumentAccessDeniedException e) {
         return error(HttpStatus.FORBIDDEN, e.getMessage());
+    }
+
+    @ExceptionHandler(SiteNotFoundException.class)
+    public ResponseEntity<Object> handleSiteNotFound(SiteNotFoundException e) {
+        return error(HttpStatus.NOT_FOUND, e.getMessage());
+    }
+
+    @ExceptionHandler(DuplicateSiteCodeException.class)
+    public ResponseEntity<Object> handleDuplicateSiteCode(DuplicateSiteCodeException e) {
+        return error(HttpStatus.CONFLICT, e.getMessage());
+    }
+
+    @ExceptionHandler({InvalidSiteTransitionException.class, ChecklistItemNotFoundException.class, InvalidCraAssignmentException.class})
+    public ResponseEntity<Object> handleSiteStateViolation(RuntimeException e) {
+        return error(HttpStatus.BAD_REQUEST, e.getMessage());
+    }
+
+    @ExceptionHandler(SiteActivationBlockedException.class)
+    public ResponseEntity<Object> handleSiteActivationBlocked(SiteActivationBlockedException e) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("timestamp", Instant.now(), "message", e.getMessage(), "missingItems", e.getMissingItems()));
     }
 
     @ExceptionHandler(MaxUploadSizeExceededException.class)
