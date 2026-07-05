@@ -11,4 +11,5 @@ public record UpdateVisitTemplateRequest(
         @NotNull Integer windowEarlyDays,
         @NotNull Integer windowLateDays,
         String requiredProcedures,
-        @NotBlank String visitType) {}
+        @NotBlank String visitType,
+        Long dependsOnVisitTemplateId) {}

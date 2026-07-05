@@ -1,6 +1,7 @@
-package com.ctms.ctms_backend.visit.entity;
+package com.ctms.ctms_backend.document.entity;
 
 import com.ctms.ctms_backend.study.entity.Study;
+import com.ctms.ctms_backend.study.entity.StudyStatus;
 import com.ctms.ctms_backend.user.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -20,12 +21,19 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/** BL Epic 9 Story 03. Maps a per-study mandatory document category to a Study lifecycle phase
+ * (studyPhase restricted to ACTIVE/CONDUCT/CLOSEOUT at the service layer -- "Start-Up"/"Conduct"/
+ * "Closeout" in the BRD's own wording). Consumed by StudyService.transition as a blocking guard
+ * before DRAFT->ACTIVE, ACTIVE->CONDUCT, CONDUCT->CLOSEOUT. Per-study, mirroring
+ * EligibilityCriterion's existing per-study configuration pattern -- different studies can have
+ * different mandatory-document sets. documentCategory is free text matching Document.category's
+ * existing type, not a new enum. */
 @Entity
-@Table(name = "visit_template")
+@Table(name = "document_requirement")
 @Getter
 @Setter
 @NoArgsConstructor
-public class VisitTemplate {
+public class DocumentRequirement {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -35,37 +43,15 @@ public class VisitTemplate {
     @JoinColumn(name = "study_id", nullable = false)
     private Study study;
 
-    @Column(nullable = false, length = 255)
-    private String name;
-
-    @Column(name = "sequence_number", nullable = false)
-    private Integer sequenceNumber;
-
-    @Column(name = "target_day", nullable = false)
-    private Integer targetDay;
-
-    @Column(name = "window_early_days", nullable = false)
-    private Integer windowEarlyDays;
-
-    @Column(name = "window_late_days", nullable = false)
-    private Integer windowLateDays;
-
-    @Column(name = "required_procedures", length = 2000)
-    private String requiredProcedures;
-
     @Enumerated(EnumType.STRING)
-    @Column(name = "visit_type", nullable = false, length = 20)
-    private VisitType visitType;
+    @Column(name = "study_phase", nullable = false, length = 20)
+    private StudyStatus studyPhase;
+
+    @Column(name = "document_category", nullable = false, length = 100)
+    private String documentCategory;
 
     @Column(nullable = false)
-    private boolean active = true;
-
-    /** BL Epic 9 Story 02 AC3 ("Visit 2 cannot occur before Visit 1"). Self-referential, one
-     * dependency per template, matching the BRD's own single-dependency example -- enforced as a
-     * real blocking guard in VisitService.markCompleted, not just advisory. */
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "depends_on_visit_template_id")
-    private VisitTemplate dependsOnVisitTemplate;
+    private boolean mandatory = true;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "created_by", nullable = false)

@@ -7,6 +7,8 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 import com.ctms.ctms_backend.audit.AuditService;
+import com.ctms.ctms_backend.document.exception.MissingMandatoryDocumentsException;
+import com.ctms.ctms_backend.document.service.DocumentRequirementService;
 import com.ctms.ctms_backend.esignature.ESignature;
 import com.ctms.ctms_backend.esignature.ESignatureService;
 import com.ctms.ctms_backend.notification.NotificationService;
@@ -51,6 +53,8 @@ class StudyServiceTest {
     private NotificationService notificationService;
     @Mock
     private ESignatureService eSignatureService;
+    @Mock
+    private DocumentRequirementService documentRequirementService;
 
     @InjectMocks
     private StudyService studyService;
@@ -63,6 +67,8 @@ class StudyServiceTest {
         creator.setId(1L);
         creator.setUsername("study.manager");
         lenient().when(userRepository.findByUsername("study.manager")).thenReturn(Optional.of(creator));
+        lenient().when(documentRequirementService.checkRequirementsMet(any(Study.class), any(StudyStatus.class)))
+                .thenReturn(java.util.List.of());
 
         // Mimic DB auto-increment: assign an id on first save, matching the two-step studyCode pattern.
         lenient().when(studyRepository.save(any(Study.class))).thenAnswer(invocation -> {
@@ -215,5 +221,30 @@ class StudyServiceTest {
 
         StudyResponse response = studyService.closeout(1L, new CloseoutStudyRequest("correct", "reason"), "study.manager");
         assertEquals("CLOSEOUT", response.status());
+    }
+
+    @Test
+    void transition_missingMandatoryDocuments_throwsAndBlocksTransition() {
+        Study study = draftStudy();
+        when(studyRepository.findById(1L)).thenReturn(Optional.of(study));
+        when(documentRequirementService.checkRequirementsMet(study, StudyStatus.ACTIVE))
+                .thenReturn(java.util.List.of("REGULATORY_APPROVAL"));
+
+        assertThrows(MissingMandatoryDocumentsException.class,
+                () -> studyService.transition(1L, new TransitionStudyRequest("ACTIVE", "IRB approval received"), "study.manager"));
+        assertEquals(StudyStatus.DRAFT, study.getStatus());
+    }
+
+    @Test
+    void closeout_missingMandatoryDocuments_throwsAndBlocksClosure() {
+        Study study = draftStudy();
+        study.setStatus(StudyStatus.CONDUCT);
+        when(studyRepository.findById(1L)).thenReturn(Optional.of(study));
+        when(documentRequirementService.checkRequirementsMet(study, StudyStatus.CLOSEOUT))
+                .thenReturn(java.util.List.of("FINAL_REPORT"));
+
+        assertThrows(MissingMandatoryDocumentsException.class,
+                () -> studyService.closeout(1L, new CloseoutStudyRequest("correct", "reason"), "study.manager"));
+        assertEquals(StudyStatus.CONDUCT, study.getStatus());
     }
 }

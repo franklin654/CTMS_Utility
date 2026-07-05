@@ -12,7 +12,9 @@ public record VisitTemplateResponse(
         Integer windowLateDays,
         String requiredProcedures,
         String visitType,
-        boolean active) {
+        boolean active,
+        Long dependsOnVisitTemplateId,
+        String dependsOnVisitTemplateName) {
 
     public static VisitTemplateResponse from(VisitTemplate t) {
         return new VisitTemplateResponse(
@@ -25,6 +27,8 @@ public record VisitTemplateResponse(
                 t.getWindowLateDays(),
                 t.getRequiredProcedures(),
                 t.getVisitType().name(),
-                t.isActive());
+                t.isActive(),
+                t.getDependsOnVisitTemplate() != null ? t.getDependsOnVisitTemplate().getId() : null,
+                t.getDependsOnVisitTemplate() != null ? t.getDependsOnVisitTemplate().getName() : null);
     }
 }

@@ -19,8 +19,10 @@ import com.ctms.ctms_backend.visit.dto.SubjectVisitScheduleResponse;
 import com.ctms.ctms_backend.visit.dto.VisitResponse;
 import com.ctms.ctms_backend.visit.entity.Visit;
 import com.ctms.ctms_backend.visit.entity.VisitStatus;
+import com.ctms.ctms_backend.visit.entity.VisitTemplate;
 import com.ctms.ctms_backend.visit.entity.VisitType;
 import com.ctms.ctms_backend.visit.exception.InvalidVisitTransitionException;
+import com.ctms.ctms_backend.visit.exception.VisitDependencyNotMetException;
 import com.ctms.ctms_backend.visit.exception.VisitNotFoundException;
 import com.ctms.ctms_backend.visit.repository.VisitRepository;
 import java.time.Instant;
@@ -78,6 +80,7 @@ public class VisitService {
     public VisitResponse markCompleted(Long id, MarkVisitCompletedRequest req, String actorUsername) {
         Visit visit = findVisit(id);
         guardScheduled(visit);
+        assertDependencyMet(visit);
 
         visit.setStatus(VisitStatus.COMPLETED);
         visit.setActualDate(req.actualDate());
@@ -250,6 +253,24 @@ public class VisitService {
     private void guardScheduled(Visit visit) {
         if (visit.getStatus() != VisitStatus.SCHEDULED) {
             throw new InvalidVisitTransitionException("Cannot transition visit from " + visit.getStatus());
+        }
+    }
+
+    /** BL Epic 9 Story 02 AC3 ("Visit 2 cannot occur before Visit 1") -- if this visit's template
+     * declares a prerequisite, the subject's sibling visit scheduled from that prerequisite
+     * template must already be COMPLETED. Blocks both "not yet completed" and "not even scheduled
+     * yet" (no sibling visit row exists at all). */
+    private void assertDependencyMet(Visit visit) {
+        VisitTemplate template = visit.getVisitTemplate();
+        if (template == null || template.getDependsOnVisitTemplate() == null) {
+            return;
+        }
+        VisitTemplate prerequisite = template.getDependsOnVisitTemplate();
+        Visit prerequisiteVisit = visitRepository
+                .findBySubjectIdAndVisitTemplateId(visit.getSubject().getId(), prerequisite.getId())
+                .orElse(null);
+        if (prerequisiteVisit == null || prerequisiteVisit.getStatus() != VisitStatus.COMPLETED) {
+            throw new VisitDependencyNotMetException(prerequisite.getName());
         }
     }
 

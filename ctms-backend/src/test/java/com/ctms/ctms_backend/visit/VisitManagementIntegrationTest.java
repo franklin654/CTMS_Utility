@@ -97,9 +97,9 @@ class VisitManagementIntegrationTest {
         SiteResponse site = createSite(coordinator.getUsername(), study.id(), "VISIT-IT-SITE-001");
 
         visitTemplateService.create(new CreateVisitTemplateRequest(
-                study.id(), "Screening Visit", 1, 0, 1, 1, "Vitals", "ONSITE"), coordinator.getUsername());
+                study.id(), "Screening Visit", 1, 0, 1, 1, "Vitals", "ONSITE", null), coordinator.getUsername());
         visitTemplateService.create(new CreateVisitTemplateRequest(
-                study.id(), "Follow-up Visit", 2, 14, 2, 2, "Bloodwork", "REMOTE"), coordinator.getUsername());
+                study.id(), "Follow-up Visit", 2, 14, 2, 2, "Bloodwork", "REMOTE", null), coordinator.getUsername());
 
         LocalDate screeningDate = LocalDate.of(2026, 1, 1);
         SubjectResponse subject = enrollSubject(coordinator.getUsername(), study.id(), site.id(), screeningDate);
@@ -118,7 +118,7 @@ class VisitManagementIntegrationTest {
         SiteResponse site = createSite(coordinator.getUsername(), study.id(), "VISIT-IT-SITE-002");
 
         VisitTemplateResponse template = visitTemplateService.create(new CreateVisitTemplateRequest(
-                study.id(), "Screening Visit", 1, 0, 1, 1, "Vitals", "ONSITE"), coordinator.getUsername());
+                study.id(), "Screening Visit", 1, 0, 1, 1, "Vitals", "ONSITE", null), coordinator.getUsername());
 
         LocalDate screeningDate = LocalDate.of(2026, 1, 1);
         SubjectResponse subjectA = enrollSubject(coordinator.getUsername(), study.id(), site.id(), screeningDate);
@@ -129,7 +129,7 @@ class VisitManagementIntegrationTest {
         visitService.markCompleted(subjectBVisit.id(), new MarkVisitCompletedRequest(screeningDate, null, "done"), coordinator.getUsername());
 
         visitTemplateService.update(template.id(), new UpdateVisitTemplateRequest(
-                "Screening Visit (v2)", 1, 10, 1, 1, "Vitals + ECG", "ONSITE"), coordinator.getUsername());
+                "Screening Visit (v2)", 1, 10, 1, 1, "Vitals + ECG", "ONSITE", null), coordinator.getUsername());
 
         VisitResponse subjectAVisitAfter = visitService.schedule(subjectA.id()).visits().get(0);
         assertEquals("Screening Visit (v2)", subjectAVisitAfter.name());
@@ -148,11 +148,11 @@ class VisitManagementIntegrationTest {
         SiteResponse site = createSite(coordinator.getUsername(), study.id(), "VISIT-IT-SITE-003");
 
         visitTemplateService.create(new CreateVisitTemplateRequest(
-                study.id(), "Visit 1", 1, 5, 1, 1, "Vitals", "ONSITE"), coordinator.getUsername());
+                study.id(), "Visit 1", 1, 5, 1, 1, "Vitals", "ONSITE", null), coordinator.getUsername());
         visitTemplateService.create(new CreateVisitTemplateRequest(
-                study.id(), "Visit 2", 2, 15, 1, 1, "Bloodwork", "ONSITE"), coordinator.getUsername());
+                study.id(), "Visit 2", 2, 15, 1, 1, "Bloodwork", "ONSITE", null), coordinator.getUsername());
         visitTemplateService.create(new CreateVisitTemplateRequest(
-                study.id(), "Visit 3", 3, 60, 1, 1, "Follow-up", "REMOTE"), coordinator.getUsername());
+                study.id(), "Visit 3", 3, 60, 1, 1, "Follow-up", "REMOTE", null), coordinator.getUsername());
 
         LocalDate screeningDate = LocalDate.now().minusDays(30);
         SubjectResponse subject = enrollSubject(coordinator.getUsername(), study.id(), site.id(), screeningDate);
@@ -201,7 +201,7 @@ class VisitManagementIntegrationTest {
 
         // Adding a template *after* enrollment should backfill the still-active subject only.
         visitTemplateService.create(new CreateVisitTemplateRequest(
-                study.id(), "Late-Added Visit", 1, 7, 1, 1, "Vitals", "ONSITE"), coordinator.getUsername());
+                study.id(), "Late-Added Visit", 1, 7, 1, 1, "Vitals", "ONSITE", null), coordinator.getUsername());
 
         List<VisitResponse> activeVisits = visitService.schedule(activeSubject.id()).visits();
         assertEquals(1, activeVisits.size());
@@ -217,7 +217,7 @@ class VisitManagementIntegrationTest {
         SiteResponse site = createSite(coordinator.getUsername(), study.id(), "VISIT-IT-SITE-005");
 
         visitTemplateService.create(new CreateVisitTemplateRequest(
-                study.id(), "Screening Visit", 1, 0, 1, 1, "Vitals", "ONSITE"), coordinator.getUsername());
+                study.id(), "Screening Visit", 1, 0, 1, 1, "Vitals", "ONSITE", null), coordinator.getUsername());
 
         LocalDate screeningDate = LocalDate.now().minusDays(10);
         SubjectResponse subject = enrollSubject(coordinator.getUsername(), study.id(), site.id(), screeningDate);

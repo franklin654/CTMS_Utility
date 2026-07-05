@@ -2,6 +2,8 @@ package com.ctms.ctms_backend.study.service;
 
 import com.ctms.ctms_backend.audit.AuditAction;
 import com.ctms.ctms_backend.audit.AuditService;
+import com.ctms.ctms_backend.document.exception.MissingMandatoryDocumentsException;
+import com.ctms.ctms_backend.document.service.DocumentRequirementService;
 import com.ctms.ctms_backend.esignature.ESignature;
 import com.ctms.ctms_backend.esignature.ESignatureService;
 import com.ctms.ctms_backend.notification.NotificationService;
@@ -45,6 +47,7 @@ public class StudyService {
     private final AuditService auditService;
     private final NotificationService notificationService;
     private final ESignatureService eSignatureService;
+    private final DocumentRequirementService documentRequirementService;
 
     public StudyService(
             StudyRepository studyRepository,
@@ -52,13 +55,15 @@ public class StudyService {
             UserRepository userRepository,
             AuditService auditService,
             NotificationService notificationService,
-            ESignatureService eSignatureService) {
+            ESignatureService eSignatureService,
+            DocumentRequirementService documentRequirementService) {
         this.studyRepository = studyRepository;
         this.historyRepository = historyRepository;
         this.userRepository = userRepository;
         this.auditService = auditService;
         this.notificationService = notificationService;
         this.eSignatureService = eSignatureService;
+        this.documentRequirementService = documentRequirementService;
     }
 
     @Transactional
@@ -150,6 +155,8 @@ public class StudyService {
             throw new InvalidStudyTransitionException("Cannot transition study from " + current + " to " + targetStatus);
         }
 
+        assertMandatoryDocumentsPresent(study, targetStatus);
+
         User actor = currentUser(actorUsername);
 
         StudyStatusHistory history = new StudyStatusHistory();
@@ -178,6 +185,8 @@ public class StudyService {
             throw new InvalidStudyTransitionException(
                     "Cannot close out study from status " + study.getStatus() + " (must be CONDUCT)");
         }
+
+        assertMandatoryDocumentsPresent(study, StudyStatus.CLOSEOUT);
 
         ESignature signature = eSignatureService.sign(actorUsername, req.password(), "Study", String.valueOf(id), req.reason());
         User actor = currentUser(actorUsername);
@@ -234,6 +243,15 @@ public class StudyService {
                 "Study " + study.getName() + " (" + study.getProtocolId() + ") transitioned " + from + " -> " + to
                         + ". Justification: " + justification,
                 "/studies/" + study.getId());
+    }
+
+    /** BL Epic 9 Story 03 AC3/AC4 -- blocks a Study lifecycle transition if any mandatory document
+     * category configured for the target phase has no CURRENT document linked to this study. */
+    private void assertMandatoryDocumentsPresent(Study study, StudyStatus targetStatus) {
+        List<String> missing = documentRequirementService.checkRequirementsMet(study, targetStatus);
+        if (!missing.isEmpty()) {
+            throw new MissingMandatoryDocumentsException(missing);
+        }
     }
 
     private StudyStatus parseStatus(String value) {

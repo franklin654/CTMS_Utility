@@ -29,6 +29,7 @@ export class VisitTemplatesComponent implements OnInit {
     windowLateDays: new FormControl(0, { nonNullable: true, validators: [Validators.required, Validators.min(0)] }),
     requiredProcedures: new FormControl<string | null>(null),
     visitType: new FormControl<'ONSITE' | 'REMOTE'>('ONSITE', { nonNullable: true }),
+    dependsOnVisitTemplateId: new FormControl<number | null>(null),
   });
 
   constructor(
@@ -58,6 +59,7 @@ export class VisitTemplatesComponent implements OnInit {
       windowLateDays: template.windowLateDays,
       requiredProcedures: template.requiredProcedures,
       visitType: template.visitType,
+      dependsOnVisitTemplateId: template.dependsOnVisitTemplateId,
     });
   }
 
@@ -104,6 +106,7 @@ export class VisitTemplatesComponent implements OnInit {
       windowLateDays: 0,
       requiredProcedures: null,
       visitType: 'ONSITE',
+      dependsOnVisitTemplateId: null,
     });
   }
 }

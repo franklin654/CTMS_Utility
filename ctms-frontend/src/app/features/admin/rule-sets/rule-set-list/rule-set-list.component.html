@@ -1,0 +1,40 @@
+<div class="max-w-4xl mx-auto flex flex-col gap-6">
+  <div class="bg-white rounded-lg shadow p-6">
+    <h1 class="text-lg font-semibold text-gray-900">Rule Sets</h1>
+    <p class="text-sm text-gray-500 mt-1">
+      No-code rule configuration -- workflow, payment, and eligibility rules are Drools-driven and editable here.
+    </p>
+
+    @if (errorMessage()) {
+      <p class="text-sm text-red-600 mt-3">{{ errorMessage() }}</p>
+    }
+
+    <table class="w-full text-sm text-left mt-4">
+      <thead class="text-gray-500 border-b">
+        <tr>
+          <th class="py-2 pr-2">Name</th>
+          <th class="py-2 pr-2">Category</th>
+          <th class="py-2 pr-2">Active</th>
+          <th class="py-2 pr-2">Latest Version</th>
+          <th class="py-2 pr-2"></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (rs of ruleSets(); track rs.id) {
+          <tr class="border-b">
+            <td class="py-2 pr-2">{{ rs.name }}</td>
+            <td class="py-2 pr-2">{{ rs.category }}</td>
+            <td class="py-2 pr-2">{{ rs.active ? 'Yes' : 'No' }}</td>
+            <td class="py-2 pr-2">v{{ rs.latestVersion }}</td>
+            <td class="py-2 pr-2">
+              <a mat-button [routerLink]="[rs.name]">View / Edit</a>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+    @if (ruleSets().length === 0) {
+      <p class="text-sm text-gray-500 text-center py-4">No rule sets found.</p>
+    }
+  </div>
+</div>

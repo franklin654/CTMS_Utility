@@ -1,0 +1,49 @@
+<div class="max-w-4xl mx-auto flex flex-col gap-6">
+  @if (detail(); as d) {
+    <div class="bg-white rounded-lg shadow p-6">
+      <h1 class="text-lg font-semibold text-gray-900">{{ d.name }}</h1>
+      <p class="text-sm text-gray-500 mt-1">{{ d.category }} &middot; {{ d.description }}</p>
+
+      @if (errorMessage()) {
+        <p class="text-sm text-red-600 mt-3">{{ errorMessage() }}</p>
+      }
+      @if (successMessage()) {
+        <p class="text-sm text-green-600 mt-3">{{ successMessage() }}</p>
+      }
+
+      <h2 class="text-sm font-medium text-gray-700 mt-6">Edit Active Rule (DRL)</h2>
+      <mat-form-field appearance="outline" class="w-full mt-2">
+        <textarea matInput [formControl]="drlControl" rows="16" class="font-mono text-xs"></textarea>
+      </mat-form-field>
+      <button mat-flat-button color="primary" (click)="saveNewVersion()">Save New Version</button>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6">
+      <h2 class="text-sm font-medium text-gray-700">Version History</h2>
+      <table class="w-full text-sm text-left mt-3">
+        <thead class="text-gray-500 border-b">
+          <tr>
+            <th class="py-2 pr-2">Version</th>
+            <th class="py-2 pr-2">Active</th>
+            <th class="py-2 pr-2">Created</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (def of d.definitions; track def.id) {
+            <tr class="border-b">
+              <td class="py-2 pr-2">v{{ def.version }}</td>
+              <td class="py-2 pr-2">
+                @if (def.active) {
+                  <span class="text-xs px-2 py-0.5 rounded bg-green-100 text-green-700">CURRENT</span>
+                } @else {
+                  <span class="text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-600">SUPERSEDED</span>
+                }
+              </td>
+              <td class="py-2 pr-2">{{ def.createdAt | date: 'short' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

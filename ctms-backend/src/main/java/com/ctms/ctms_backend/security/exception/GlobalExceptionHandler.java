@@ -10,7 +10,9 @@ import com.ctms.ctms_backend.document.exception.DocumentAccessDeniedException;
 import com.ctms.ctms_backend.document.exception.DocumentLockedException;
 import com.ctms.ctms_backend.document.exception.DocumentNotFoundException;
 import com.ctms.ctms_backend.document.exception.DocumentVersionNotFoundException;
+import com.ctms.ctms_backend.document.exception.DocumentRequirementNotFoundException;
 import com.ctms.ctms_backend.document.exception.InvalidDocumentTransitionException;
+import com.ctms.ctms_backend.document.exception.MissingMandatoryDocumentsException;
 import com.ctms.ctms_backend.milestone.exception.DuplicateMilestoneTypeException;
 import com.ctms.ctms_backend.milestone.exception.InvalidMilestoneActualDateException;
 import com.ctms.ctms_backend.milestone.exception.MilestoneNotFoundException;
@@ -42,8 +44,11 @@ import com.ctms.ctms_backend.testresult.exception.InvalidTestResultTransitionExc
 import com.ctms.ctms_backend.testresult.exception.TestResultAttachmentNotFoundException;
 import com.ctms.ctms_backend.testresult.exception.TestResultNotFoundException;
 import com.ctms.ctms_backend.testresult.exception.VisitSubjectMismatchException;
+import com.ctms.ctms_backend.visit.exception.CrossStudyDependencyException;
 import com.ctms.ctms_backend.visit.exception.InvalidVisitTransitionException;
+import com.ctms.ctms_backend.visit.exception.VisitDependencyNotMetException;
 import com.ctms.ctms_backend.visit.exception.VisitNotFoundException;
+import com.ctms.ctms_backend.visit.exception.VisitTemplateDependencyCycleException;
 import com.ctms.ctms_backend.visit.exception.VisitTemplateNotFoundException;
 import com.ctms.ctms_backend.visit.exception.VisitTemplateWindowInvalidException;
 import java.time.Instant;
@@ -239,6 +244,22 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(InvalidPaymentTransitionException.class)
     public ResponseEntity<Object> handleInvalidPaymentTransition(InvalidPaymentTransitionException e) {
         return error(HttpStatus.BAD_REQUEST, e.getMessage());
+    }
+
+    @ExceptionHandler({VisitTemplateDependencyCycleException.class, CrossStudyDependencyException.class, VisitDependencyNotMetException.class})
+    public ResponseEntity<Object> handleVisitDependencyViolation(RuntimeException e) {
+        return error(HttpStatus.BAD_REQUEST, e.getMessage());
+    }
+
+    @ExceptionHandler(DocumentRequirementNotFoundException.class)
+    public ResponseEntity<Object> handleDocumentRequirementNotFound(DocumentRequirementNotFoundException e) {
+        return error(HttpStatus.NOT_FOUND, e.getMessage());
+    }
+
+    @ExceptionHandler(MissingMandatoryDocumentsException.class)
+    public ResponseEntity<Object> handleMissingMandatoryDocuments(MissingMandatoryDocumentsException e) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("timestamp", Instant.now(), "message", e.getMessage(), "missingCategories", e.getMissingCategories()));
     }
 
     @ExceptionHandler(MaxUploadSizeExceededException.class)

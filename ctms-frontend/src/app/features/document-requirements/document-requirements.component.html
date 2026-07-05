@@ -1,0 +1,64 @@
+<div class="max-w-4xl mx-auto flex flex-col gap-6">
+  <div class="bg-white rounded-lg shadow p-6">
+    @if (study(); as s) {
+      <h1 class="text-lg font-semibold text-gray-900">Document Requirements &mdash; {{ s.studyCode }}</h1>
+    } @else {
+      <h1 class="text-lg font-semibold text-gray-900">Document Requirements</h1>
+    }
+    <p class="text-sm text-gray-500 mt-1">
+      Mandatory document categories per Study phase -- blocks the phase transition until satisfied.
+    </p>
+
+    @if (errorMessage()) {
+      <p class="text-sm text-red-600 mt-3">{{ errorMessage() }}</p>
+    }
+
+    <button *appHasRole="['ADMIN']" mat-flat-button color="primary" class="mt-4" (click)="openCreateForm()">
+      Add Requirement
+    </button>
+
+    @if (showCreateForm()) {
+      <form [formGroup]="createForm" class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4">
+        <mat-form-field appearance="outline">
+          <mat-label>Study Phase</mat-label>
+          <mat-select formControlName="studyPhase">
+            <mat-option value="ACTIVE">Start-Up (ACTIVE)</mat-option>
+            <mat-option value="CONDUCT">Conduct</mat-option>
+            <mat-option value="CLOSEOUT">Closeout</mat-option>
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Document Category</mat-label>
+          <input matInput formControlName="documentCategory" />
+        </mat-form-field>
+        <mat-checkbox formControlName="mandatory" class="self-center">Mandatory</mat-checkbox>
+        <div class="col-span-full flex gap-2">
+          <button mat-flat-button color="primary" (click)="submitCreate()">Save</button>
+          <button mat-button (click)="cancelCreateForm()">Cancel</button>
+        </div>
+      </form>
+    }
+
+    <table class="w-full text-sm text-left mt-6">
+      <thead class="text-gray-500 border-b">
+        <tr>
+          <th class="py-2 pr-2">Phase</th>
+          <th class="py-2 pr-2">Document Category</th>
+          <th class="py-2 pr-2">Mandatory</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (req of requirements(); track req.id) {
+          <tr class="border-b">
+            <td class="py-2 pr-2">{{ req.studyPhase }}</td>
+            <td class="py-2 pr-2">{{ req.documentCategory }}</td>
+            <td class="py-2 pr-2">{{ req.mandatory ? 'Yes' : 'No' }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+    @if (requirements().length === 0) {
+      <p class="text-sm text-gray-500 text-center py-4">No document requirements configured.</p>
+    }
+  </div>
+</div>

@@ -21,6 +21,8 @@ import com.ctms.ctms_backend.visit.dto.VisitTemplateResponse;
 import com.ctms.ctms_backend.visit.entity.Visit;
 import com.ctms.ctms_backend.visit.entity.VisitStatus;
 import com.ctms.ctms_backend.visit.entity.VisitTemplate;
+import com.ctms.ctms_backend.visit.exception.CrossStudyDependencyException;
+import com.ctms.ctms_backend.visit.exception.VisitTemplateDependencyCycleException;
 import com.ctms.ctms_backend.visit.exception.VisitTemplateWindowInvalidException;
 import com.ctms.ctms_backend.visit.repository.VisitRepository;
 import com.ctms.ctms_backend.visit.repository.VisitTemplateRepository;
@@ -72,18 +74,18 @@ class VisitTemplateServiceTest {
     }
 
     private CreateVisitTemplateRequest validCreateRequest() {
-        return new CreateVisitTemplateRequest(10L, "Screening Visit", 1, 0, 2, 3, "Vitals, bloodwork", "ONSITE");
+        return new CreateVisitTemplateRequest(10L, "Screening Visit", 1, 0, 2, 3, "Vitals, bloodwork", "ONSITE", null);
     }
 
     @Test
     void create_negativeTargetDay_throws() {
-        CreateVisitTemplateRequest req = new CreateVisitTemplateRequest(10L, "Visit 1", 1, -5, 0, 0, null, "ONSITE");
+        CreateVisitTemplateRequest req = new CreateVisitTemplateRequest(10L, "Visit 1", 1, -5, 0, 0, null, "ONSITE", null);
         assertThrows(VisitTemplateWindowInvalidException.class, () -> templateService.create(req, "studymgr1"));
     }
 
     @Test
     void create_negativeWindow_throws() {
-        CreateVisitTemplateRequest req = new CreateVisitTemplateRequest(10L, "Visit 1", 1, 10, -1, 0, null, "ONSITE");
+        CreateVisitTemplateRequest req = new CreateVisitTemplateRequest(10L, "Visit 1", 1, 10, -1, 0, null, "ONSITE", null);
         assertThrows(VisitTemplateWindowInvalidException.class, () -> templateService.create(req, "studymgr1"));
     }
 
@@ -132,7 +134,7 @@ class VisitTemplateServiceTest {
                 .thenReturn(List.of(scheduledVisit));
         when(visitRepository.saveAll(any())).thenAnswer(inv -> inv.getArgument(0));
 
-        UpdateVisitTemplateRequest req = new UpdateVisitTemplateRequest("New Name", 1, 10, 1, 1, "Procedures", "REMOTE");
+        UpdateVisitTemplateRequest req = new UpdateVisitTemplateRequest("New Name", 1, 10, 1, 1, "Procedures", "REMOTE", null);
         templateService.update(500L, req, "studymgr1");
 
         assertEquals("New Name", scheduledVisit.getName());
@@ -142,5 +144,50 @@ class VisitTemplateServiceTest {
         ArgumentCaptor<List<Visit>> captor = ArgumentCaptor.forClass(List.class);
         verify(visitRepository).saveAll(captor.capture());
         assertEquals(1, captor.getValue().size());
+    }
+
+    @Test
+    void create_withDependencyInSameStudy_succeeds() {
+        VisitTemplate prerequisite = new VisitTemplate();
+        prerequisite.setId(400L);
+        prerequisite.setStudy(study);
+        when(templateRepository.findById(400L)).thenReturn(Optional.of(prerequisite));
+
+        CreateVisitTemplateRequest req = new CreateVisitTemplateRequest(10L, "Visit 2", 2, 14, 1, 1, null, "ONSITE", 400L);
+        VisitTemplateResponse response = templateService.create(req, "studymgr1");
+
+        assertEquals(400L, response.dependsOnVisitTemplateId());
+    }
+
+    @Test
+    void create_withDependencyInDifferentStudy_throws() {
+        Study otherStudy = new Study();
+        otherStudy.setId(99L);
+        VisitTemplate prerequisite = new VisitTemplate();
+        prerequisite.setId(400L);
+        prerequisite.setStudy(otherStudy);
+        when(templateRepository.findById(400L)).thenReturn(Optional.of(prerequisite));
+
+        CreateVisitTemplateRequest req = new CreateVisitTemplateRequest(10L, "Visit 2", 2, 14, 1, 1, null, "ONSITE", 400L);
+        assertThrows(CrossStudyDependencyException.class, () -> templateService.create(req, "studymgr1"));
+    }
+
+    @Test
+    void update_dependencyWouldCreateCycle_throws() {
+        VisitTemplate templateA = new VisitTemplate();
+        templateA.setId(500L);
+        templateA.setStudy(study);
+
+        VisitTemplate templateB = new VisitTemplate();
+        templateB.setId(501L);
+        templateB.setStudy(study);
+        templateB.setDependsOnVisitTemplate(templateA);
+
+        when(templateRepository.findById(500L)).thenReturn(Optional.of(templateA));
+        when(templateRepository.findById(501L)).thenReturn(Optional.of(templateB));
+
+        // A depends on B, but B already depends on A -- a cycle.
+        UpdateVisitTemplateRequest req = new UpdateVisitTemplateRequest("Visit A", 1, 0, 1, 1, null, "ONSITE", 501L);
+        assertThrows(VisitTemplateDependencyCycleException.class, () -> templateService.update(500L, req, "studymgr1"));
     }
 }

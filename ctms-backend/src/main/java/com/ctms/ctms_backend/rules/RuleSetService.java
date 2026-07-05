@@ -76,6 +76,24 @@ public class RuleSetService {
         return definition;
     }
 
+    /** Backs Phase 10's rule-editor list page -- shows every rule set with its latest version
+     * number so an Admin can see what exists before drilling into one. */
+    @Transactional(readOnly = true)
+    public List<RuleSetSummaryResponse> list() {
+        return ruleSetRepository.findAll().stream()
+                .map(rs -> RuleSetSummaryResponse.from(rs, ruleDefinitionRepository.countByRuleSetId(rs.getId())))
+                .toList();
+    }
+
+    /** Backs Phase 10's rule-editor detail page -- full version history (including inactive/
+     * superseded DRL content) so an Admin can review what changed between versions. */
+    @Transactional(readOnly = true)
+    public RuleSetDetailResponse getDetail(String name) {
+        RuleSet ruleSet = ruleSetRepository.findByName(name).orElseThrow(NoSuchElementException::new);
+        List<RuleDefinition> definitions = ruleDefinitionRepository.findByRuleSetIdOrderByVersionDesc(ruleSet.getId());
+        return RuleSetDetailResponse.from(ruleSet, definitions);
+    }
+
     @Transactional(readOnly = true)
     public List<Object> evaluate(String ruleSetName, List<Object> facts) {
         RuleSet ruleSet = ruleSetRepository.findByName(ruleSetName).orElseThrow(NoSuchElementException::new);

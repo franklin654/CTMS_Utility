@@ -13,6 +13,8 @@ export interface VisitTemplateResponse {
   requiredProcedures: string | null;
   visitType: 'ONSITE' | 'REMOTE';
   active: boolean;
+  dependsOnVisitTemplateId: number | null;
+  dependsOnVisitTemplateName: string | null;
 }
 
 export interface CreateVisitTemplateRequest {
@@ -24,6 +26,7 @@ export interface CreateVisitTemplateRequest {
   windowLateDays: number;
   requiredProcedures: string | null;
   visitType: 'ONSITE' | 'REMOTE';
+  dependsOnVisitTemplateId: number | null;
 }
 
 export type UpdateVisitTemplateRequest = Omit<CreateVisitTemplateRequest, 'studyId'>;

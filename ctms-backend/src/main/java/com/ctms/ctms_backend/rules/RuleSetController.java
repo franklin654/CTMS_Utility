@@ -33,6 +33,16 @@ public class RuleSetController {
                 ruleSetService.createRuleSet(request.name(), request.category(), request.description()));
     }
 
+    @GetMapping
+    public List<RuleSetSummaryResponse> list() {
+        return ruleSetService.list();
+    }
+
+    @GetMapping("/{name}")
+    public RuleSetDetailResponse getDetail(@PathVariable String name) {
+        return ruleSetService.getDetail(name);
+    }
+
     @PostMapping("/{name}/definitions")
     public RuleDefinitionResponse addDefinition(
             Principal principal, @PathVariable String name, @Valid @RequestBody AddRuleDefinitionRequest request) {

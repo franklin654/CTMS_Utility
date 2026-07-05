@@ -169,7 +169,7 @@ class TaskManagementIntegrationTest {
                         "Dr. Smith", "drsmith@example.com", "Jane", "jane@example.com", "555-1234", "Completed", null),
                 manager.getUsername());
         visitTemplateService.create(new CreateVisitTemplateRequest(
-                study.id(), "Screening Visit", 1, 0, 1, 1, "Vitals", "ONSITE"), manager.getUsername());
+                study.id(), "Screening Visit", 1, 0, 1, 1, "Vitals", "ONSITE", null), manager.getUsername());
 
         SubjectResponse subject = subjectService.enrollSubject(
                 new EnrollSubjectRequest(

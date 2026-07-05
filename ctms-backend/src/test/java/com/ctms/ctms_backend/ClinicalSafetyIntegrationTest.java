@@ -92,7 +92,7 @@ class ClinicalSafetyIntegrationTest {
                         "Dr. Smith", "drsmith@example.com", "Jane", "jane@example.com", "555-1234", "Completed", null),
                 managerUsername);
         visitTemplateService.create(new CreateVisitTemplateRequest(
-                study.id(), "Screening Visit", 1, 0, 1, 1, "Vitals", "ONSITE"), managerUsername);
+                study.id(), "Screening Visit", 1, 0, 1, 1, "Vitals", "ONSITE", null), managerUsername);
         return subjectService.enrollSubject(
                 new EnrollSubjectRequest(
                         study.id(), site.id(), "Jane", "Doe", LocalDate.of(1990, 1, 1), "FEMALE", null, null, null, null,

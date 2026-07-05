@@ -15,6 +15,8 @@ import com.ctms.ctms_backend.visit.entity.Visit;
 import com.ctms.ctms_backend.visit.entity.VisitStatus;
 import com.ctms.ctms_backend.visit.entity.VisitTemplate;
 import com.ctms.ctms_backend.visit.entity.VisitType;
+import com.ctms.ctms_backend.visit.exception.CrossStudyDependencyException;
+import com.ctms.ctms_backend.visit.exception.VisitTemplateDependencyCycleException;
 import com.ctms.ctms_backend.visit.exception.VisitTemplateNotFoundException;
 import com.ctms.ctms_backend.visit.exception.VisitTemplateWindowInvalidException;
 import com.ctms.ctms_backend.visit.repository.VisitRepository;
@@ -60,6 +62,9 @@ public class VisitTemplateService {
         validateWindow(req.targetDay(), req.windowEarlyDays(), req.windowLateDays());
         VisitType type = parseType(req.visitType());
         User actor = currentUser(actorUsername);
+        // A brand-new template can't yet be part of any dependency chain, so only the
+        // cross-study check applies here -- cycle detection only matters on update.
+        VisitTemplate dependency = resolveDependencyForSameStudy(req.dependsOnVisitTemplateId(), study);
 
         VisitTemplate template = new VisitTemplate();
         template.setStudy(study);
@@ -71,6 +76,7 @@ public class VisitTemplateService {
         template.setRequiredProcedures(req.requiredProcedures());
         template.setVisitType(type);
         template.setActive(true);
+        template.setDependsOnVisitTemplate(dependency);
         template.setCreatedBy(actor);
         template.setModifiedBy(actor);
         template = templateRepository.save(template);
@@ -90,6 +96,10 @@ public class VisitTemplateService {
         validateWindow(req.targetDay(), req.windowEarlyDays(), req.windowLateDays());
         VisitType type = parseType(req.visitType());
         User actor = currentUser(actorUsername);
+        VisitTemplate dependency = resolveDependencyForSameStudy(req.dependsOnVisitTemplateId(), template.getStudy());
+        if (dependency != null) {
+            assertNoCycle(template.getId(), dependency);
+        }
 
         template.setName(req.name());
         template.setSequenceNumber(req.sequenceNumber());
@@ -98,6 +108,7 @@ public class VisitTemplateService {
         template.setWindowLateDays(req.windowLateDays());
         template.setRequiredProcedures(req.requiredProcedures());
         template.setVisitType(type);
+        template.setDependsOnVisitTemplate(dependency);
         template.setModifiedBy(actor);
         template = templateRepository.save(template);
 
@@ -143,6 +154,29 @@ public class VisitTemplateService {
 
     VisitTemplate findTemplate(Long id) {
         return templateRepository.findById(id).orElseThrow(() -> new VisitTemplateNotFoundException(id));
+    }
+
+    private VisitTemplate resolveDependencyForSameStudy(Long dependsOnVisitTemplateId, Study study) {
+        if (dependsOnVisitTemplateId == null) {
+            return null;
+        }
+        VisitTemplate dependency = findTemplate(dependsOnVisitTemplateId);
+        if (!dependency.getStudy().getId().equals(study.getId())) {
+            throw new CrossStudyDependencyException(dependsOnVisitTemplateId);
+        }
+        return dependency;
+    }
+
+    /** Walks the dependency chain starting at `dependency` -- if it ever reaches `templateId`,
+     * setting `dependency` as templateId's prerequisite would close a cycle. */
+    private void assertNoCycle(Long templateId, VisitTemplate dependency) {
+        VisitTemplate current = dependency;
+        while (current != null) {
+            if (current.getId().equals(templateId)) {
+                throw new VisitTemplateDependencyCycleException(templateId);
+            }
+            current = current.getDependsOnVisitTemplate();
+        }
     }
 
     private User currentUser(String username) {

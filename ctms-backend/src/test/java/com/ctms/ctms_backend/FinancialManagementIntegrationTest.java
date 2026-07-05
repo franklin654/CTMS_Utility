@@ -95,7 +95,7 @@ class FinancialManagementIntegrationTest {
                         "Dr. Smith", "drsmith@example.com", "Jane", "jane@example.com", "555-1234", "Completed", null),
                 manager.getUsername());
         visitTemplateService.create(new CreateVisitTemplateRequest(
-                study.id(), "Screening Visit", 1, 0, 1, 1, "Vitals", "ONSITE"), manager.getUsername());
+                study.id(), "Screening Visit", 1, 0, 1, 1, "Vitals", "ONSITE", null), manager.getUsername());
 
         // 1. Create budget v1 (no reason required for the first version).
         BudgetVersionResponse v1 = budgetService.create(

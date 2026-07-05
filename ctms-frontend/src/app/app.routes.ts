@@ -98,6 +98,27 @@ export const routes: Routes = [
           import('./features/milestones/milestones.component').then((m) => m.MilestonesComponent),
       },
       {
+        path: 'studies/:studyId/document-requirements',
+        loadComponent: () =>
+          import('./features/document-requirements/document-requirements.component').then(
+            (m) => m.DocumentRequirementsComponent,
+          ),
+      },
+      {
+        path: 'admin/rule-sets',
+        canActivate: [roleGuard(['ADMIN'])],
+        loadComponent: () =>
+          import('./features/admin/rule-sets/rule-set-list/rule-set-list.component').then((m) => m.RuleSetListComponent),
+      },
+      {
+        path: 'admin/rule-sets/:name',
+        canActivate: [roleGuard(['ADMIN'])],
+        loadComponent: () =>
+          import('./features/admin/rule-sets/rule-set-detail/rule-set-detail.component').then(
+            (m) => m.RuleSetDetailComponent,
+          ),
+      },
+      {
         path: 'studies/:studyId/budget',
         canActivate: [roleGuard(['FINANCE_MANAGER', 'ADMIN'])],
         loadComponent: () =>

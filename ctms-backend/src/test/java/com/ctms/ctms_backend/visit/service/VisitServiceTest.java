@@ -27,6 +27,7 @@ import com.ctms.ctms_backend.visit.entity.VisitStatus;
 import com.ctms.ctms_backend.visit.entity.VisitTemplate;
 import com.ctms.ctms_backend.visit.entity.VisitType;
 import com.ctms.ctms_backend.visit.exception.InvalidVisitTransitionException;
+import com.ctms.ctms_backend.visit.exception.VisitDependencyNotMetException;
 import com.ctms.ctms_backend.visit.repository.VisitRepository;
 import java.time.LocalDate;
 import java.util.List;
@@ -123,6 +124,52 @@ class VisitServiceTest {
         scheduledVisit.setStatus(VisitStatus.COMPLETED);
         MarkVisitCompletedRequest req = new MarkVisitCompletedRequest(LocalDate.now(), null, null);
         assertThrows(InvalidVisitTransitionException.class, () -> visitService.markCompleted(1L, req, "coordinator1"));
+    }
+
+    @Test
+    void markCompleted_prerequisiteNotCompleted_throws() {
+        VisitTemplate prerequisite = new VisitTemplate();
+        prerequisite.setId(400L);
+        prerequisite.setName("Screening Visit");
+        scheduledVisit.getVisitTemplate().setDependsOnVisitTemplate(prerequisite);
+
+        Visit prerequisiteVisit = new Visit();
+        prerequisiteVisit.setId(99L);
+        prerequisiteVisit.setStatus(VisitStatus.SCHEDULED);
+        when(visitRepository.findBySubjectIdAndVisitTemplateId(1000L, 400L)).thenReturn(Optional.of(prerequisiteVisit));
+
+        MarkVisitCompletedRequest req = new MarkVisitCompletedRequest(LocalDate.now(), null, null);
+        assertThrows(VisitDependencyNotMetException.class, () -> visitService.markCompleted(1L, req, "coordinator1"));
+    }
+
+    @Test
+    void markCompleted_prerequisiteNotEvenScheduled_throws() {
+        VisitTemplate prerequisite = new VisitTemplate();
+        prerequisite.setId(400L);
+        prerequisite.setName("Screening Visit");
+        scheduledVisit.getVisitTemplate().setDependsOnVisitTemplate(prerequisite);
+
+        when(visitRepository.findBySubjectIdAndVisitTemplateId(1000L, 400L)).thenReturn(Optional.empty());
+
+        MarkVisitCompletedRequest req = new MarkVisitCompletedRequest(LocalDate.now(), null, null);
+        assertThrows(VisitDependencyNotMetException.class, () -> visitService.markCompleted(1L, req, "coordinator1"));
+    }
+
+    @Test
+    void markCompleted_prerequisiteCompleted_succeeds() {
+        VisitTemplate prerequisite = new VisitTemplate();
+        prerequisite.setId(400L);
+        prerequisite.setName("Screening Visit");
+        scheduledVisit.getVisitTemplate().setDependsOnVisitTemplate(prerequisite);
+
+        Visit prerequisiteVisit = new Visit();
+        prerequisiteVisit.setId(99L);
+        prerequisiteVisit.setStatus(VisitStatus.COMPLETED);
+        when(visitRepository.findBySubjectIdAndVisitTemplateId(1000L, 400L)).thenReturn(Optional.of(prerequisiteVisit));
+
+        MarkVisitCompletedRequest req = new MarkVisitCompletedRequest(LocalDate.now(), null, "all good");
+        VisitResponse response = visitService.markCompleted(1L, req, "coordinator1");
+        assertEquals("COMPLETED", response.status());
     }
 
     @Test

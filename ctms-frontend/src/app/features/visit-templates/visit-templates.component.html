@@ -43,6 +43,18 @@
           <mat-label>Required Procedures</mat-label>
           <textarea matInput formControlName="requiredProcedures" rows="2"></textarea>
         </mat-form-field>
+        <mat-form-field appearance="outline" class="sm:col-span-2">
+          <mat-label>Depends On</mat-label>
+          <mat-select formControlName="dependsOnVisitTemplateId">
+            <mat-option [value]="null">None</mat-option>
+            @for (t of templates(); track t.id) {
+              @if (t.id !== editingId()) {
+                <mat-option [value]="t.id">{{ t.name }}</mat-option>
+              }
+            }
+          </mat-select>
+          <mat-hint>This visit cannot be completed until its prerequisite is completed</mat-hint>
+        </mat-form-field>
 
         <div class="sm:col-span-2 flex gap-3">
           <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid">
@@ -67,6 +79,9 @@
               Day {{ t.targetDay }} (&plusmn;{{ t.windowEarlyDays }}/{{ t.windowLateDays }} days)
               @if (t.requiredProcedures) {
                 &middot; {{ t.requiredProcedures }}
+              }
+              @if (t.dependsOnVisitTemplateName) {
+                &middot; depends on {{ t.dependsOnVisitTemplateName }}
               }
             </div>
           </div>
