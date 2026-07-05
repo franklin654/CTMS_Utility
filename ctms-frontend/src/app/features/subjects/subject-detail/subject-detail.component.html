@@ -287,6 +287,213 @@
     }
 
     <div class="bg-white rounded-lg shadow p-6">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="text-sm font-semibold text-gray-700">Test Results</h2>
+        <button *appHasRole="['SITE_COORDINATOR', 'INVESTIGATOR', 'STUDY_MANAGER', 'ADMIN']" mat-stroked-button (click)="openTestResultForm()">
+          Record Result
+        </button>
+      </div>
+
+      @if (testResultErrorMessage()) {
+        <p class="text-sm text-red-600 mb-3">{{ testResultErrorMessage() }}</p>
+      }
+
+      @if (showTestResultForm()) {
+        <form [formGroup]="testResultForm" class="grid grid-cols-1 sm:grid-cols-2 gap-3 border rounded p-3 mb-4">
+          <mat-form-field appearance="outline">
+            <mat-label>Visit</mat-label>
+            <mat-select formControlName="visitId">
+              @for (v of visitSchedule()?.visits; track v.id) {
+                <mat-option [value]="v.id">{{ v.name }} ({{ v.scheduledDate | date: 'mediumDate' }})</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Test Name</mat-label>
+            <input matInput formControlName="testName" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Result Value</mat-label>
+            <input matInput formControlName="resultValue" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Units</mat-label>
+            <input matInput formControlName="units" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Reference Range</mat-label>
+            <input matInput formControlName="referenceRange" />
+          </mat-form-field>
+          <mat-checkbox formControlName="abnormal" class="self-center">Abnormal</mat-checkbox>
+          <mat-form-field appearance="outline" class="sm:col-span-2">
+            <mat-label>Notes</mat-label>
+            <textarea matInput formControlName="notes" rows="2"></textarea>
+          </mat-form-field>
+          <div class="sm:col-span-2 flex gap-2">
+            <button mat-flat-button color="primary" type="button" (click)="submitTestResult()" [disabled]="testResultForm.invalid">
+              Save
+            </button>
+            <button mat-button type="button" (click)="cancelTestResultForm()">Cancel</button>
+          </div>
+        </form>
+      }
+
+      <div class="flex flex-col gap-3">
+        @for (r of testResults(); track r.id) {
+          <div class="border rounded p-3" [class.bg-amber-50]="r.abnormal" [class.border-amber-200]="r.abnormal">
+            <div class="flex items-center justify-between">
+              <div>
+                <div class="text-sm font-medium text-gray-900">
+                  {{ r.testName }}: {{ r.resultValue }} {{ r.units }}
+                  @if (r.abnormal) {
+                    <span class="ml-2 text-xs px-2 py-0.5 rounded bg-amber-100 text-amber-700">Abnormal</span>
+                  }
+                  <span class="ml-2 text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-600">{{ r.status }}</span>
+                </div>
+                <div class="text-xs text-gray-500">
+                  {{ r.visitName }} &middot; Reference: {{ r.referenceRange || '&mdash;' }}
+                  @if (r.reviewedByUsername) {
+                    &middot; Reviewed by {{ r.reviewedByUsername }}
+                  }
+                </div>
+                @if (r.notes) {
+                  <div class="text-xs text-gray-600 mt-1">{{ r.notes }}</div>
+                }
+                <div class="flex flex-wrap gap-2 mt-2">
+                  @for (a of attachmentsFor(r.id); track a.id) {
+                    <button mat-button (click)="downloadAttachment(a)">{{ a.fileName }}</button>
+                  }
+                </div>
+              </div>
+              <div class="flex flex-col items-end gap-2">
+                @if (r.status === 'RECORDED') {
+                  <button *appHasRole="['INVESTIGATOR', 'STUDY_MANAGER', 'ADMIN']" mat-button (click)="reviewTestResult(r.id)">
+                    Review
+                  </button>
+                }
+                <input #fileInput type="file" class="hidden" (change)="uploadAttachment(r.id, fileInput)" />
+                <button mat-button (click)="fileInput.click()">Attach File</button>
+              </div>
+            </div>
+          </div>
+        }
+        @if (testResults().length === 0) {
+          <p class="text-sm text-gray-500 text-center py-4">No test results recorded yet.</p>
+        }
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="text-sm font-semibold text-gray-700">Adverse Events</h2>
+        <button *appHasRole="['SITE_COORDINATOR', 'INVESTIGATOR', 'ADMIN']" mat-stroked-button (click)="openAdverseEventForm()">
+          Report Adverse Event
+        </button>
+      </div>
+
+      @if (adverseEventErrorMessage()) {
+        <p class="text-sm text-red-600 mb-3">{{ adverseEventErrorMessage() }}</p>
+      }
+
+      @if (showAdverseEventForm()) {
+        <form [formGroup]="adverseEventForm" class="grid grid-cols-1 sm:grid-cols-2 gap-3 border rounded p-3 mb-4">
+          <mat-form-field appearance="outline" class="sm:col-span-2">
+            <mat-label>Description</mat-label>
+            <textarea matInput formControlName="description" rows="2"></textarea>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Severity</mat-label>
+            <mat-select formControlName="severity">
+              <mat-option value="MILD">Mild</mat-option>
+              <mat-option value="MODERATE">Moderate</mat-option>
+              <mat-option value="SEVERE">Severe</mat-option>
+              <mat-option value="LIFE_THREATENING">Life-Threatening</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Visit (optional)</mat-label>
+            <mat-select formControlName="visitId">
+              <mat-option [value]="null">None</mat-option>
+              @for (v of visitSchedule()?.visits; track v.id) {
+                <mat-option [value]="v.id">{{ v.name }} ({{ v.scheduledDate | date: 'mediumDate' }})</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          <div class="sm:col-span-2 flex gap-2">
+            <button mat-flat-button color="primary" type="button" (click)="submitAdverseEvent()" [disabled]="adverseEventForm.invalid">
+              Report
+            </button>
+            <button mat-button type="button" (click)="cancelAdverseEventForm()">Cancel</button>
+          </div>
+        </form>
+      }
+
+      <div class="flex flex-col gap-3">
+        @for (ae of adverseEvents(); track ae.id) {
+          <div
+            class="border rounded p-3"
+            [class.bg-red-50]="ae.severity === 'SEVERE' || ae.severity === 'LIFE_THREATENING'"
+            [class.border-red-200]="ae.severity === 'SEVERE' || ae.severity === 'LIFE_THREATENING'"
+          >
+            <div class="flex items-center justify-between">
+              <div>
+                <div class="text-sm font-medium text-gray-900">
+                  {{ ae.description }}
+                  <span class="ml-2 text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-600">{{ ae.severity }}</span>
+                  <span class="ml-2 text-xs px-2 py-0.5 rounded bg-blue-100 text-blue-700">{{ ae.status }}</span>
+                </div>
+                @if (ae.resolutionNotes) {
+                  <div class="text-xs text-gray-600 mt-1">Resolution: {{ ae.resolutionNotes }}</div>
+                }
+              </div>
+              <div class="flex flex-col items-end gap-2">
+                @if (ae.status === 'OPEN' || ae.status === 'UNDER_REVIEW') {
+                  <div *appHasRole="['INVESTIGATOR', 'STUDY_MANAGER', 'ADMIN']">
+                    @if (openAeAction()?.id !== ae.id) {
+                      <div class="flex gap-2">
+                        @if (ae.status === 'OPEN') {
+                          <button mat-button (click)="openAeTransition(ae.id)">Start Review</button>
+                        }
+                        @if (ae.status === 'UNDER_REVIEW') {
+                          <button mat-button (click)="openAeResolve(ae.id)">Resolve</button>
+                        }
+                      </div>
+                    } @else if (openAeAction()?.type === 'transition') {
+                      <div class="flex items-end gap-2">
+                        <mat-form-field appearance="outline">
+                          <mat-label>Justification</mat-label>
+                          <input matInput [formControl]="aeJustificationControl" />
+                        </mat-form-field>
+                        <button mat-flat-button color="primary" (click)="submitAeTransition(ae.id)" [disabled]="aeJustificationControl.invalid" class="mb-4">
+                          Confirm
+                        </button>
+                        <button mat-button (click)="cancelAeAction()" class="mb-4">Cancel</button>
+                      </div>
+                    } @else {
+                      <div class="flex items-end gap-2">
+                        <mat-form-field appearance="outline">
+                          <mat-label>Resolution Notes</mat-label>
+                          <input matInput [formControl]="aeResolutionNotesControl" />
+                        </mat-form-field>
+                        <button mat-flat-button color="primary" (click)="submitAeResolve(ae.id)" [disabled]="aeResolutionNotesControl.invalid" class="mb-4">
+                          Confirm
+                        </button>
+                        <button mat-button (click)="cancelAeAction()" class="mb-4">Cancel</button>
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        }
+        @if (adverseEvents().length === 0) {
+          <p class="text-sm text-gray-500 text-center py-4">No adverse events reported.</p>
+        }
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6">
       <h2 class="text-sm font-semibold text-gray-700 mb-3">Status History</h2>
       <table class="w-full text-sm text-left">
         <thead class="text-gray-500 border-b">

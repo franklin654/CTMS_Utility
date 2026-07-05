@@ -1,5 +1,7 @@
 package com.ctms.ctms_backend.security.exception;
 
+import com.ctms.ctms_backend.adverseevent.exception.AdverseEventNotFoundException;
+import com.ctms.ctms_backend.adverseevent.exception.InvalidAdverseEventTransitionException;
 import com.ctms.ctms_backend.document.exception.DocumentAccessDeniedException;
 import com.ctms.ctms_backend.document.exception.DocumentLockedException;
 import com.ctms.ctms_backend.document.exception.DocumentNotFoundException;
@@ -25,6 +27,10 @@ import com.ctms.ctms_backend.subject.exception.StudySiteMismatchException;
 import com.ctms.ctms_backend.subject.exception.SubjectNotFoundException;
 import com.ctms.ctms_backend.task.exception.InvalidTaskTransitionException;
 import com.ctms.ctms_backend.task.exception.TaskNotFoundException;
+import com.ctms.ctms_backend.testresult.exception.InvalidTestResultTransitionException;
+import com.ctms.ctms_backend.testresult.exception.TestResultAttachmentNotFoundException;
+import com.ctms.ctms_backend.testresult.exception.TestResultNotFoundException;
+import com.ctms.ctms_backend.testresult.exception.VisitSubjectMismatchException;
 import com.ctms.ctms_backend.visit.exception.InvalidVisitTransitionException;
 import com.ctms.ctms_backend.visit.exception.VisitNotFoundException;
 import com.ctms.ctms_backend.visit.exception.VisitTemplateNotFoundException;
@@ -156,6 +162,26 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(InvalidTaskTransitionException.class)
     public ResponseEntity<Object> handleTaskStateViolation(InvalidTaskTransitionException e) {
+        return error(HttpStatus.BAD_REQUEST, e.getMessage());
+    }
+
+    @ExceptionHandler({TestResultNotFoundException.class, TestResultAttachmentNotFoundException.class})
+    public ResponseEntity<Object> handleTestResultNotFound(RuntimeException e) {
+        return error(HttpStatus.NOT_FOUND, e.getMessage());
+    }
+
+    @ExceptionHandler({InvalidTestResultTransitionException.class, VisitSubjectMismatchException.class})
+    public ResponseEntity<Object> handleTestResultStateViolation(RuntimeException e) {
+        return error(HttpStatus.BAD_REQUEST, e.getMessage());
+    }
+
+    @ExceptionHandler(AdverseEventNotFoundException.class)
+    public ResponseEntity<Object> handleAdverseEventNotFound(AdverseEventNotFoundException e) {
+        return error(HttpStatus.NOT_FOUND, e.getMessage());
+    }
+
+    @ExceptionHandler(InvalidAdverseEventTransitionException.class)
+    public ResponseEntity<Object> handleAdverseEventStateViolation(InvalidAdverseEventTransitionException e) {
         return error(HttpStatus.BAD_REQUEST, e.getMessage());
     }
 

@@ -138,6 +138,12 @@ export const routes: Routes = [
         loadComponent: () => import('./features/tasks/task-inbox/task-inbox.component').then((m) => m.TaskInboxComponent),
       },
       {
+        path: 'adverse-events/board',
+        canActivate: [roleGuard(['INVESTIGATOR', 'STUDY_MANAGER', 'ADMIN', 'CRA_MONITOR'])],
+        loadComponent: () =>
+          import('./features/adverse-events/ae-board/ae-board.component').then((m) => m.AeBoardComponent),
+      },
+      {
         path: 'notifications',
         loadComponent: () =>
           import('./features/notifications/notification-list/notification-list.component').then(

@@ -43,8 +43,15 @@ export class DocumentDetailComponent implements OnInit {
     this.documentService.versions(this.documentId).subscribe((v) => this.versions.set(v));
   }
 
-  downloadUrl(versionNumber: number): string {
-    return this.documentService.downloadUrl(this.documentId, versionNumber);
+  download(version: DocumentVersionResponse): void {
+    this.documentService.download(this.documentId, version.versionNumber).subscribe((blob) => {
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = version.fileName;
+      anchor.click();
+      URL.revokeObjectURL(url);
+    });
   }
 
   onFileSelected(event: Event): void {

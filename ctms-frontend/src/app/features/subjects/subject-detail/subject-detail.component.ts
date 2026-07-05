@@ -2,16 +2,23 @@ import { DatePipe, DecimalPipe } from '@angular/common';
 import { Component, OnInit, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { ActivatedRoute } from '@angular/router';
 import { HasRoleDirective } from '../../../core/auth/has-role.directive';
+import { AdverseEventResponse, AdverseEventService } from '../../../core/adverse-events/adverse-event.service';
 import {
   SubjectResponse,
   SubjectService,
   SubjectStatusHistoryResponse,
 } from '../../../core/subjects/subject.service';
+import {
+  TestResultAttachmentResponse,
+  TestResultResponse,
+  TestResultService,
+} from '../../../core/test-results/test-result.service';
 import { SubjectVisitScheduleResponse, VisitService } from '../../../core/visits/visit.service';
 
 type VisitActionType = 'complete' | 'miss' | 'reschedule';
@@ -35,6 +42,7 @@ const STATUS_LABELS: Record<string, string> = {
   standalone: true,
   imports: [
     MatButtonModule,
+    MatCheckboxModule,
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
@@ -56,6 +64,16 @@ export class SubjectDetailComponent implements OnInit {
   readonly visitErrorMessage = signal<string | null>(null);
   readonly openVisitAction = signal<{ visitId: number; type: VisitActionType } | null>(null);
   readonly showAdHocForm = signal(false);
+
+  readonly testResults = signal<TestResultResponse[]>([]);
+  readonly testResultErrorMessage = signal<string | null>(null);
+  readonly showTestResultForm = signal(false);
+  readonly attachmentsByResultId = signal<Record<number, TestResultAttachmentResponse[]>>({});
+
+  readonly adverseEvents = signal<AdverseEventResponse[]>([]);
+  readonly adverseEventErrorMessage = signal<string | null>(null);
+  readonly showAdverseEventForm = signal(false);
+  readonly openAeAction = signal<{ id: number; type: 'transition' | 'resolve' } | null>(null);
 
   readonly justificationControl = new FormControl('', { nonNullable: true, validators: Validators.required });
   readonly reasonCodeControl = new FormControl('', { nonNullable: true, validators: Validators.required });
@@ -83,6 +101,25 @@ export class SubjectDetailComponent implements OnInit {
     reasonCode: new FormControl('', { nonNullable: true, validators: Validators.required }),
   });
 
+  readonly testResultForm = new FormGroup({
+    visitId: new FormControl<number | null>(null, { validators: Validators.required }),
+    testName: new FormControl('', { nonNullable: true, validators: Validators.required }),
+    resultValue: new FormControl('', { nonNullable: true, validators: Validators.required }),
+    units: new FormControl<string | null>(null),
+    referenceRange: new FormControl<string | null>(null),
+    abnormal: new FormControl(false, { nonNullable: true }),
+    notes: new FormControl<string | null>(null),
+  });
+
+  readonly adverseEventForm = new FormGroup({
+    visitId: new FormControl<number | null>(null),
+    description: new FormControl('', { nonNullable: true, validators: Validators.required }),
+    severity: new FormControl<'MILD' | 'MODERATE' | 'SEVERE' | 'LIFE_THREATENING'>('MILD', { nonNullable: true }),
+  });
+
+  readonly aeJustificationControl = new FormControl('', { nonNullable: true, validators: Validators.required });
+  readonly aeResolutionNotesControl = new FormControl('', { nonNullable: true, validators: Validators.required });
+
   readonly editForm = new FormGroup({
     firstName: new FormControl('', { nonNullable: true, validators: Validators.required }),
     lastName: new FormControl('', { nonNullable: true, validators: Validators.required }),
@@ -101,6 +138,8 @@ export class SubjectDetailComponent implements OnInit {
     private readonly route: ActivatedRoute,
     private readonly subjectService: SubjectService,
     private readonly visitService: VisitService,
+    private readonly testResultService: TestResultService,
+    private readonly adverseEventService: AdverseEventService,
   ) {}
 
   ngOnInit(): void {
@@ -112,6 +151,179 @@ export class SubjectDetailComponent implements OnInit {
     this.subjectService.get(this.subjectId).subscribe((s) => this.subject.set(s));
     this.subjectService.history(this.subjectId).subscribe((h) => this.history.set(h));
     this.loadVisits();
+    this.loadTestResults();
+    this.loadAdverseEvents();
+  }
+
+  loadTestResults(): void {
+    this.testResultService.list(this.subjectId).subscribe((results) => {
+      this.testResults.set(results);
+      results.forEach((r) => this.loadAttachments(r.id));
+    });
+  }
+
+  loadAttachments(testResultId: number): void {
+    this.testResultService.attachments(testResultId).subscribe((attachments) => {
+      this.attachmentsByResultId.update((map) => ({ ...map, [testResultId]: attachments }));
+    });
+  }
+
+  attachmentsFor(testResultId: number): TestResultAttachmentResponse[] {
+    return this.attachmentsByResultId()[testResultId] ?? [];
+  }
+
+  downloadAttachment(attachment: TestResultAttachmentResponse): void {
+    this.testResultService.download(attachment.id).subscribe((blob) => {
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = attachment.fileName;
+      anchor.click();
+      URL.revokeObjectURL(url);
+    });
+  }
+
+  openTestResultForm(): void {
+    this.testResultErrorMessage.set(null);
+    const firstVisitId = this.visitSchedule()?.visits[0]?.id ?? null;
+    this.testResultForm.reset({
+      visitId: firstVisitId,
+      testName: '',
+      resultValue: '',
+      units: null,
+      referenceRange: null,
+      abnormal: false,
+      notes: null,
+    });
+    this.showTestResultForm.set(true);
+  }
+
+  cancelTestResultForm(): void {
+    this.showTestResultForm.set(false);
+  }
+
+  submitTestResult(): void {
+    if (this.testResultForm.invalid) {
+      return;
+    }
+    const raw = this.testResultForm.getRawValue();
+    this.testResultErrorMessage.set(null);
+    this.testResultService
+      .record({
+        subjectId: this.subjectId,
+        visitId: raw.visitId!,
+        testName: raw.testName,
+        resultValue: raw.resultValue,
+        units: raw.units || null,
+        referenceRange: raw.referenceRange || null,
+        abnormal: raw.abnormal,
+        notes: raw.notes || null,
+      })
+      .subscribe({
+        next: () => {
+          this.showTestResultForm.set(false);
+          this.loadTestResults();
+        },
+        error: (err) => this.testResultErrorMessage.set(err.error?.message ?? 'Could not record test result.'),
+      });
+  }
+
+  reviewTestResult(id: number): void {
+    this.testResultErrorMessage.set(null);
+    this.testResultService.review(id).subscribe({
+      next: () => this.loadTestResults(),
+      error: (err) => this.testResultErrorMessage.set(err.error?.message ?? 'Could not review test result.'),
+    });
+  }
+
+  uploadAttachment(testResultId: number, input: HTMLInputElement): void {
+    const file = input.files?.[0];
+    if (!file) {
+      return;
+    }
+    this.testResultErrorMessage.set(null);
+    this.testResultService.upload(testResultId, file).subscribe({
+      next: () => {
+        input.value = '';
+        this.loadAttachments(testResultId);
+      },
+      error: (err) => this.testResultErrorMessage.set(err.error?.message ?? 'Could not upload attachment.'),
+    });
+  }
+
+  loadAdverseEvents(): void {
+    this.adverseEventService.list(this.subjectId).subscribe((events) => this.adverseEvents.set(events));
+  }
+
+  openAdverseEventForm(): void {
+    this.adverseEventErrorMessage.set(null);
+    this.adverseEventForm.reset({ visitId: null, description: '', severity: 'MILD' });
+    this.showAdverseEventForm.set(true);
+  }
+
+  cancelAdverseEventForm(): void {
+    this.showAdverseEventForm.set(false);
+  }
+
+  submitAdverseEvent(): void {
+    if (this.adverseEventForm.invalid) {
+      return;
+    }
+    const raw = this.adverseEventForm.getRawValue();
+    this.adverseEventErrorMessage.set(null);
+    this.adverseEventService
+      .report({ subjectId: this.subjectId, visitId: raw.visitId, description: raw.description, severity: raw.severity })
+      .subscribe({
+        next: () => {
+          this.showAdverseEventForm.set(false);
+          this.loadAdverseEvents();
+        },
+        error: (err) => this.adverseEventErrorMessage.set(err.error?.message ?? 'Could not report adverse event.'),
+      });
+  }
+
+  openAeTransition(id: number): void {
+    this.adverseEventErrorMessage.set(null);
+    this.aeJustificationControl.reset('');
+    this.openAeAction.set({ id, type: 'transition' });
+  }
+
+  openAeResolve(id: number): void {
+    this.adverseEventErrorMessage.set(null);
+    this.aeResolutionNotesControl.reset('');
+    this.openAeAction.set({ id, type: 'resolve' });
+  }
+
+  cancelAeAction(): void {
+    this.openAeAction.set(null);
+  }
+
+  submitAeTransition(id: number): void {
+    if (this.aeJustificationControl.invalid) {
+      return;
+    }
+    this.adverseEventErrorMessage.set(null);
+    this.adverseEventService.transition(id, 'UNDER_REVIEW', this.aeJustificationControl.value).subscribe({
+      next: () => {
+        this.openAeAction.set(null);
+        this.loadAdverseEvents();
+      },
+      error: (err) => this.adverseEventErrorMessage.set(err.error?.message ?? 'Could not transition adverse event.'),
+    });
+  }
+
+  submitAeResolve(id: number): void {
+    if (this.aeResolutionNotesControl.invalid) {
+      return;
+    }
+    this.adverseEventErrorMessage.set(null);
+    this.adverseEventService.resolve(id, this.aeResolutionNotesControl.value).subscribe({
+      next: () => {
+        this.openAeAction.set(null);
+        this.loadAdverseEvents();
+      },
+      error: (err) => this.adverseEventErrorMessage.set(err.error?.message ?? 'Could not resolve adverse event.'),
+    });
   }
 
   loadVisits(): void {

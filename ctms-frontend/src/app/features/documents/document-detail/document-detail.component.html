@@ -47,7 +47,7 @@
               <td class="py-2 pr-2">{{ v.uploadedAt | date: 'short' }}</td>
               <td class="py-2 pr-2">
                 <div class="flex flex-wrap gap-2">
-                  <a mat-button [href]="downloadUrl(v.versionNumber)" target="_blank">Download</a>
+                  <button mat-button (click)="download(v)">Download</button>
 
                   @if (v.status === 'DRAFT') {
                     <button *appHasRole="['STUDY_MANAGER', 'SITE_COORDINATOR', 'ADMIN']" mat-button

@@ -1,0 +1,33 @@
+<div class="max-w-6xl mx-auto flex flex-col gap-4">
+  <h1 class="text-xl font-semibold text-gray-900">Adverse Event Tracking Board</h1>
+
+  @if (errorMessage()) {
+    <p class="text-sm text-red-600">{{ errorMessage() }}</p>
+  }
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    @for (col of columns; track col.status) {
+      <div class="bg-white rounded-lg shadow p-4">
+        <h2 class="text-sm font-semibold text-gray-700 mb-3">{{ col.label }} ({{ eventsFor(col.status).length }})</h2>
+        <div class="flex flex-col gap-3">
+          @for (ae of eventsFor(col.status); track ae.id) {
+            <a
+              [routerLink]="['/subjects', ae.subjectId]"
+              class="block border rounded p-3 hover:bg-gray-50"
+            >
+              <div class="flex items-center justify-between">
+                <span class="text-sm font-medium text-gray-900">{{ ae.subjectCode }}</span>
+                <span class="text-xs px-2 py-0.5 rounded" [class]="severityClass(ae.severity)">{{ ae.severity }}</span>
+              </div>
+              <p class="text-xs text-gray-600 mt-1">{{ ae.description }}</p>
+              <p class="text-xs text-gray-400 mt-1">{{ ae.createdAt | date: 'short' }}</p>
+            </a>
+          }
+          @if (eventsFor(col.status).length === 0) {
+            <p class="text-sm text-gray-500 text-center py-4">None</p>
+          }
+        </div>
+      </div>
+    }
+  </div>
+</div>

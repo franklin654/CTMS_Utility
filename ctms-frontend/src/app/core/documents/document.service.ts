@@ -80,8 +80,8 @@ export class DocumentService {
     return this.http.post<DocumentVersionResponse>(`/api/documents/${id}/versions`, form);
   }
 
-  downloadUrl(id: number, versionNumber: number): string {
-    return `/api/documents/${id}/versions/${versionNumber}/download`;
+  download(id: number, versionNumber: number): Observable<Blob> {
+    return this.http.get(`/api/documents/${id}/versions/${versionNumber}/download`, { responseType: 'blob' });
   }
 
   submitForReview(id: number, versionNumber: number): Observable<DocumentReviewResponse> {

@@ -22,6 +22,13 @@
         >
           Tasks
         </a>
+        <a
+          *appHasRole="['INVESTIGATOR', 'STUDY_MANAGER', 'ADMIN', 'CRA_MONITOR']"
+          routerLink="/adverse-events/board"
+          class="text-gray-700 hover:text-gray-900"
+        >
+          AE Board
+        </a>
         <a routerLink="/notifications" class="text-gray-700 hover:text-gray-900">Notifications</a>
         <a *appHasRole="['ADMIN']" routerLink="/admin/rule-sets" class="text-gray-700 hover:text-gray-900">
           Rule Sets
