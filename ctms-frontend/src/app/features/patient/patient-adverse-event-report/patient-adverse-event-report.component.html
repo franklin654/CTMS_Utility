@@ -1,0 +1,61 @@
+<div class="max-w-2xl mx-auto flex flex-col gap-6">
+  <div class="bg-white rounded-lg shadow p-6">
+    <h1 class="text-lg font-semibold text-gray-900">Report a Health Issue</h1>
+    <p class="text-sm text-gray-500 mt-1">
+      Let your care team know about any symptoms or health issues since joining the study.
+    </p>
+
+    @if (errorMessage()) {
+      <p class="text-sm text-red-600 mt-3">{{ errorMessage() }}</p>
+    }
+    @if (successMessage()) {
+      <p class="text-sm text-green-600 mt-3">{{ successMessage() }}</p>
+    }
+
+    <form [formGroup]="form" class="grid grid-cols-1 gap-4 mt-4">
+      <mat-form-field appearance="outline">
+        <mat-label>What happened?</mat-label>
+        <textarea matInput formControlName="description" rows="3"></textarea>
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>How severe is it?</mat-label>
+        <mat-select formControlName="severity">
+          <mat-option value="MILD">Mild</mat-option>
+          <mat-option value="MODERATE">Moderate</mat-option>
+          <mat-option value="SEVERE">Severe</mat-option>
+          <mat-option value="LIFE_THREATENING">Life-threatening</mat-option>
+        </mat-select>
+      </mat-form-field>
+      <div>
+        <button mat-flat-button color="primary" (click)="submit()">Submit Report</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="bg-white rounded-lg shadow p-6">
+    <h2 class="text-sm font-medium text-gray-700">My Reports</h2>
+    <table class="w-full text-sm text-left mt-3">
+      <thead class="text-gray-500 border-b">
+        <tr>
+          <th class="py-2 pr-2">Description</th>
+          <th class="py-2 pr-2">Severity</th>
+          <th class="py-2 pr-2">Status</th>
+          <th class="py-2 pr-2">Reported</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (report of reports(); track report.id) {
+          <tr class="border-b">
+            <td class="py-2 pr-2">{{ report.description }}</td>
+            <td class="py-2 pr-2">{{ report.severity }}</td>
+            <td class="py-2 pr-2">{{ report.status }}</td>
+            <td class="py-2 pr-2">{{ report.createdAt | date: 'mediumDate' }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+    @if (reports().length === 0) {
+      <p class="text-sm text-gray-500 text-center py-4">No reports yet.</p>
+    }
+  </div>
+</div>

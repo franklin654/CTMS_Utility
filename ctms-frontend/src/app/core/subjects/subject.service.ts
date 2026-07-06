@@ -2,6 +2,11 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
+export interface PortalAccountResponse {
+  username: string;
+  temporaryPassword: string;
+}
+
 export interface SubjectResponse {
   id: number;
   subjectCode: string;
@@ -111,5 +116,13 @@ export class SubjectService {
 
   history(id: number): Observable<SubjectStatusHistoryResponse[]> {
     return this.http.get<SubjectStatusHistoryResponse[]>(`/api/subjects/${id}/history`);
+  }
+
+  createPortalAccount(id: number): Observable<PortalAccountResponse> {
+    return this.http.post<PortalAccountResponse>(`/api/subjects/${id}/portal-account`, {});
+  }
+
+  resetPortalPassword(id: number): Observable<PortalAccountResponse> {
+    return this.http.post<PortalAccountResponse>(`/api/subjects/${id}/portal-account/reset-password`, {});
   }
 }

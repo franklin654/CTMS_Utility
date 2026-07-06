@@ -10,6 +10,7 @@ import { ActivatedRoute } from '@angular/router';
 import { HasRoleDirective } from '../../../core/auth/has-role.directive';
 import { AdverseEventResponse, AdverseEventService } from '../../../core/adverse-events/adverse-event.service';
 import {
+  PortalAccountResponse,
   SubjectResponse,
   SubjectService,
   SubjectStatusHistoryResponse,
@@ -74,6 +75,9 @@ export class SubjectDetailComponent implements OnInit {
   readonly adverseEventErrorMessage = signal<string | null>(null);
   readonly showAdverseEventForm = signal(false);
   readonly openAeAction = signal<{ id: number; type: 'transition' | 'resolve' } | null>(null);
+
+  readonly portalAccountErrorMessage = signal<string | null>(null);
+  readonly portalAccountResult = signal<PortalAccountResponse | null>(null);
 
   readonly justificationControl = new FormControl('', { nonNullable: true, validators: Validators.required });
   readonly reasonCodeControl = new FormControl('', { nonNullable: true, validators: Validators.required });
@@ -482,6 +486,26 @@ export class SubjectDetailComponent implements OnInit {
       },
       error: (err) => this.errorMessage.set(err.error?.message ?? 'Withdrawal failed.'),
     });
+  }
+
+  createPortalAccount(): void {
+    this.portalAccountErrorMessage.set(null);
+    this.subjectService.createPortalAccount(this.subjectId).subscribe({
+      next: (result) => this.portalAccountResult.set(result),
+      error: (err) => this.portalAccountErrorMessage.set(err.error?.message ?? 'Could not create portal account.'),
+    });
+  }
+
+  resetPortalPassword(): void {
+    this.portalAccountErrorMessage.set(null);
+    this.subjectService.resetPortalPassword(this.subjectId).subscribe({
+      next: (result) => this.portalAccountResult.set(result),
+      error: (err) => this.portalAccountErrorMessage.set(err.error?.message ?? 'Could not reset portal password.'),
+    });
+  }
+
+  dismissPortalAccountResult(): void {
+    this.portalAccountResult.set(null);
   }
 
   startEdit(): void {

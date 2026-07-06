@@ -120,6 +120,20 @@ class VisitServiceTest {
     }
 
     @Test
+    void markCompleted_notifiesLinkedPatientAccount() {
+        com.ctms.ctms_backend.user.User patientUser = new com.ctms.ctms_backend.user.User();
+        patientUser.setId(77L);
+        subject.setLinkedUser(patientUser);
+
+        MarkVisitCompletedRequest req = new MarkVisitCompletedRequest(LocalDate.now(), null, "all good");
+        visitService.markCompleted(1L, req, "coordinator1");
+
+        org.mockito.Mockito.verify(notificationService).notify(
+                org.mockito.ArgumentMatchers.eq(77L), org.mockito.ArgumentMatchers.eq("VISIT_COMPLETED"),
+                any(), any(), any());
+    }
+
+    @Test
     void markCompleted_alreadyCompleted_throws() {
         scheduledVisit.setStatus(VisitStatus.COMPLETED);
         MarkVisitCompletedRequest req = new MarkVisitCompletedRequest(LocalDate.now(), null, null);

@@ -18,6 +18,7 @@ import com.ctms.ctms_backend.milestone.exception.InvalidMilestoneActualDateExcep
 import com.ctms.ctms_backend.milestone.exception.MilestoneNotFoundException;
 import com.ctms.ctms_backend.monitoring.exception.MonitoringVisitNotFoundException;
 import com.ctms.ctms_backend.monitoring.exception.MonitoringVisitReportNotFoundException;
+import com.ctms.ctms_backend.patientportal.exception.NoLinkedSubjectException;
 import com.ctms.ctms_backend.payment.exception.InvalidPaymentTransitionException;
 import com.ctms.ctms_backend.payment.exception.PaymentNotFoundException;
 import com.ctms.ctms_backend.rules.RuleCompilationException;
@@ -36,6 +37,8 @@ import com.ctms.ctms_backend.subject.exception.EligibilityCriterionNotFoundExcep
 import com.ctms.ctms_backend.subject.exception.EligibilityFailedException;
 import com.ctms.ctms_backend.subject.exception.IncompleteEligibilityAnswersException;
 import com.ctms.ctms_backend.subject.exception.InvalidSubjectTransitionException;
+import com.ctms.ctms_backend.subject.exception.NoPortalAccountException;
+import com.ctms.ctms_backend.subject.exception.PortalAccountAlreadyExistsException;
 import com.ctms.ctms_backend.subject.exception.StudySiteMismatchException;
 import com.ctms.ctms_backend.subject.exception.SubjectNotFoundException;
 import com.ctms.ctms_backend.task.exception.InvalidTaskTransitionException;
@@ -150,7 +153,18 @@ public class GlobalExceptionHandler {
         return error(HttpStatus.NOT_FOUND, e.getMessage());
     }
 
-    @ExceptionHandler({InvalidSubjectTransitionException.class, StudySiteMismatchException.class, IncompleteEligibilityAnswersException.class})
+    @ExceptionHandler(NoLinkedSubjectException.class)
+    public ResponseEntity<Object> handleNoLinkedSubject(NoLinkedSubjectException e) {
+        return error(HttpStatus.NOT_FOUND, e.getMessage());
+    }
+
+    @ExceptionHandler({
+        InvalidSubjectTransitionException.class,
+        StudySiteMismatchException.class,
+        IncompleteEligibilityAnswersException.class,
+        PortalAccountAlreadyExistsException.class,
+        NoPortalAccountException.class
+    })
     public ResponseEntity<Object> handleSubjectStateViolation(RuntimeException e) {
         return error(HttpStatus.BAD_REQUEST, e.getMessage());
     }

@@ -1,12 +1,14 @@
 package com.ctms.ctms_backend.subject.controller;
 
 import com.ctms.ctms_backend.subject.dto.EnrollSubjectRequest;
+import com.ctms.ctms_backend.subject.dto.PortalAccountResponse;
 import com.ctms.ctms_backend.subject.dto.SubjectResponse;
 import com.ctms.ctms_backend.subject.dto.SubjectStatusHistoryResponse;
 import com.ctms.ctms_backend.subject.dto.TransitionSubjectRequest;
 import com.ctms.ctms_backend.subject.dto.UpdateSubjectRequest;
 import com.ctms.ctms_backend.subject.dto.WithdrawSubjectRequest;
 import com.ctms.ctms_backend.subject.service.SubjectLifecycleService;
+import com.ctms.ctms_backend.subject.service.SubjectPortalAccountService;
 import com.ctms.ctms_backend.subject.service.SubjectService;
 import jakarta.validation.Valid;
 import java.security.Principal;
@@ -37,10 +39,15 @@ public class SubjectController {
 
     private final SubjectService subjectService;
     private final SubjectLifecycleService subjectLifecycleService;
+    private final SubjectPortalAccountService subjectPortalAccountService;
 
-    public SubjectController(SubjectService subjectService, SubjectLifecycleService subjectLifecycleService) {
+    public SubjectController(
+            SubjectService subjectService,
+            SubjectLifecycleService subjectLifecycleService,
+            SubjectPortalAccountService subjectPortalAccountService) {
         this.subjectService = subjectService;
         this.subjectLifecycleService = subjectLifecycleService;
+        this.subjectPortalAccountService = subjectPortalAccountService;
     }
 
     @PostMapping
@@ -87,5 +94,17 @@ public class SubjectController {
     @PreAuthorize(READ_ROLES)
     public List<SubjectStatusHistoryResponse> history(@PathVariable Long id) {
         return subjectLifecycleService.history(id);
+    }
+
+    @PostMapping("/{id}/portal-account")
+    @PreAuthorize(WRITE_ROLES)
+    public PortalAccountResponse createPortalAccount(Principal principal, @PathVariable Long id) {
+        return subjectPortalAccountService.createPortalAccount(id, principal.getName());
+    }
+
+    @PostMapping("/{id}/portal-account/reset-password")
+    @PreAuthorize(WRITE_ROLES)
+    public PortalAccountResponse resetPortalPassword(Principal principal, @PathVariable Long id) {
+        return subjectPortalAccountService.resetPortalPassword(id, principal.getName());
     }
 }

@@ -1,0 +1,24 @@
+<div class="min-h-screen bg-gray-50">
+  <nav class="bg-white border-b px-6 py-3 flex items-center justify-between">
+    <div class="flex items-center gap-8">
+      <span class="font-semibold text-gray-900">CTMS Patient Portal</span>
+      <div class="flex items-center gap-4 text-sm">
+        <a routerLink="/patient/visits" class="text-gray-700 hover:text-gray-900">My Visits</a>
+        <a routerLink="/patient/documents" class="text-gray-700 hover:text-gray-900">My Documents</a>
+        <a routerLink="/patient/profile" class="text-gray-700 hover:text-gray-900">My Profile</a>
+        <a routerLink="/patient/report-health-issue" class="text-gray-700 hover:text-gray-900">Report a Health Issue</a>
+        <a routerLink="/patient/notifications" class="text-gray-700 hover:text-gray-900">Notifications</a>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-4">
+      <app-notification-bell />
+      <span class="text-sm text-gray-600">{{ authService.currentUser()?.username }}</span>
+      <button mat-stroked-button (click)="logout()">Sign out</button>
+    </div>
+  </nav>
+
+  <main class="p-6">
+    <router-outlet />
+  </main>
+</div>

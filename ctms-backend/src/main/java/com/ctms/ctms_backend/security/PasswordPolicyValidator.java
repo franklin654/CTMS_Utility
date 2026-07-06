@@ -36,6 +36,16 @@ public class PasswordPolicyValidator {
     /** Throws {@link PasswordPolicyViolationException} if the candidate password fails complexity
      * or history rules for the given user. Call before hashing/saving a new password. */
     public void validate(User user, String rawPassword) {
+        validate(user, rawPassword, true);
+    }
+
+    /** As {@link #validate(User, String)}, but callers that recompute a deterministic
+     * system-generated recovery password (Patient Portal account reset -- see
+     * SubjectPortalAccountService) can skip the history-reuse check with {@code checkHistory=false}.
+     * That check exists to stop a person from voluntarily cycling back to a password they picked;
+     * it doesn't apply to a staff-triggered reset that always recomputes the same known value by
+     * design. Complexity/username checks still always apply. */
+    public void validate(User user, String rawPassword, boolean checkHistory) {
         List<String> violations = new ArrayList<>();
         if (rawPassword == null || rawPassword.length() < MIN_LENGTH) {
             violations.add("must be at least " + MIN_LENGTH + " characters");
@@ -60,7 +70,7 @@ public class PasswordPolicyValidator {
             throw new PasswordPolicyViolationException(violations);
         }
 
-        if (user.getId() != null && user.getPasswordHash() != null && properties.historySize() > 0) {
+        if (checkHistory && user.getId() != null && user.getPasswordHash() != null && properties.historySize() > 0) {
             List<PasswordHistoryEntry> recent = passwordHistoryRepository.findByUserOrderByCreatedAtDesc(
                     user, PageRequest.of(0, properties.historySize()));
             boolean reused = recent.stream().anyMatch(h -> passwordEncoder.matches(rawPassword, h.getPasswordHash()));

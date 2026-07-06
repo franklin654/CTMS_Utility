@@ -96,6 +96,13 @@ public class VisitService {
         Subject subject = visit.getSubject();
         paymentService.generatePayment(
                 "VISIT_COMPLETED", subject.getStudy(), subject.getSite(), "Visit", visit.getId(), actorUsername);
+        if (subject.getLinkedUser() != null) {
+            notificationService.notify(
+                    subject.getLinkedUser().getId(), "VISIT_COMPLETED",
+                    "Visit completed: " + visit.getName(),
+                    "Your visit \"" + visit.getName() + "\" has been marked completed.",
+                    "/patient/visits");
+        }
 
         return VisitResponse.from(visit);
     }
@@ -162,6 +169,15 @@ public class VisitService {
                 "Visit", String.valueOf(replacement.getId()), AuditAction.CREATE,
                 null, "rescheduled from visit " + id + " to " + req.newDate(), null);
         notificationService.clearByLink(visitLink(original));
+
+        Subject subject = original.getSubject();
+        if (subject.getLinkedUser() != null) {
+            notificationService.notify(
+                    subject.getLinkedUser().getId(), "VISIT_RESCHEDULED",
+                    "Visit rescheduled: " + replacement.getName(),
+                    "Your visit \"" + replacement.getName() + "\" has been rescheduled to " + req.newDate() + ".",
+                    "/patient/visits");
+        }
 
         return VisitResponse.from(replacement);
     }

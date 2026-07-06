@@ -51,7 +51,10 @@ export class LoginComponent {
           this.router.navigate(['/change-password']);
           return;
         }
-        const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') ?? '/dashboard';
+        // Patients have no access to the staff dashboard -- send them to their own landing page
+        // instead (Phase 8 flagged this gap; closed here in Phase 11).
+        const defaultRoute = this.authService.hasAnyRole(['PATIENT_SUBJECT']) ? '/patient' : '/dashboard';
+        const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') ?? defaultRoute;
         this.router.navigateByUrl(returnUrl);
       },
       error: (err) => {

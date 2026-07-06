@@ -6,6 +6,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.ctms.ctms_backend.audit.AuditService;
+import com.ctms.ctms_backend.notification.NotificationService;
 import com.ctms.ctms_backend.study.entity.Study;
 import com.ctms.ctms_backend.subject.entity.Subject;
 import com.ctms.ctms_backend.subject.entity.SubjectStatus;
@@ -34,6 +35,7 @@ class VisitSchedulingServiceTest {
     @Mock private VisitRepository visitRepository;
     @Mock private SubjectRepository subjectRepository;
     @Mock private AuditService auditService;
+    @Mock private NotificationService notificationService;
 
     @InjectMocks
     private VisitSchedulingService schedulingService;
@@ -73,6 +75,37 @@ class VisitSchedulingServiceTest {
         assertEquals(LocalDate.of(2026, 1, 15), saved.get(1).getScheduledDate());
         assertEquals(VisitStatus.SCHEDULED, saved.get(0).getStatus());
         assertEquals(VisitStatus.SCHEDULED, saved.get(1).getStatus());
+        org.mockito.Mockito.verifyNoInteractions(notificationService);
+    }
+
+    @Test
+    void generateForSubject_notifiesLinkedPatientAccount() {
+        Study study = new Study();
+        study.setId(10L);
+
+        User creator = new User();
+        creator.setId(1L);
+
+        User patientUser = new User();
+        patientUser.setId(99L);
+
+        Subject subject = new Subject();
+        subject.setId(1000L);
+        subject.setStudy(study);
+        subject.setSubjectCode("SUBJ-001000");
+        subject.setScreeningDate(LocalDate.of(2026, 1, 1));
+        subject.setCreatedBy(creator);
+        subject.setLinkedUser(patientUser);
+
+        VisitTemplate t1 = template(1L, 1, 0, "Screening");
+        when(templateRepository.findByStudyIdAndActiveTrueOrderBySequenceNumber(10L)).thenReturn(List.of(t1));
+        when(visitRepository.save(any(Visit.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        schedulingService.generateForSubject(subject);
+
+        verify(notificationService).notify(
+                org.mockito.ArgumentMatchers.eq(99L), org.mockito.ArgumentMatchers.eq("VISIT_SCHEDULED"),
+                any(), any(), any());
     }
 
     @Test

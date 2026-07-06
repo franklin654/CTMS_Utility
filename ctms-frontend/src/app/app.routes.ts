@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { authGuard, roleGuard } from './core/auth/auth.guard';
 import { ShellComponent } from './layout/shell/shell.component';
+import { PatientShellComponent } from './layout/patient-shell/patient-shell.component';
 
 export const routes: Routes = [
   {
@@ -189,6 +190,45 @@ export const routes: Routes = [
           ),
       },
       { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
+    ],
+  },
+  {
+    path: 'patient',
+    component: PatientShellComponent,
+    canActivate: [authGuard, roleGuard(['PATIENT_SUBJECT'])],
+    children: [
+      {
+        path: 'visits',
+        loadComponent: () =>
+          import('./features/patient/patient-visits/patient-visits.component').then((m) => m.PatientVisitsComponent),
+      },
+      {
+        path: 'documents',
+        loadComponent: () =>
+          import('./features/patient/patient-documents/patient-documents.component').then(
+            (m) => m.PatientDocumentsComponent,
+          ),
+      },
+      {
+        path: 'profile',
+        loadComponent: () =>
+          import('./features/patient/patient-profile/patient-profile.component').then((m) => m.PatientProfileComponent),
+      },
+      {
+        path: 'report-health-issue',
+        loadComponent: () =>
+          import('./features/patient/patient-adverse-event-report/patient-adverse-event-report.component').then(
+            (m) => m.PatientAdverseEventReportComponent,
+          ),
+      },
+      {
+        path: 'notifications',
+        loadComponent: () =>
+          import('./features/notifications/notification-list/notification-list.component').then(
+            (m) => m.NotificationListComponent,
+          ),
+      },
+      { path: '', pathMatch: 'full', redirectTo: 'visits' },
     ],
   },
   { path: '**', redirectTo: 'dashboard' },

@@ -2,6 +2,7 @@ package com.ctms.ctms_backend.visit.service;
 
 import com.ctms.ctms_backend.audit.AuditAction;
 import com.ctms.ctms_backend.audit.AuditService;
+import com.ctms.ctms_backend.notification.NotificationService;
 import com.ctms.ctms_backend.subject.entity.Subject;
 import com.ctms.ctms_backend.subject.entity.SubjectStatus;
 import com.ctms.ctms_backend.subject.repository.SubjectRepository;
@@ -35,16 +36,19 @@ public class VisitSchedulingService {
     private final VisitRepository visitRepository;
     private final SubjectRepository subjectRepository;
     private final AuditService auditService;
+    private final NotificationService notificationService;
 
     public VisitSchedulingService(
             VisitTemplateRepository templateRepository,
             VisitRepository visitRepository,
             SubjectRepository subjectRepository,
-            AuditService auditService) {
+            AuditService auditService,
+            NotificationService notificationService) {
         this.templateRepository = templateRepository;
         this.visitRepository = visitRepository;
         this.subjectRepository = subjectRepository;
         this.auditService = auditService;
+        this.notificationService = notificationService;
     }
 
     @Transactional
@@ -86,5 +90,13 @@ public class VisitSchedulingService {
                 "Visit", String.valueOf(visit.getId()), AuditAction.CREATE,
                 null, "scheduled " + visit.getName() + " for " + visit.getScheduledDate()
                         + " (subject " + subject.getSubjectCode() + ")", null);
+
+        if (subject.getLinkedUser() != null) {
+            notificationService.notify(
+                    subject.getLinkedUser().getId(), "VISIT_SCHEDULED",
+                    "New visit scheduled: " + visit.getName(),
+                    "Your visit \"" + visit.getName() + "\" is scheduled for " + visit.getScheduledDate() + ".",
+                    "/patient/visits");
+        }
     }
 }

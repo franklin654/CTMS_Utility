@@ -15,6 +15,7 @@ import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.time.LocalDate;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -74,6 +75,36 @@ public class DocumentService {
         document = documentRepository.save(document);
 
         auditService.record("Document", String.valueOf(document.getId()), AuditAction.CREATE, null, version.getFileName(), null);
+        return DocumentResponse.from(document);
+    }
+
+    /** Patient Portal entry point (Epic 10 Story 04). Unlike {@link #createDocument}, the first
+     * version does NOT go straight to CURRENT -- patient-submitted content is a different trust
+     * boundary than an internal staff upload, so it starts at DRAFT just like an ordinary
+     * *additional* version, and the caller (PatientDocumentUploadService) is responsible for
+     * calling DocumentWorkflowService.submitForReview immediately after, landing it in staff's
+     * existing approval queue unchanged. */
+    @Transactional
+    public DocumentResponse createPendingReviewDocument(
+            String title, String category, Long studyId, LocalDate effectiveDate, String uploaderUsername, MultipartFile file) {
+        User uploader = currentUser(uploaderUsername);
+
+        Document document = new Document();
+        document.setTitle(title);
+        document.setCategory(category);
+        document.setOwner(uploader);
+        if (studyId != null) {
+            document.setStudy(resolveStudy(studyId));
+        }
+        document = documentRepository.save(document);
+
+        DocumentVersion version = storeVersion(document, file, uploader, 1, DocumentVersionStatus.DRAFT);
+        version.setEffectiveDate(effectiveDate);
+        documentVersionRepository.save(version);
+
+        auditService.record(
+                "Document", String.valueOf(document.getId()), AuditAction.CREATE, null,
+                "patient-submitted (pending review): " + version.getFileName(), null);
         return DocumentResponse.from(document);
     }
 
@@ -164,6 +195,15 @@ public class DocumentService {
     @Transactional(readOnly = true)
     public Page<DocumentResponse> list(Pageable pageable) {
         return documentRepository.findVisibleTo(accessControlService.currentRoleCodes(), pageable)
+                .map(DocumentResponse::from);
+    }
+
+    /** Patient Portal (Epic 10 Story 04) list -- same DENY-list filtering as {@link #list}, scoped
+     * to documents this specific patient (User) uploaded -- NOT the whole study, since two
+     * patients enrolled in the same study must never see each other's personal uploads. */
+    @Transactional(readOnly = true)
+    public Page<DocumentResponse> listByOwner(Long ownerUserId, Pageable pageable) {
+        return documentRepository.findByOwnerIdAndVisibleTo(ownerUserId, accessControlService.currentRoleCodes(), pageable)
                 .map(DocumentResponse::from);
     }
 

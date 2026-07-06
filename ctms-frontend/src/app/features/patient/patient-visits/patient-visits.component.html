@@ -1,0 +1,55 @@
+<div class="max-w-4xl mx-auto flex flex-col gap-6">
+  <div class="bg-white rounded-lg shadow p-6">
+    <h1 class="text-lg font-semibold text-gray-900">My Visits</h1>
+
+    @if (errorMessage()) {
+      <p class="text-sm text-red-600 mt-3">{{ errorMessage() }}</p>
+    }
+
+    @if (schedule(); as s) {
+      <p class="text-sm text-gray-500 mt-1">
+        Compliance rate: {{ s.complianceRate | number: '1.0-0' }}
+      </p>
+
+      <table class="w-full text-sm text-left mt-4">
+        <thead class="text-gray-500 border-b">
+          <tr>
+            <th class="py-2 pr-2">Visit</th>
+            <th class="py-2 pr-2">Date</th>
+            <th class="py-2 pr-2">Type</th>
+            <th class="py-2 pr-2">Status</th>
+            <th class="py-2 pr-2">Instructions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (visit of s.visits; track visit.id) {
+            <tr class="border-b">
+              <td class="py-2 pr-2">{{ visit.name }}</td>
+              <td class="py-2 pr-2">{{ visit.scheduledDate | date: 'mediumDate' }}</td>
+              <td class="py-2 pr-2">{{ visit.visitType }}</td>
+              <td class="py-2 pr-2">
+                <span
+                  class="text-xs px-2 py-0.5 rounded"
+                  [class.bg-gray-100]="visit.status === 'SCHEDULED'"
+                  [class.text-gray-600]="visit.status === 'SCHEDULED'"
+                  [class.bg-green-100]="visit.status === 'COMPLETED'"
+                  [class.text-green-700]="visit.status === 'COMPLETED'"
+                  [class.bg-red-100]="visit.status === 'MISSED'"
+                  [class.text-red-700]="visit.status === 'MISSED'"
+                  [class.bg-amber-100]="visit.status === 'RESCHEDULED'"
+                  [class.text-amber-700]="visit.status === 'RESCHEDULED'"
+                >
+                  {{ visit.status }}
+                </span>
+              </td>
+              <td class="py-2 pr-2">{{ visit.requiredProcedures || '&mdash;' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+      @if (s.visits.length === 0) {
+        <p class="text-sm text-gray-500 text-center py-4">No visits scheduled yet.</p>
+      }
+    }
+  </div>
+</div>

@@ -1,0 +1,67 @@
+<div class="max-w-4xl mx-auto flex flex-col gap-6">
+  <div class="bg-white rounded-lg shadow p-6">
+    <h1 class="text-lg font-semibold text-gray-900">Upload a Document</h1>
+
+    @if (errorMessage()) {
+      <p class="text-sm text-red-600 mt-3">{{ errorMessage() }}</p>
+    }
+    @if (successMessage()) {
+      <p class="text-sm text-green-600 mt-3">{{ successMessage() }}</p>
+    }
+
+    <form [formGroup]="uploadForm" class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4">
+      <mat-form-field appearance="outline">
+        <mat-label>Document Type</mat-label>
+        <input matInput formControlName="category" />
+        <mat-hint>e.g. LAB_RESULTS</mat-hint>
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Title / Notes</mat-label>
+        <input matInput formControlName="title" />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Date</mat-label>
+        <input matInput type="date" formControlName="effectiveDate" />
+      </mat-form-field>
+      <div class="col-span-full">
+        <input type="file" (change)="onFileSelected($event)" />
+      </div>
+      <div class="col-span-full">
+        <button mat-flat-button color="primary" (click)="submitUpload()">Upload</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="bg-white rounded-lg shadow p-6">
+    <h2 class="text-sm font-medium text-gray-700">My Documents</h2>
+    <table class="w-full text-sm text-left mt-3">
+      <thead class="text-gray-500 border-b">
+        <tr>
+          <th class="py-2 pr-2">Title</th>
+          <th class="py-2 pr-2">Type</th>
+          <th class="py-2 pr-2">Status</th>
+          <th class="py-2 pr-2">Uploaded</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (doc of documents(); track doc.id) {
+          <tr class="border-b">
+            <td class="py-2 pr-2">{{ doc.title }}</td>
+            <td class="py-2 pr-2">{{ doc.category }}</td>
+            <td class="py-2 pr-2">
+              @if (doc.currentVersion) {
+                <span class="text-xs px-2 py-0.5 rounded bg-green-100 text-green-700">Current</span>
+              } @else {
+                <span class="text-xs px-2 py-0.5 rounded bg-amber-100 text-amber-700">Pending Review</span>
+              }
+            </td>
+            <td class="py-2 pr-2">{{ doc.createdAt | date: 'mediumDate' }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+    @if (documents().length === 0) {
+      <p class="text-sm text-gray-500 text-center py-4">You haven't uploaded any documents yet.</p>
+    }
+  </div>
+</div>

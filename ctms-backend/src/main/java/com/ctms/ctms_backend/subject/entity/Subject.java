@@ -81,6 +81,13 @@ public class Subject {
     @Column(nullable = false, length = 30)
     private SubjectStatus status = SubjectStatus.SCREENED;
 
+    /** BL Epic 10 (Patient Portal) -- nullable/unique: most subjects never get a portal login,
+     * but when one exists it's exactly one User per Subject. Set by SubjectPortalAccountService,
+     * never by ordinary subject create/update flows. */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "linked_user_id", unique = true)
+    private User linkedUser;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "created_by", nullable = false)
     private User createdBy;

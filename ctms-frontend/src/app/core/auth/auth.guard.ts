@@ -20,6 +20,9 @@ export function roleGuard(allowedRoles: string[]): CanActivateFn {
     if (authService.hasAnyRole(allowedRoles)) {
       return true;
     }
-    return router.createUrlTree(['/dashboard']);
+    // Patients have no access to the staff dashboard -- send them to their own landing page
+    // instead of the generic fallback (Phase 8 flagged this gap; closed here in Phase 11).
+    const fallback = authService.hasAnyRole(['PATIENT_SUBJECT']) ? '/patient' : '/dashboard';
+    return router.createUrlTree([fallback]);
   };
 }

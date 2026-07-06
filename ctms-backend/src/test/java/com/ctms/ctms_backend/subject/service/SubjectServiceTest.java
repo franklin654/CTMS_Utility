@@ -206,4 +206,37 @@ class SubjectServiceTest {
         SubjectResponse response = subjectService.get(1000L);
         assertEquals("sensitive info", response.medicalHistory());
     }
+
+    @Test
+    void updateOwnProfile_onlyTouchesWhitelistedContactFields() {
+        Subject subject = new Subject();
+        subject.setId(1000L);
+        subject.setStudy(study);
+        subject.setSite(site);
+        subject.setFirstName("Jane");
+        subject.setLastName("Doe");
+        subject.setDateOfBirth(LocalDate.of(1990, 1, 1));
+        subject.setGender("FEMALE");
+        subject.setMedicalHistory("sensitive info");
+        subject.setScreeningDate(LocalDate.now());
+        subject.setCreatedBy(creator);
+        subject.setModifiedBy(creator);
+        when(subjectRepository.findById(1000L)).thenReturn(Optional.of(subject));
+        when(subjectRepository.save(any(Subject.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        com.ctms.ctms_backend.subject.dto.UpdateOwnProfileRequest req = new com.ctms.ctms_backend.subject.dto.UpdateOwnProfileRequest(
+                "555-9999", "new@example.com", "456 New Ave", "New Emergency Contact");
+        subjectService.updateOwnProfile(1000L, req, "coordinator1");
+
+        assertEquals("555-9999", subject.getContactPhone());
+        assertEquals("new@example.com", subject.getContactEmail());
+        assertEquals("456 New Ave", subject.getAddress());
+        assertEquals("New Emergency Contact", subject.getEmergencyContact());
+        // Untouched fields -- proves the update is structurally incapable of smuggling changes
+        // to staff-only fields, not just that the DTO happens not to carry them.
+        assertEquals("Jane", subject.getFirstName());
+        assertEquals(LocalDate.of(1990, 1, 1), subject.getDateOfBirth());
+        assertEquals("FEMALE", subject.getGender());
+        assertEquals("sensitive info", subject.getMedicalHistory());
+    }
 }

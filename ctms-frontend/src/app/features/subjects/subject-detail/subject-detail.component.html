@@ -39,9 +39,26 @@
           }
         </div>
 
-        <div *appHasRole="['SITE_COORDINATOR', 'STUDY_MANAGER', 'ADMIN']" class="mt-4">
+        <div *appHasRole="['SITE_COORDINATOR', 'STUDY_MANAGER', 'ADMIN']" class="mt-4 flex gap-2">
           <button mat-stroked-button (click)="startEdit()">Edit Details</button>
+          <button mat-stroked-button (click)="createPortalAccount()">Create Portal Account</button>
+          <button mat-stroked-button (click)="resetPortalPassword()">Reset Patient Password</button>
         </div>
+
+        @if (portalAccountErrorMessage()) {
+          <p class="text-sm text-red-600 mt-2">{{ portalAccountErrorMessage() }}</p>
+        }
+        @if (portalAccountResult(); as account) {
+          <div class="mt-2 p-4 rounded bg-amber-50 border border-amber-200 text-sm">
+            <p class="font-medium text-amber-900">
+              Portal account ready -- relay these credentials to the patient in person (not shown again):
+            </p>
+            <p class="mt-1 text-amber-800">Username: <span class="font-mono">{{ account.username }}</span></p>
+            <p class="text-amber-800">Temporary password: <span class="font-mono">{{ account.temporaryPassword }}</span></p>
+            <p class="mt-1 text-amber-700 text-xs">The patient will be required to set their own password on first login.</p>
+            <button mat-button (click)="dismissPortalAccountResult()" class="mt-2">Dismiss</button>
+          </div>
+        }
       } @else {
         <form [formGroup]="editForm" class="grid grid-cols-2 gap-4 mt-4">
           <mat-form-field appearance="outline"><mat-label>First Name</mat-label><input matInput formControlName="firstName" /></mat-form-field>

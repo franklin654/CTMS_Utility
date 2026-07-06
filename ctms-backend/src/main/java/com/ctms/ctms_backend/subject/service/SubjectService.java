@@ -13,6 +13,7 @@ import com.ctms.ctms_backend.study.repository.StudyRepository;
 import com.ctms.ctms_backend.subject.dto.EligibilityAnswerRequest;
 import com.ctms.ctms_backend.subject.dto.EnrollSubjectRequest;
 import com.ctms.ctms_backend.subject.dto.SubjectResponse;
+import com.ctms.ctms_backend.subject.dto.UpdateOwnProfileRequest;
 import com.ctms.ctms_backend.subject.dto.UpdateSubjectRequest;
 import com.ctms.ctms_backend.subject.entity.EligibilityCriterion;
 import com.ctms.ctms_backend.subject.entity.Subject;
@@ -177,6 +178,25 @@ public class SubjectService {
         subject = subjectRepository.save(subject);
 
         auditService.record("Subject", String.valueOf(id), AuditAction.UPDATE, null, "subject details updated", null);
+        return SubjectResponse.from(subject, currentRoleCodes());
+    }
+
+    /** BL Epic 10 Story 05 -- restricted to contact/demographic fields only; the patient's own
+     * subject ID is always resolved server-side by the caller (PatientProfileController via
+     * PatientContextService), never trusted from a client-supplied value. */
+    @Transactional
+    public SubjectResponse updateOwnProfile(Long id, UpdateOwnProfileRequest req, String actorUsername) {
+        Subject subject = findSubject(id);
+        User actor = currentUser(actorUsername);
+
+        subject.setContactPhone(req.contactPhone());
+        subject.setContactEmail(req.contactEmail());
+        subject.setAddress(req.address());
+        subject.setEmergencyContact(req.emergencyContact());
+        subject.setModifiedBy(actor);
+        subject = subjectRepository.save(subject);
+
+        auditService.record("Subject", String.valueOf(id), AuditAction.UPDATE, null, "patient self-updated contact profile", null);
         return SubjectResponse.from(subject, currentRoleCodes());
     }
 
