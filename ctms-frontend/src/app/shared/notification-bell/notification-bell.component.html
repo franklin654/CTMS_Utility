@@ -11,31 +11,35 @@
 </button>
 
 <mat-menu #menu="matMenu" xPosition="before">
-  <div class="w-80 max-h-96 overflow-y-auto">
-    <div class="flex items-center justify-between px-4 py-2 border-b">
+  <div class="w-80">
+    <!-- Deliberately outside the scrollable list below -- nesting this inside the scroll
+         container previously let it get clipped/cut off along with the list. -->
+    <div class="flex items-center justify-between px-4 py-2 border-b bg-white">
       <span class="text-sm font-semibold text-gray-700">Notifications</span>
-      <button class="text-xs text-blue-600 hover:underline" (click)="markAllRead(); $event.stopPropagation()">
+      <button class="text-xs text-blue-600 hover:underline whitespace-nowrap" (click)="markAllRead(); $event.stopPropagation()">
         Mark all read
       </button>
     </div>
 
-    @if (notifications().length === 0) {
-      <p class="text-sm text-gray-500 px-4 py-6 text-center">No notifications</p>
-    }
+    <div class="max-h-96 overflow-y-auto">
+      @if (notifications().length === 0) {
+        <p class="text-sm text-gray-500 px-4 py-6 text-center">No notifications</p>
+      }
 
-    @for (n of notifications(); track n.id) {
-      <button
-        type="button"
-        class="w-full text-left px-4 py-3 border-b hover:bg-gray-50 flex flex-col gap-0.5"
-        [class.bg-blue-50]="!n.read"
-        (click)="markRead(n); $event.stopPropagation()"
-      >
-        <span class="text-sm font-medium text-gray-900">{{ n.title }}</span>
-        @if (n.body) {
-          <span class="text-xs text-gray-600">{{ n.body }}</span>
-        }
-        <span class="text-xs text-gray-400">{{ n.createdAt | date: 'short' }}</span>
-      </button>
-    }
+      @for (n of notifications(); track n.id) {
+        <button
+          type="button"
+          class="w-full text-left px-4 py-3 border-b hover:bg-gray-50 flex flex-col gap-0.5"
+          [class.bg-blue-50]="!n.read"
+          (click)="markRead(n); $event.stopPropagation()"
+        >
+          <span class="text-sm font-medium text-gray-900">{{ n.title }}</span>
+          @if (n.body) {
+            <span class="text-xs text-gray-600">{{ n.body }}</span>
+          }
+          <span class="text-xs text-gray-400">{{ n.createdAt | date: 'short' }}</span>
+        </button>
+      }
+    </div>
   </div>
 </mat-menu>

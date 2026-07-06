@@ -11,7 +11,8 @@
       <form [formGroup]="form" (ngSubmit)="addCriterion()" class="flex items-end gap-3 mt-4">
         <mat-form-field appearance="outline" class="flex-1">
           <mat-label>Criterion Label</mat-label>
-          <input matInput formControlName="label" placeholder="e.g. Age >= 18" />
+          <input matInput formControlName="label" />
+          <mat-hint>e.g. Age &gt;= 18</mat-hint>
         </mat-form-field>
         <mat-form-field appearance="outline">
           <mat-label>Type</mat-label>

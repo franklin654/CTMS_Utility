@@ -11,7 +11,8 @@
       <form [formGroup]="form" (ngSubmit)="save()" class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
         <mat-form-field appearance="outline" class="sm:col-span-2">
           <mat-label>Visit Name</mat-label>
-          <input matInput formControlName="name" placeholder="e.g. Screening Visit" />
+          <input matInput formControlName="name" />
+          <mat-hint>e.g. Screening Visit</mat-hint>
         </mat-form-field>
         <mat-form-field appearance="outline">
           <mat-label>Sequence Number</mat-label>

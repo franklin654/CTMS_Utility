@@ -1,6 +1,7 @@
 package com.ctms.ctms_backend.site.repository;
 
 import com.ctms.ctms_backend.site.entity.Site;
+import com.ctms.ctms_backend.site.entity.SiteStatus;
 import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -15,11 +16,13 @@ public interface SiteRepository extends JpaRepository<Site, Long> {
     @Query("""
             select s from Site s
             where (:studyId is null or s.study.id = :studyId)
+              and (:status is null or s.status = :status)
               and (:search = ''
                    or lower(s.name) like lower(concat('%', :search, '%'))
                    or lower(s.siteCode) like lower(concat('%', :search, '%')))
             """)
-    Page<Site> search(@Param("studyId") Long studyId, @Param("search") String search, Pageable pageable);
+    Page<Site> search(
+            @Param("studyId") Long studyId, @Param("status") SiteStatus status, @Param("search") String search, Pageable pageable);
 
     @Query("""
             select s from Site s

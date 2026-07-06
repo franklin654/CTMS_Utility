@@ -1,0 +1,43 @@
+# Feature & Workflow Testing Report
+
+1. The payment endpoint is not working. I tried to visit /payments endpoint and I got an internal 500 server
+
+2. The budget page of the sites is also not working. I am getting the same 500 internal server error.
+
+3. In the audit log page the Entity Name label and Placeholder are rendering on top of one another.
+
+4. What is the use of the Protocol ID in the study registration and the Phase also should not be numbered instead of manual typing? Also what exactly is this Protocol and why does it need to be unique?
+
+5. There is no input validation when it comes to any of the inputs across the entire frontend just the Requirement Validator also I can't see the date picker and When registering studies why I am able to see past dates for Planned Start Date and Planned End Date. Current_Date <= Planned_Start_Date < Planned_End_Date
+
+6. The Justifaction Box which get's triggered when you click on the Advance button in the Lifecycle of the Study isn't rendering properly the box is a too small, Justifaction loads into the Placeholder when it's not focused.
+
+7. In the Site registration form the Study should be a autocomplete and auto suggestion from the backend, cause dropdown becomes too cumbersome if you list all the studies once the studies list becomes bigger initially it should render all the studies but as I type it should reduce. And ofcourse scrolling is important when we have more than 5-6 for good UI/UX
+
+8. What exactly does Site Code means is it the hospital registration number or something else if so what?
+
+9. On any site, add a Monitoring Visit (SIV/IMV/COV type, findings, issues) and confirm it lists. Not sure where and how to do that.
+
+10. Still not sure how to upload informed_consent document for subjects?
+
+11. In the subject portal or patient portal in my documents page, why do I have to manually choose the Document Type? Is it intentional, what's the rational behind it.
+
+12. The Styling in the individual study page is also broken especially for long study names and also the position of the various buttons such as Eligibility Critera, Visit Templates e.t.c. are very awkward.
+
+13. System Configuration, Setting up rule set's is very confusiong still not sure what it's used for and the feasability of converting to a no code completely.
+
+14. Everything else is working fine.
+
+## Overall Comments
+
+1. In the Subjects Page there is no search bar or filtering. Same for sites, no search bar or filtering.
+
+2. all the pages look kinda bland with no background or better styling also. It would be nice if we could move the Top Nav Bar into a side bar since, we have more than 5 items in at the TOP. Also all the pages should have a footer just like any real websites have footer with some site information.
+
+3. The notification dropdown which appears when I click on the bell icon is not properly styled also scroll bar for the content is fine but the `mark all as read` shouldn't be cut off in the middle.
+
+4. When I enroll a new Subject the eligibility can't be empty, but what if the study doesn't have any?
+
+5. The CSS is just plain as boring.
+
+6. Re-iterating the budget and payments page is completely non functional getting 500 Errors from the backend.

@@ -80,7 +80,14 @@ export interface Page<T> {
 export class SubjectService {
   constructor(private readonly http: HttpClient) {}
 
-  list(studyId?: number, siteId?: number, search?: string, page = 0, size = 20): Observable<Page<SubjectResponse>> {
+  list(
+    studyId?: number,
+    siteId?: number,
+    search?: string,
+    page = 0,
+    size = 20,
+    status?: string | null,
+  ): Observable<Page<SubjectResponse>> {
     const params: Record<string, string | number> = { page, size };
     if (studyId != null) {
       params['studyId'] = studyId;
@@ -90,6 +97,9 @@ export class SubjectService {
     }
     if (search) {
       params['search'] = search;
+    }
+    if (status) {
+      params['status'] = status;
     }
     return this.http.get<Page<SubjectResponse>>('/api/subjects', { params });
   }

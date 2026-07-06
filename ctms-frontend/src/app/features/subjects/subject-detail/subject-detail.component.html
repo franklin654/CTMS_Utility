@@ -147,7 +147,9 @@
               </mat-form-field>
               <mat-form-field appearance="outline">
                 <mat-label>Scheduled Date</mat-label>
-                <input matInput type="date" formControlName="scheduledDate" />
+                <input matInput [matDatepicker]="adHocScheduledDatePicker" formControlName="scheduledDate" />
+                <mat-datepicker-toggle matIconSuffix [for]="adHocScheduledDatePicker"></mat-datepicker-toggle>
+                <mat-datepicker #adHocScheduledDatePicker></mat-datepicker>
               </mat-form-field>
               <mat-form-field appearance="outline">
                 <mat-label>Visit Type</mat-label>
@@ -239,7 +241,9 @@
                     <form [formGroup]="completeVisitForm" class="flex items-end gap-3 border-t pt-3">
                       <mat-form-field appearance="outline">
                         <mat-label>Actual Date</mat-label>
-                        <input matInput type="date" formControlName="actualDate" />
+                        <input matInput [matDatepicker]="actualDatePicker" formControlName="actualDate" />
+                        <mat-datepicker-toggle matIconSuffix [for]="actualDatePicker"></mat-datepicker-toggle>
+                        <mat-datepicker #actualDatePicker></mat-datepicker>
                       </mat-form-field>
                       <mat-form-field appearance="outline">
                         <mat-label>Actual Time</mat-label>
@@ -283,7 +287,9 @@
                     <form [formGroup]="rescheduleVisitForm" class="flex items-end gap-3 border-t pt-3">
                       <mat-form-field appearance="outline">
                         <mat-label>New Date</mat-label>
-                        <input matInput type="date" formControlName="newDate" />
+                        <input matInput [matDatepicker]="newDatePicker" formControlName="newDate" />
+                        <mat-datepicker-toggle matIconSuffix [for]="newDatePicker"></mat-datepicker-toggle>
+                        <mat-datepicker #newDatePicker></mat-datepicker>
                       </mat-form-field>
                       <mat-form-field appearance="outline" class="flex-1">
                         <mat-label>Reason Code</mat-label>
@@ -558,7 +564,9 @@
           </mat-form-field>
           <mat-form-field appearance="outline">
             <mat-label>Deviation Date</mat-label>
-            <input matInput type="date" formControlName="deviationDate" />
+            <input matInput [matDatepicker]="deviationDatePicker" formControlName="deviationDate" />
+            <mat-datepicker-toggle matIconSuffix [for]="deviationDatePicker"></mat-datepicker-toggle>
+            <mat-datepicker #deviationDatePicker></mat-datepicker>
           </mat-form-field>
           <div class="sm:col-span-2 flex gap-2">
             <button
@@ -593,6 +601,73 @@
         }
         @if (protocolDeviations().length === 0) {
           <p class="text-sm text-gray-500 text-center py-4">No protocol deviations reported.</p>
+        }
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="text-sm font-semibold text-gray-700">Documents</h2>
+        <button *appHasRole="['SITE_COORDINATOR', 'STUDY_MANAGER', 'ADMIN']" mat-stroked-button (click)="openDocumentForm()">
+          Upload Document
+        </button>
+      </div>
+
+      @if (documentErrorMessage()) {
+        <p class="text-sm text-red-600 mb-3">{{ documentErrorMessage() }}</p>
+      }
+
+      @if (showDocumentForm()) {
+        <form [formGroup]="documentForm" class="grid grid-cols-1 sm:grid-cols-2 gap-3 border rounded p-3 mb-4">
+          <mat-form-field appearance="outline">
+            <mat-label>Title</mat-label>
+            <input matInput formControlName="title" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Category</mat-label>
+            <mat-select formControlName="category">
+              @for (cat of documentCategories; track cat) {
+                <mat-option [value]="cat">{{ cat }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          <div class="sm:col-span-2">
+            <input type="file" (change)="onDocumentFileSelected($event)" />
+          </div>
+          <div class="sm:col-span-2 flex gap-2">
+            <button
+              mat-flat-button
+              color="primary"
+              type="button"
+              (click)="submitDocument()"
+              [disabled]="documentForm.invalid"
+            >
+              Upload
+            </button>
+            <button mat-button type="button" (click)="cancelDocumentForm()">Cancel</button>
+          </div>
+        </form>
+      }
+
+      <div class="flex flex-col gap-3">
+        @for (doc of documents(); track doc.id) {
+          <div class="border rounded p-3">
+            <div class="text-sm font-medium text-gray-900">
+              {{ doc.title }}
+              @if (doc.category) {
+                <span class="ml-2 text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-600">{{ doc.category }}</span>
+              }
+              @if (doc.currentVersion) {
+                <span class="ml-2 text-xs px-2 py-0.5 rounded bg-blue-100 text-blue-700">{{ doc.currentVersion.status }}</span>
+              }
+            </div>
+            <div class="text-xs text-gray-500 mt-1">
+              Uploaded {{ doc.createdAt | date: 'mediumDate' }} &middot; {{ doc.ownerUsername }}
+            </div>
+          </div>
+        }
+        @if (documents().length === 0) {
+          <p class="text-sm text-gray-500 text-center py-4">No documents uploaded for this subject.</p>
         }
       </div>
     </div>

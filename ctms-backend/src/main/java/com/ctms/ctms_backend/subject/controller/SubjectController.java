@@ -73,9 +73,10 @@ public class SubjectController {
     public Page<SubjectResponse> list(
             @RequestParam(required = false) Long studyId,
             @RequestParam(required = false) Long siteId,
+            @RequestParam(required = false) String status,
             @RequestParam(required = false) String search,
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
-        return subjectService.list(studyId, siteId, search, pageable);
+        return subjectService.list(studyId, siteId, status, search, pageable);
     }
 
     @PostMapping("/{id}/transition")

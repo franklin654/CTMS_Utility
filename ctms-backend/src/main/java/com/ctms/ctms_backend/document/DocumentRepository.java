@@ -2,6 +2,7 @@ package com.ctms.ctms_backend.document;
 
 import com.ctms.ctms_backend.document.entity.DocumentVersionStatus;
 import java.util.Collection;
+import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -38,4 +39,13 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
             + "WHERE r.roleCode IN :roleCodes AND r.access = 'DENY'))")
     Page<Document> findByOwnerIdAndVisibleTo(
             @Param("ownerId") Long ownerId, @Param("roleCodes") Collection<String> roleCodes, Pageable pageable);
+
+    /** Staff-side per-Subject document list (e.g. viewing a subject's uploaded consent forms from
+     * their detail page) -- same DENY-list filtering as {@link #findVisibleTo}, scoped by
+     * Document.subject rather than study, mirroring ConsentGateService's own per-subject scoping. */
+    @Query("SELECT d FROM Document d WHERE d.subject.id = :subjectId AND (d.category IS NULL OR d.category NOT IN "
+            + "(SELECT r.category FROM DocumentCategoryAccessRule r "
+            + "WHERE r.roleCode IN :roleCodes AND r.access = 'DENY'))")
+    List<Document> findBySubjectIdAndVisibleTo(
+            @Param("subjectId") Long subjectId, @Param("roleCodes") Collection<String> roleCodes);
 }

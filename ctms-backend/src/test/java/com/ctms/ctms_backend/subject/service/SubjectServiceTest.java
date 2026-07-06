@@ -164,6 +164,19 @@ class SubjectServiceTest {
     }
 
     @Test
+    void enrollSubject_studyHasNoCriteria_emptyAnswersListSucceeds() {
+        when(criterionRepository.findByStudyIdAndActiveTrue(10L)).thenReturn(List.of());
+        when(ruleSetService.evaluate(eq("ELIGIBILITY_DEFAULT"), anyList())).thenReturn(List.of());
+
+        EnrollSubjectRequest req = new EnrollSubjectRequest(
+                10L, 20L, "Jane", "Doe", LocalDate.of(1990, 1, 1), "FEMALE", null, null, null, null, null, null,
+                LocalDate.now(), List.of());
+
+        SubjectResponse response = subjectService.enrollSubject(req, "coordinator1");
+        assertEquals("SCREENED", response.status());
+    }
+
+    @Test
     void get_medicalHistoryHiddenFromCraMonitor() {
         SecurityContextHolder.getContext().setAuthentication(
                 new TestingAuthenticationToken("cra1", null, List.of(new SimpleGrantedAuthority("ROLE_" + Role.CRA_MONITOR))));

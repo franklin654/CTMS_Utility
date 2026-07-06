@@ -1,6 +1,9 @@
 import { Component } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
-import { Router, RouterLink, RouterOutlet } from '@angular/router';
+import { MatListModule } from '@angular/material/list';
+import { MatSidenavModule } from '@angular/material/sidenav';
+import { MatToolbarModule } from '@angular/material/toolbar';
+import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthService } from '../../core/auth/auth.service';
 import { HasRoleDirective } from '../../core/auth/has-role.directive';
 import { NotificationBellComponent } from '../../shared/notification-bell/notification-bell.component';
@@ -8,7 +11,17 @@ import { NotificationBellComponent } from '../../shared/notification-bell/notifi
 @Component({
   selector: 'app-shell',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, MatButtonModule, NotificationBellComponent, HasRoleDirective],
+  imports: [
+    RouterOutlet,
+    RouterLink,
+    RouterLinkActive,
+    MatButtonModule,
+    MatSidenavModule,
+    MatListModule,
+    MatToolbarModule,
+    NotificationBellComponent,
+    HasRoleDirective,
+  ],
   templateUrl: './shell.component.html',
 })
 export class ShellComponent {

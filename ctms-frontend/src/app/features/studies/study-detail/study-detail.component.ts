@@ -3,8 +3,10 @@ import { Component, OnInit, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { HasRoleDirective } from '../../../core/auth/has-role.directive';
 import {
@@ -12,6 +14,8 @@ import {
   StudyService,
   StudyStatusHistoryResponse,
 } from '../../../core/studies/study.service';
+import { fromIsoDate, toIsoDate } from '../../../core/utils/date-utils';
+import { plannedDateRangeValidator, STUDY_PHASES } from '../study-create/study-create.component';
 import { StudyCloseoutDialogComponent } from '../study-closeout-dialog/study-closeout-dialog.component';
 import { StudyTransitionDialogComponent } from '../study-transition-dialog/study-transition-dialog.component';
 
@@ -32,6 +36,8 @@ const ALL_STATUSES = ['DRAFT', 'ACTIVE', 'CONDUCT', 'CLOSEOUT'];
     MatDialogModule,
     MatFormFieldModule,
     MatInputModule,
+    MatSelectModule,
+    MatDatepickerModule,
     DatePipe,
     HasRoleDirective,
     RouterLink,
@@ -40,24 +46,28 @@ const ALL_STATUSES = ['DRAFT', 'ACTIVE', 'CONDUCT', 'CLOSEOUT'];
 })
 export class StudyDetailComponent implements OnInit {
   readonly allStatuses = ALL_STATUSES;
+  readonly phases = STUDY_PHASES;
   readonly study = signal<StudyResponse | null>(null);
   readonly history = signal<StudyStatusHistoryResponse[]>([]);
   readonly editMode = signal(false);
   readonly errorMessage = signal<string | null>(null);
   readonly transitionErrorMessage = signal<string | null>(null);
 
-  form = new FormGroup({
-    name: new FormControl('', { nonNullable: true, validators: Validators.required }),
-    protocolId: new FormControl('', { nonNullable: true, validators: Validators.required }),
-    protocolVersion: new FormControl('', { nonNullable: true, validators: Validators.required }),
-    phase: new FormControl('', { nonNullable: true, validators: Validators.required }),
-    sponsor: new FormControl('', { nonNullable: true, validators: Validators.required }),
-    plannedStartDate: new FormControl<string | null>(null),
-    plannedEndDate: new FormControl<string | null>(null),
-    actualStartDate: new FormControl<string | null>(null),
-    actualEndDate: new FormControl<string | null>(null),
-    description: new FormControl<string | null>(null),
-  });
+  form = new FormGroup(
+    {
+      name: new FormControl('', { nonNullable: true, validators: Validators.required }),
+      protocolId: new FormControl('', { nonNullable: true, validators: Validators.required }),
+      protocolVersion: new FormControl('', { nonNullable: true, validators: Validators.required }),
+      phase: new FormControl('', { nonNullable: true, validators: Validators.required }),
+      sponsor: new FormControl('', { nonNullable: true, validators: Validators.required }),
+      plannedStartDate: new FormControl<Date | null>(null),
+      plannedEndDate: new FormControl<Date | null>(null),
+      actualStartDate: new FormControl<Date | null>(null),
+      actualEndDate: new FormControl<Date | null>(null),
+      description: new FormControl<string | null>(null),
+    },
+    { validators: plannedDateRangeValidator },
+  );
 
   private studyId!: number;
 
@@ -87,10 +97,10 @@ export class StudyDetailComponent implements OnInit {
       protocolVersion: study.protocolVersion,
       phase: study.phase,
       sponsor: study.sponsor,
-      plannedStartDate: study.plannedStartDate,
-      plannedEndDate: study.plannedEndDate,
-      actualStartDate: study.actualStartDate,
-      actualEndDate: study.actualEndDate,
+      plannedStartDate: fromIsoDate(study.plannedStartDate),
+      plannedEndDate: fromIsoDate(study.plannedEndDate),
+      actualStartDate: fromIsoDate(study.actualStartDate),
+      actualEndDate: fromIsoDate(study.actualEndDate),
       description: study.description,
     });
     if (study.status !== 'DRAFT') {
@@ -114,14 +124,23 @@ export class StudyDetailComponent implements OnInit {
       return;
     }
     this.errorMessage.set(null);
-    this.studyService.update(this.studyId, this.form.getRawValue()).subscribe({
-      next: (study) => {
-        this.study.set(study);
-        this.populateForm(study);
-        this.editMode.set(false);
-      },
-      error: (err) => this.errorMessage.set(err.error?.message ?? 'Could not update study.'),
-    });
+    const raw = this.form.getRawValue();
+    this.studyService
+      .update(this.studyId, {
+        ...raw,
+        plannedStartDate: toIsoDate(raw.plannedStartDate),
+        plannedEndDate: toIsoDate(raw.plannedEndDate),
+        actualStartDate: toIsoDate(raw.actualStartDate),
+        actualEndDate: toIsoDate(raw.actualEndDate),
+      })
+      .subscribe({
+        next: (study) => {
+          this.study.set(study);
+          this.populateForm(study);
+          this.editMode.set(false);
+        },
+        error: (err) => this.errorMessage.set(err.error?.message ?? 'Could not update study.'),
+      });
   }
 
   nextStatus(): string | null {
@@ -148,6 +167,7 @@ export class StudyDetailComponent implements OnInit {
     }
     const dialogRef = this.dialog.open(StudyTransitionDialogComponent, {
       data: { targetStatus: target },
+      width: '480px',
     });
     dialogRef.afterClosed().subscribe((justification: string | undefined) => {
       if (!justification) {
@@ -162,7 +182,7 @@ export class StudyDetailComponent implements OnInit {
   }
 
   closeOut(): void {
-    const dialogRef = this.dialog.open(StudyCloseoutDialogComponent);
+    const dialogRef = this.dialog.open(StudyCloseoutDialogComponent, { width: '480px' });
     dialogRef.afterClosed().subscribe((result) => {
       if (!result) {
         return;

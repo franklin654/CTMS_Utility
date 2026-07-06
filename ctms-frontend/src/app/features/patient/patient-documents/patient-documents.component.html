@@ -12,8 +12,11 @@
     <form [formGroup]="uploadForm" class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4">
       <mat-form-field appearance="outline">
         <mat-label>Document Type</mat-label>
-        <input matInput formControlName="category" />
-        <mat-hint>e.g. LAB_RESULTS</mat-hint>
+        <mat-select formControlName="category">
+          @for (c of categories; track c) {
+            <mat-option [value]="c">{{ c }}</mat-option>
+          }
+        </mat-select>
       </mat-form-field>
       <mat-form-field appearance="outline">
         <mat-label>Title / Notes</mat-label>
@@ -21,7 +24,9 @@
       </mat-form-field>
       <mat-form-field appearance="outline">
         <mat-label>Date</mat-label>
-        <input matInput type="date" formControlName="effectiveDate" />
+        <input matInput [matDatepicker]="effectiveDatePicker" formControlName="effectiveDate" />
+        <mat-datepicker-toggle matIconSuffix [for]="effectiveDatePicker"></mat-datepicker-toggle>
+        <mat-datepicker #effectiveDatePicker></mat-datepicker>
       </mat-form-field>
       <div class="col-span-full">
         <input type="file" (change)="onFileSelected($event)" />

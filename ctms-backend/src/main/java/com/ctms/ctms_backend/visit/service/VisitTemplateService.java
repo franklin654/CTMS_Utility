@@ -136,9 +136,16 @@ public class VisitTemplateService {
         return VisitTemplateResponse.from(template);
     }
 
+    /** BL Epic 11 Phase 13 compliance audit finding -- this bulk-mutates every still-SCHEDULED
+     * Visit under the template (including a recomputed scheduledDate), which previously had no
+     * audit trail of its own beyond the parent VisitTemplate's own UPDATE entry. Logged as one
+     * summary entry per affected Visit (not silently, and not one entry for the whole batch) so
+     * each rescheduled visit is individually traceable, matching how every other per-entity
+     * mutation in this codebase is audited. */
     private void propagateToScheduledVisits(VisitTemplate template, User actor) {
         List<Visit> scheduled = visitRepository.findByVisitTemplateIdAndStatus(template.getId(), VisitStatus.SCHEDULED);
         for (Visit visit : scheduled) {
+            String previousScheduledDate = String.valueOf(visit.getScheduledDate());
             visit.setName(template.getName());
             visit.setSequenceNumber(template.getSequenceNumber());
             visit.setTargetDay(template.getTargetDay());
@@ -148,6 +155,11 @@ public class VisitTemplateService {
             visit.setVisitType(template.getVisitType());
             visit.setScheduledDate(visit.getSubject().getScreeningDate().plusDays(template.getTargetDay()));
             visit.setModifiedBy(actor);
+
+            auditService.record(
+                    "Visit", String.valueOf(visit.getId()), AuditAction.UPDATE,
+                    previousScheduledDate, String.valueOf(visit.getScheduledDate()),
+                    "rescheduled by VisitTemplate " + template.getId() + " update");
         }
         visitRepository.saveAll(scheduled);
     }

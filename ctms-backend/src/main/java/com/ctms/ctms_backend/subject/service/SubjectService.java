@@ -18,6 +18,7 @@ import com.ctms.ctms_backend.subject.dto.UpdateSubjectRequest;
 import com.ctms.ctms_backend.subject.entity.EligibilityCriterion;
 import com.ctms.ctms_backend.subject.entity.Subject;
 import com.ctms.ctms_backend.subject.entity.SubjectEligibilityAnswer;
+import com.ctms.ctms_backend.subject.entity.SubjectStatus;
 import com.ctms.ctms_backend.subject.exception.EligibilityFailedException;
 import com.ctms.ctms_backend.subject.exception.IncompleteEligibilityAnswersException;
 import com.ctms.ctms_backend.subject.exception.StudySiteMismatchException;
@@ -206,10 +207,11 @@ public class SubjectService {
     }
 
     @Transactional(readOnly = true)
-    public Page<SubjectResponse> list(Long studyId, Long siteId, String search, Pageable pageable) {
+    public Page<SubjectResponse> list(Long studyId, Long siteId, String status, String search, Pageable pageable) {
         String normalizedSearch = (search == null || search.isBlank()) ? "" : search;
+        SubjectStatus parsedStatus = (status == null || status.isBlank()) ? null : SubjectStatus.valueOf(status);
         Set<String> roles = currentRoleCodes();
-        return subjectRepository.search(studyId, siteId, normalizedSearch, pageable)
+        return subjectRepository.search(studyId, siteId, parsedStatus, normalizedSearch, pageable)
                 .map(s -> SubjectResponse.from(s, roles));
     }
 

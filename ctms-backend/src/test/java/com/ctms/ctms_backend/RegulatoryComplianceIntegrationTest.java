@@ -161,6 +161,40 @@ class RegulatoryComplianceIntegrationTest {
     }
 
     @Test
+    void listBySubject_returnsOnlyThatSubjectsDocuments() {
+        User manager = createTestUser("rc-mgr-it6", Role.STUDY_MANAGER);
+        User coordinator = createTestUser("rc-coord-it6", Role.SITE_COORDINATOR);
+
+        StudyResponse study = studyService.createStudy(
+                new CreateStudyRequest("Regulatory Compliance IT Trial 6", "RC-IT-PROTO-6", "1.0", "PHASE_III", "Acme", null, null, null),
+                manager.getUsername());
+        SiteResponse site = siteService.registerSite(
+                new CreateSiteRequest(
+                        study.id(), "RC-IT-SITE-6", "IT Test Hospital", "1 Main St", null, "Boston", null, null, "USA",
+                        "Dr. Smith", "drsmith@example.com", "Jane", "jane@example.com", "555-1234", "Completed", null),
+                manager.getUsername());
+        SubjectResponse subjectA = subjectService.enrollSubject(
+                new EnrollSubjectRequest(
+                        study.id(), site.id(), "Carla", "Chi", LocalDate.of(1980, 1, 1), "FEMALE", null, null, null, null,
+                        null, null, LocalDate.now(), List.of()),
+                coordinator.getUsername());
+        SubjectResponse subjectB = subjectService.enrollSubject(
+                new EnrollSubjectRequest(
+                        study.id(), site.id(), "Dev", "Desai", LocalDate.of(1982, 2, 2), "MALE", null, null, null, null,
+                        null, null, LocalDate.now(), List.of()),
+                coordinator.getUsername());
+
+        uploadConsent(study.id(), subjectA.id(), coordinator.getUsername());
+
+        List<com.ctms.ctms_backend.document.DocumentResponse> subjectADocs = documentService.listBySubject(subjectA.id());
+        assertEquals(1, subjectADocs.size());
+        assertEquals(subjectA.id(), subjectADocs.get(0).subjectId());
+        assertEquals(subjectA.subjectCode(), subjectADocs.get(0).subjectCode());
+
+        assertTrue(documentService.listBySubject(subjectB.id()).isEmpty());
+    }
+
+    @Test
     void protocolDeviation_reportedAndAudited() {
         User manager = createTestUser("rc-mgr-it2", Role.STUDY_MANAGER);
         User coordinator = createTestUser("rc-coord-it2", Role.SITE_COORDINATOR);

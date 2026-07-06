@@ -36,7 +36,7 @@ class PatientDocumentUploadServiceTest {
         Subject subject = new Subject();
         subject.setStudy(study);
 
-        DocumentResponse created = new DocumentResponse(5L, "Lab Report", "LAB_RESULTS", "patient1", 10L, "ST-000010", null, null, null);
+        DocumentResponse created = new DocumentResponse(5L, "Lab Report", "LAB_RESULTS", "patient1", 10L, "ST-000010", null, null, null, null, null);
         when(documentService.createPendingReviewDocument(
                         eq("Lab Report"), eq("LAB_RESULTS"), eq(10L), any(LocalDate.class), eq("patient1"), any()))
                 .thenReturn(created);

@@ -6,6 +6,23 @@
     </a>
   </div>
 
+  <form [formGroup]="filterForm" class="flex gap-4 mb-4">
+    <mat-form-field appearance="outline">
+      <mat-label>Search</mat-label>
+      <input matInput formControlName="search" />
+      <mat-hint>Name or site code</mat-hint>
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Status</mat-label>
+      <mat-select formControlName="status">
+        <mat-option [value]="null">All</mat-option>
+        @for (s of statuses; track s) {
+          <mat-option [value]="s">{{ statusLabel(s) }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+  </form>
+
   <div class="bg-white rounded-lg shadow overflow-x-auto">
     <table class="w-full text-sm text-left">
       <thead class="bg-gray-50 text-gray-600 border-b">

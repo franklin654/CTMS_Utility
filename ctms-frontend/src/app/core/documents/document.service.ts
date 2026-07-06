@@ -24,6 +24,8 @@ export interface DocumentResponse {
   ownerUsername: string | null;
   studyId: number | null;
   studyCode: string | null;
+  subjectId: number | null;
+  subjectCode: string | null;
   currentVersion: DocumentVersionResponse | null;
   createdAt: string;
   updatedAt: string;
@@ -59,16 +61,29 @@ export class DocumentService {
     return this.http.get<DocumentResponse>(`/api/documents/${id}`);
   }
 
+  listBySubject(subjectId: number): Observable<DocumentResponse[]> {
+    return this.http.get<DocumentResponse[]>(`/api/documents/by-subject/${subjectId}`);
+  }
+
   versions(id: number): Observable<DocumentVersionResponse[]> {
     return this.http.get<DocumentVersionResponse[]>(`/api/documents/${id}/versions`);
   }
 
-  create(title: string, category: string, studyId: number | null, file: File): Observable<DocumentResponse> {
+  create(
+    title: string,
+    category: string,
+    studyId: number | null,
+    subjectId: number | null,
+    file: File,
+  ): Observable<DocumentResponse> {
     const form = new FormData();
     form.append('title', title);
     form.append('category', category);
     if (studyId != null) {
       form.append('studyId', String(studyId));
+    }
+    if (subjectId != null) {
+      form.append('subjectId', String(subjectId));
     }
     form.append('file', file);
     return this.http.post<DocumentResponse>('/api/documents', form);

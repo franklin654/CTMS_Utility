@@ -216,6 +216,15 @@ public class DocumentService {
                 .map(DocumentResponse::from);
     }
 
+    /** Staff-side per-Subject document list (e.g. subject-detail page) -- same DENY-list filtering
+     * as {@link #list}, scoped by Document.subject. */
+    @Transactional(readOnly = true)
+    public List<DocumentResponse> listBySubject(Long subjectId) {
+        return documentRepository.findBySubjectIdAndVisibleTo(subjectId, accessControlService.currentRoleCodes()).stream()
+                .map(DocumentResponse::from)
+                .toList();
+    }
+
     @Transactional(readOnly = true)
     public DocumentResponse get(Long documentId) {
         Document document = documentRepository.findById(documentId).orElseThrow(NoSuchElementException::new);

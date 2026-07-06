@@ -61,7 +61,7 @@ export class PaymentListComponent implements OnInit {
   }
 
   openHoldDialog(payment: PaymentResponse): void {
-    const dialogRef = this.dialog.open(PaymentHoldDialogComponent);
+    const dialogRef = this.dialog.open(PaymentHoldDialogComponent, { width: '480px' });
     dialogRef.afterClosed().subscribe((reason: string | undefined) => {
       if (!reason) {
         return;
@@ -75,7 +75,7 @@ export class PaymentListComponent implements OnInit {
   }
 
   openReleaseDialog(payment: PaymentResponse): void {
-    const dialogRef = this.dialog.open(PaymentReleaseDialogComponent);
+    const dialogRef = this.dialog.open(PaymentReleaseDialogComponent, { width: '480px' });
     dialogRef.afterClosed().subscribe((result: PaymentReleaseResult | undefined) => {
       if (!result) {
         return;

@@ -73,9 +73,10 @@ public class SiteController {
     @PreAuthorize(READ_ROLES)
     public Page<SiteResponse> list(
             @RequestParam(required = false) Long studyId,
+            @RequestParam(required = false) String status,
             @RequestParam(required = false) String search,
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
-        return siteService.list(studyId, search, pageable);
+        return siteService.list(studyId, status, search, pageable);
     }
 
     @GetMapping("/{id}/checklist")

@@ -125,6 +125,9 @@ public class AuthenticationService {
         refreshTokenRepository.save(token);
 
         User user = token.getUser();
+        auditService.record(
+                "User", String.valueOf(user.getId()), AuditAction.STATE_CHANGE, null, "access token refreshed", null);
+
         boolean mustChangePassword =
                 user.getPasswordExpiresAt() != null && user.getPasswordExpiresAt().isBefore(Instant.now());
         return issueTokens(user, mustChangePassword);
@@ -136,6 +139,8 @@ public class AuthenticationService {
         refreshTokenRepository.findByTokenHash(hash).ifPresent(token -> {
             token.setRevoked(true);
             refreshTokenRepository.save(token);
+            auditService.record(
+                    "User", String.valueOf(token.getUser().getId()), AuditAction.STATE_CHANGE, null, "session revoked (logout)", null);
         });
     }
 
@@ -147,6 +152,9 @@ public class AuthenticationService {
         }
         applyNewPassword(user, newPassword);
         refreshTokenRepository.deleteByUser(user);
+        auditService.record(
+                "User", String.valueOf(user.getId()), AuditAction.UPDATE, null,
+                "password changed; all active sessions invalidated", null);
     }
 
     @Transactional
@@ -162,8 +170,11 @@ public class AuthenticationService {
                     "CTMS password reset",
                     "A password reset was requested for your account. Reset token (valid 30 minutes): "
                             + rawToken);
+            auditService.record(
+                    "User", String.valueOf(user.getId()), AuditAction.STATE_CHANGE, null, "password reset requested", null);
         });
-        // Deliberately silent if the email is unknown, to avoid user enumeration.
+        // Deliberately silent if the email is unknown, to avoid user enumeration -- including no
+        // audit entry, since there is no real User record to attach one to.
     }
 
     @Transactional
@@ -180,6 +191,9 @@ public class AuthenticationService {
         resetToken.setUsed(true);
         passwordResetTokenRepository.save(resetToken);
         refreshTokenRepository.deleteByUser(user);
+        auditService.record(
+                "User", String.valueOf(user.getId()), AuditAction.UPDATE, null,
+                "password reset via token; all active sessions invalidated", null);
     }
 
     private void applyNewPassword(User user, String newPassword) {

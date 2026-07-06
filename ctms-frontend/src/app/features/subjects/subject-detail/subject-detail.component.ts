@@ -3,12 +3,16 @@ import { Component, OnInit, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { ActivatedRoute } from '@angular/router';
 import { HasRoleDirective } from '../../../core/auth/has-role.directive';
 import { AdverseEventResponse, AdverseEventService } from '../../../core/adverse-events/adverse-event.service';
+import { DocumentResponse, DocumentService } from '../../../core/documents/document.service';
+import { toIsoDate } from '../../../core/utils/date-utils';
+import { DOCUMENT_CATEGORIES } from '../../documents/document-upload/document-upload.component';
 import {
   ProtocolDeviationResponse,
   ProtocolDeviationService,
@@ -48,6 +52,7 @@ const STATUS_LABELS: Record<string, string> = {
   imports: [
     MatButtonModule,
     MatCheckboxModule,
+    MatDatepickerModule,
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
@@ -84,6 +89,12 @@ export class SubjectDetailComponent implements OnInit {
   readonly protocolDeviationErrorMessage = signal<string | null>(null);
   readonly showProtocolDeviationForm = signal(false);
 
+  readonly documents = signal<DocumentResponse[]>([]);
+  readonly documentErrorMessage = signal<string | null>(null);
+  readonly showDocumentForm = signal(false);
+  readonly documentCategories = DOCUMENT_CATEGORIES;
+  readonly selectedDocumentFile = signal<File | null>(null);
+
   readonly portalAccountErrorMessage = signal<string | null>(null);
   readonly portalAccountResult = signal<PortalAccountResponse | null>(null);
 
@@ -92,7 +103,7 @@ export class SubjectDetailComponent implements OnInit {
   readonly withdrawPasswordControl = new FormControl('', { nonNullable: true, validators: Validators.required });
 
   readonly completeVisitForm = new FormGroup({
-    actualDate: new FormControl('', { nonNullable: true, validators: Validators.required }),
+    actualDate: new FormControl<Date | null>(null, { validators: Validators.required }),
     actualTime: new FormControl<string | null>(null),
     notes: new FormControl<string | null>(null),
   });
@@ -102,13 +113,13 @@ export class SubjectDetailComponent implements OnInit {
   });
 
   readonly rescheduleVisitForm = new FormGroup({
-    newDate: new FormControl('', { nonNullable: true, validators: Validators.required }),
+    newDate: new FormControl<Date | null>(null, { validators: Validators.required }),
     reasonCode: new FormControl('', { nonNullable: true, validators: Validators.required }),
   });
 
   readonly adHocVisitForm = new FormGroup({
     name: new FormControl('', { nonNullable: true, validators: Validators.required }),
-    scheduledDate: new FormControl('', { nonNullable: true, validators: Validators.required }),
+    scheduledDate: new FormControl<Date | null>(null, { validators: Validators.required }),
     visitType: new FormControl<'ONSITE' | 'REMOTE'>('ONSITE', { nonNullable: true }),
     requiredProcedures: new FormControl<string | null>(null),
     reasonCode: new FormControl('', { nonNullable: true, validators: Validators.required }),
@@ -137,7 +148,12 @@ export class SubjectDetailComponent implements OnInit {
   readonly protocolDeviationForm = new FormGroup({
     description: new FormControl('', { nonNullable: true, validators: Validators.required }),
     severity: new FormControl<'MINOR' | 'MAJOR' | 'CRITICAL'>('MINOR', { nonNullable: true }),
-    deviationDate: new FormControl('', { nonNullable: true, validators: Validators.required }),
+    deviationDate: new FormControl<Date | null>(null, { validators: Validators.required }),
+  });
+
+  readonly documentForm = new FormGroup({
+    title: new FormControl('', { nonNullable: true, validators: Validators.required }),
+    category: new FormControl('', { nonNullable: true, validators: Validators.required }),
   });
 
   readonly editForm = new FormGroup({
@@ -161,6 +177,7 @@ export class SubjectDetailComponent implements OnInit {
     private readonly testResultService: TestResultService,
     private readonly adverseEventService: AdverseEventService,
     private readonly protocolDeviationService: ProtocolDeviationService,
+    private readonly documentService: DocumentService,
   ) {}
 
   ngOnInit(): void {
@@ -175,6 +192,7 @@ export class SubjectDetailComponent implements OnInit {
     this.loadTestResults();
     this.loadAdverseEvents();
     this.loadProtocolDeviations();
+    this.loadDocuments();
   }
 
   loadTestResults(): void {
@@ -359,7 +377,7 @@ export class SubjectDetailComponent implements OnInit {
 
   openProtocolDeviationForm(): void {
     this.protocolDeviationErrorMessage.set(null);
-    this.protocolDeviationForm.reset({ description: '', severity: 'MINOR', deviationDate: new Date().toISOString().slice(0, 10) });
+    this.protocolDeviationForm.reset({ description: '', severity: 'MINOR', deviationDate: new Date() });
     this.showProtocolDeviationForm.set(true);
   }
 
@@ -378,7 +396,7 @@ export class SubjectDetailComponent implements OnInit {
         subjectId: this.subjectId,
         description: raw.description,
         severity: raw.severity,
-        deviationDate: raw.deviationDate,
+        deviationDate: toIsoDate(raw.deviationDate)!,
       })
       .subscribe({
         next: () => {
@@ -386,6 +404,44 @@ export class SubjectDetailComponent implements OnInit {
           this.loadProtocolDeviations();
         },
         error: (err) => this.protocolDeviationErrorMessage.set(err.error?.message ?? 'Could not report protocol deviation.'),
+      });
+  }
+
+  loadDocuments(): void {
+    this.documentService.listBySubject(this.subjectId).subscribe((docs) => this.documents.set(docs));
+  }
+
+  openDocumentForm(): void {
+    this.documentErrorMessage.set(null);
+    this.documentForm.reset({ title: '', category: '' });
+    this.selectedDocumentFile.set(null);
+    this.showDocumentForm.set(true);
+  }
+
+  cancelDocumentForm(): void {
+    this.showDocumentForm.set(false);
+  }
+
+  onDocumentFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.selectedDocumentFile.set(input.files?.[0] ?? null);
+  }
+
+  submitDocument(): void {
+    if (this.documentForm.invalid || !this.selectedDocumentFile()) {
+      return;
+    }
+    const { title, category } = this.documentForm.getRawValue();
+    const study = this.subject();
+    this.documentErrorMessage.set(null);
+    this.documentService
+      .create(title, category, study?.studyId ?? null, this.subjectId, this.selectedDocumentFile()!)
+      .subscribe({
+        next: () => {
+          this.showDocumentForm.set(false);
+          this.loadDocuments();
+        },
+        error: (err) => this.documentErrorMessage.set(err.error?.message ?? 'Could not upload document.'),
       });
   }
 
@@ -399,7 +455,7 @@ export class SubjectDetailComponent implements OnInit {
 
   openComplete(visitId: number): void {
     this.visitErrorMessage.set(null);
-    this.completeVisitForm.reset({ actualDate: new Date().toISOString().slice(0, 10), actualTime: null, notes: null });
+    this.completeVisitForm.reset({ actualDate: new Date(), actualTime: null, notes: null });
     this.openVisitAction.set({ visitId, type: 'complete' });
   }
 
@@ -411,7 +467,7 @@ export class SubjectDetailComponent implements OnInit {
 
   openReschedule(visitId: number): void {
     this.visitErrorMessage.set(null);
-    this.rescheduleVisitForm.reset({ newDate: '', reasonCode: '' });
+    this.rescheduleVisitForm.reset({ newDate: null, reasonCode: '' });
     this.openVisitAction.set({ visitId, type: 'reschedule' });
   }
 
@@ -426,7 +482,7 @@ export class SubjectDetailComponent implements OnInit {
     const raw = this.completeVisitForm.getRawValue();
     this.visitErrorMessage.set(null);
     this.visitService
-      .complete(visitId, { actualDate: raw.actualDate, actualTime: raw.actualTime || null, notes: raw.notes || null })
+      .complete(visitId, { actualDate: toIsoDate(raw.actualDate)!, actualTime: raw.actualTime || null, notes: raw.notes || null })
       .subscribe({
         next: () => {
           this.openVisitAction.set(null);
@@ -456,7 +512,7 @@ export class SubjectDetailComponent implements OnInit {
     }
     const raw = this.rescheduleVisitForm.getRawValue();
     this.visitErrorMessage.set(null);
-    this.visitService.reschedule(visitId, { newDate: raw.newDate, reasonCode: raw.reasonCode }).subscribe({
+    this.visitService.reschedule(visitId, { newDate: toIsoDate(raw.newDate)!, reasonCode: raw.reasonCode }).subscribe({
       next: () => {
         this.openVisitAction.set(null);
         this.loadVisits();
@@ -469,7 +525,7 @@ export class SubjectDetailComponent implements OnInit {
     this.visitErrorMessage.set(null);
     this.adHocVisitForm.reset({
       name: '',
-      scheduledDate: '',
+      scheduledDate: null,
       visitType: 'ONSITE',
       requiredProcedures: null,
       reasonCode: '',
@@ -490,7 +546,7 @@ export class SubjectDetailComponent implements OnInit {
     this.visitService
       .scheduleAdHoc(this.subjectId, {
         name: raw.name,
-        scheduledDate: raw.scheduledDate,
+        scheduledDate: toIsoDate(raw.scheduledDate)!,
         visitType: raw.visitType,
         requiredProcedures: raw.requiredProcedures || null,
         reasonCode: raw.reasonCode,

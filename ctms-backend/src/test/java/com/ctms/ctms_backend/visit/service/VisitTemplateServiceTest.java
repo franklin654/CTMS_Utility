@@ -9,6 +9,7 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.ctms.ctms_backend.audit.AuditAction;
 import com.ctms.ctms_backend.audit.AuditService;
 import com.ctms.ctms_backend.study.entity.Study;
 import com.ctms.ctms_backend.study.repository.StudyRepository;
@@ -144,6 +145,10 @@ class VisitTemplateServiceTest {
         ArgumentCaptor<List<Visit>> captor = ArgumentCaptor.forClass(List.class);
         verify(visitRepository).saveAll(captor.capture());
         assertEquals(1, captor.getValue().size());
+
+        verify(auditService).record(
+                eq("Visit"), eq("1"), eq(AuditAction.UPDATE),
+                eq("2026-01-06"), eq("2026-01-11"), anyString());
     }
 
     @Test

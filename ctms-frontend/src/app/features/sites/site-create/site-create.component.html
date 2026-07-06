@@ -4,16 +4,24 @@
   <form [formGroup]="form" (ngSubmit)="submit()" class="grid grid-cols-2 gap-4">
     <mat-form-field appearance="outline">
       <mat-label>Study</mat-label>
-      <mat-select formControlName="studyId">
-        @for (s of studies(); track s.id) {
-          <mat-option [value]="s.id">{{ s.studyCode }} &ndash; {{ s.name }}</mat-option>
+      <input matInput [formControl]="studySearchControl" [matAutocomplete]="studyAuto" />
+      <mat-hint>Start typing a study name or protocol ID</mat-hint>
+      <mat-autocomplete #studyAuto="matAutocomplete">
+        @for (s of studySuggestions(); track s.id) {
+          <mat-option [value]="s.studyCode + ' – ' + s.name" (onSelectionChange)="selectStudy(s)">
+            {{ s.studyCode }} &ndash; {{ s.name }}
+          </mat-option>
         }
-      </mat-select>
+      </mat-autocomplete>
+      @if (form.controls.studyId.invalid && form.controls.studyId.touched) {
+        <mat-error>Please select a study.</mat-error>
+      }
     </mat-form-field>
 
     <mat-form-field appearance="outline">
       <mat-label>Site Code</mat-label>
       <input matInput formControlName="siteCode" />
+      <mat-hint>An internal CTMS identifier for this site, not the hospital's own registration number.</mat-hint>
     </mat-form-field>
 
     <mat-form-field appearance="outline" class="col-span-2">

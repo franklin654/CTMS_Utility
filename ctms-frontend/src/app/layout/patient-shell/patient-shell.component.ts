@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
-import { Router, RouterLink, RouterOutlet } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthService } from '../../core/auth/auth.service';
 import { NotificationBellComponent } from '../../shared/notification-bell/notification-bell.component';
 
@@ -9,7 +9,7 @@ import { NotificationBellComponent } from '../../shared/notification-bell/notifi
 @Component({
   selector: 'app-patient-shell',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, MatButtonModule, NotificationBellComponent],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, MatButtonModule, NotificationBellComponent],
   templateUrl: './patient-shell.component.html',
 })
 export class PatientShellComponent {

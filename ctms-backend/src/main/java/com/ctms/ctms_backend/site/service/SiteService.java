@@ -10,6 +10,7 @@ import com.ctms.ctms_backend.site.dto.SiteResponse;
 import com.ctms.ctms_backend.site.dto.UpdateSiteRequest;
 import com.ctms.ctms_backend.site.entity.ChecklistItemStatus;
 import com.ctms.ctms_backend.site.entity.ChecklistItemType;
+import com.ctms.ctms_backend.site.entity.SiteStatus;
 import com.ctms.ctms_backend.site.entity.Site;
 import com.ctms.ctms_backend.site.entity.SiteActivationChecklistItem;
 import com.ctms.ctms_backend.site.exception.DuplicateSiteCodeException;
@@ -179,9 +180,10 @@ public class SiteService {
     }
 
     @Transactional(readOnly = true)
-    public Page<SiteResponse> list(Long studyId, String search, Pageable pageable) {
+    public Page<SiteResponse> list(Long studyId, String status, String search, Pageable pageable) {
         String normalizedSearch = (search == null || search.isBlank()) ? "" : search;
-        return siteRepository.search(studyId, normalizedSearch, pageable).map(SiteResponse::from);
+        SiteStatus parsedStatus = (status == null || status.isBlank()) ? null : SiteStatus.valueOf(status);
+        return siteRepository.search(studyId, parsedStatus, normalizedSearch, pageable).map(SiteResponse::from);
     }
 
     Site findSite(Long id) {

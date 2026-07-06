@@ -11,6 +11,23 @@
         <p class="text-sm text-green-600 mt-3">{{ successMessage() }}</p>
       }
 
+      @if (categoryDoc; as doc) {
+        <div class="mt-6 rounded-lg border border-blue-100 bg-blue-50/50 p-4">
+          <h2 class="text-sm font-medium text-gray-700">What this rule set does</h2>
+          <p class="text-sm text-gray-600 mt-1">{{ doc.explanation }}</p>
+
+          <h3 class="text-xs font-medium text-gray-700 mt-3">Fields available on <code class="font-mono">{{ doc.factClass }}</code></h3>
+          <ul class="text-xs text-gray-600 mt-1 list-disc list-inside">
+            @for (field of doc.factFields; track field) {
+              <li>{{ field }}</li>
+            }
+          </ul>
+
+          <h3 class="text-xs font-medium text-gray-700 mt-3">Example rule</h3>
+          <pre class="text-xs font-mono bg-white border rounded p-3 mt-1 overflow-x-auto">{{ doc.example }}</pre>
+        </div>
+      }
+
       <h2 class="text-sm font-medium text-gray-700 mt-6">Edit Active Rule (DRL)</h2>
       <mat-form-field appearance="outline" class="w-full mt-2">
         <textarea matInput [formControl]="drlControl" rows="16" class="font-mono text-xs"></textarea>

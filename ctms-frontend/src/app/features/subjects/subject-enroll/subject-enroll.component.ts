@@ -2,6 +2,7 @@ import { Component, OnInit, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
@@ -13,11 +14,20 @@ import {
 import { SiteResponse, SiteService } from '../../../core/sites/site.service';
 import { StudyResponse, StudyService } from '../../../core/studies/study.service';
 import { SubjectService } from '../../../core/subjects/subject.service';
+import { toIsoDate } from '../../../core/utils/date-utils';
 
 @Component({
   selector: 'app-subject-enroll',
   standalone: true,
-  imports: [ReactiveFormsModule, MatButtonModule, MatFormFieldModule, MatInputModule, MatSelectModule, MatCheckboxModule],
+  imports: [
+    ReactiveFormsModule,
+    MatButtonModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatCheckboxModule,
+    MatDatepickerModule,
+  ],
   templateUrl: './subject-enroll.component.html',
 })
 export class SubjectEnrollComponent implements OnInit {
@@ -33,7 +43,7 @@ export class SubjectEnrollComponent implements OnInit {
     siteId: new FormControl<number | null>(null, { validators: Validators.required }),
     firstName: new FormControl('', { nonNullable: true, validators: Validators.required }),
     lastName: new FormControl('', { nonNullable: true, validators: Validators.required }),
-    dateOfBirth: new FormControl('', { nonNullable: true, validators: Validators.required }),
+    dateOfBirth: new FormControl<Date | null>(null, { validators: Validators.required }),
     gender: new FormControl(''),
     contactPhone: new FormControl(''),
     contactEmail: new FormControl('', { validators: Validators.email }),
@@ -41,7 +51,7 @@ export class SubjectEnrollComponent implements OnInit {
     emergencyContact: new FormControl(''),
     notes: new FormControl(''),
     medicalHistory: new FormControl(''),
-    screeningDate: new FormControl('', { nonNullable: true, validators: Validators.required }),
+    screeningDate: new FormControl<Date | null>(null, { validators: Validators.required }),
   });
 
   constructor(
@@ -95,7 +105,7 @@ export class SubjectEnrollComponent implements OnInit {
         siteId: raw.siteId!,
         firstName: raw.firstName,
         lastName: raw.lastName,
-        dateOfBirth: raw.dateOfBirth,
+        dateOfBirth: toIsoDate(raw.dateOfBirth)!,
         gender: raw.gender || null,
         contactPhone: raw.contactPhone || null,
         contactEmail: raw.contactEmail || null,
@@ -103,7 +113,7 @@ export class SubjectEnrollComponent implements OnInit {
         emergencyContact: raw.emergencyContact || null,
         notes: raw.notes || null,
         medicalHistory: raw.medicalHistory || null,
-        screeningDate: raw.screeningDate,
+        screeningDate: toIsoDate(raw.screeningDate)!,
         eligibilityAnswers: answers,
       })
       .subscribe({

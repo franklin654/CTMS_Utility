@@ -28,7 +28,9 @@
           </mat-form-field>
           <mat-form-field appearance="outline">
             <mat-label>Planned Date</mat-label>
-            <input matInput type="date" formControlName="plannedDate" />
+            <input matInput [matDatepicker]="plannedDatePicker" formControlName="plannedDate" />
+            <mat-datepicker-toggle matIconSuffix [for]="plannedDatePicker"></mat-datepicker-toggle>
+            <mat-datepicker #plannedDatePicker></mat-datepicker>
           </mat-form-field>
           <div class="sm:col-span-2 flex gap-2">
             <button mat-flat-button color="primary" type="button" (click)="submitCreate()" [disabled]="createForm.invalid">
@@ -73,7 +75,9 @@
                       <div class="flex items-end gap-2">
                         <mat-form-field appearance="outline">
                           <mat-label>Actual Date</mat-label>
-                          <input matInput type="date" [formControl]="actualDateControl" />
+                          <input matInput [matDatepicker]="actualDatePicker" [formControl]="actualDateControl" />
+                          <mat-datepicker-toggle matIconSuffix [for]="actualDatePicker"></mat-datepicker-toggle>
+                          <mat-datepicker #actualDatePicker></mat-datepicker>
                         </mat-form-field>
                         <button mat-flat-button color="primary" (click)="submitRecordActual(m.id)" [disabled]="actualDateControl.invalid" class="mb-4">
                           Confirm

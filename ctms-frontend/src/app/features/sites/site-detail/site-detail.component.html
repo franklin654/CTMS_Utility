@@ -53,7 +53,8 @@
       <div *appHasRole="['STUDY_MANAGER', 'ADMIN']" class="mt-4 flex items-end gap-3 flex-wrap">
         <mat-form-field appearance="outline">
           <mat-label>Assign CRA</mat-label>
-          <input matInput [formControl]="craUsernameControl" placeholder="Start typing a name or username" [matAutocomplete]="craAuto" />
+          <input matInput [formControl]="craUsernameControl" [matAutocomplete]="craAuto" />
+          <mat-hint>Start typing a name or username</mat-hint>
           <mat-autocomplete #craAuto="matAutocomplete">
             @for (u of craSuggestions(); track u.id) {
               <mat-option [value]="u.username" (onSelectionChange)="selectCra(u.username)">
@@ -64,7 +65,8 @@
         </mat-form-field>
         <mat-form-field appearance="outline">
           <mat-label>Backup CRA (optional)</mat-label>
-          <input matInput [formControl]="backupCraUsernameControl" placeholder="Start typing a name or username" [matAutocomplete]="backupCraAuto" />
+          <input matInput [formControl]="backupCraUsernameControl" [matAutocomplete]="backupCraAuto" />
+          <mat-hint>Start typing a name or username</mat-hint>
           <mat-autocomplete #backupCraAuto="matAutocomplete">
             @for (u of backupCraSuggestions(); track u.id) {
               <mat-option [value]="u.username" (onSelectionChange)="selectBackupCra(u.username)">
@@ -101,7 +103,9 @@
           </mat-form-field>
           <mat-form-field appearance="outline">
             <mat-label>Visit Date</mat-label>
-            <input matInput type="date" formControlName="visitDate" />
+            <input matInput [matDatepicker]="visitDatePicker" formControlName="visitDate" />
+            <mat-datepicker-toggle matIconSuffix [for]="visitDatePicker"></mat-datepicker-toggle>
+            <mat-datepicker #visitDatePicker></mat-datepicker>
           </mat-form-field>
           <mat-form-field appearance="outline" class="sm:col-span-2">
             <mat-label>Findings</mat-label>
@@ -216,7 +220,9 @@
               <form [formGroup]="editForm" class="flex items-end gap-3 mt-3 ml-6">
                 <mat-form-field appearance="outline">
                   <mat-label>Completed Date</mat-label>
-                  <input matInput type="date" formControlName="completedDate" />
+                  <input matInput [matDatepicker]="completedDatePicker" formControlName="completedDate" />
+                  <mat-datepicker-toggle matIconSuffix [for]="completedDatePicker"></mat-datepicker-toggle>
+                  <mat-datepicker #completedDatePicker></mat-datepicker>
                 </mat-form-field>
                 <mat-form-field appearance="outline" class="flex-1">
                   <mat-label>Note (optional)</mat-label>

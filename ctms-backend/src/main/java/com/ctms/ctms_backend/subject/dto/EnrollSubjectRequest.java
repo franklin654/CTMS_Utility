@@ -3,7 +3,6 @@ package com.ctms.ctms_backend.subject.dto;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
@@ -23,4 +22,7 @@ public record EnrollSubjectRequest(
         @Size(max = 2000) String notes,
         @Size(max = 4000) String medicalHistory,
         @NotNull LocalDate screeningDate,
-        @NotEmpty List<@Valid EligibilityAnswerRequest> eligibilityAnswers) {}
+        /** Empty is valid -- a study with zero configured EligibilityCriterion rows has nothing
+         * to answer. SubjectService.enrollSubject's own loop only requires answers for criteria
+         * that actually exist, so an empty list here is not a client error. */
+        @NotNull List<@Valid EligibilityAnswerRequest> eligibilityAnswers) {}

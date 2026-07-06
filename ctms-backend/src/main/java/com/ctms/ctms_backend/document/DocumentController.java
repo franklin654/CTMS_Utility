@@ -53,6 +53,12 @@ public class DocumentController {
         return documentService.get(id);
     }
 
+    @GetMapping("/by-subject/{subjectId}")
+    @PreAuthorize(READ_ROLES)
+    public List<DocumentResponse> listBySubject(@PathVariable Long subjectId) {
+        return documentService.listBySubject(subjectId);
+    }
+
     @GetMapping("/{id}/versions")
     @PreAuthorize(READ_ROLES)
     public List<DocumentVersionResponse> versions(@PathVariable Long id) {

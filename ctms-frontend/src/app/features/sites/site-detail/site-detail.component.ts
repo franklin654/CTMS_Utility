@@ -3,6 +3,7 @@ import { Component, OnInit, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
+import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -18,6 +19,7 @@ import {
 } from '../../../core/monitoring-visits/monitoring-visit.service';
 import { ChecklistItemResponse, SiteResponse, SiteService } from '../../../core/sites/site.service';
 import { UserService, UserSummaryResponse } from '../../../core/users/user.service';
+import { fromIsoDate, toIsoDate } from '../../../core/utils/date-utils';
 import { SiteActivationDialogComponent, SiteActivationResult } from '../site-activation-dialog/site-activation-dialog.component';
 
 const ITEM_LABELS: Record<string, string> = {
@@ -37,6 +39,7 @@ const ITEM_LABELS: Record<string, string> = {
     MatInputModule,
     MatSelectModule,
     MatAutocompleteModule,
+    MatDatepickerModule,
     MatDialogModule,
     ReactiveFormsModule,
     DatePipe,
@@ -56,7 +59,7 @@ export class SiteDetailComponent implements OnInit {
   readonly backupCraSuggestions = signal<UserSummaryResponse[]>([]);
 
   readonly editForm = new FormGroup({
-    completedDate: new FormControl<string | null>(null),
+    completedDate: new FormControl<Date | null>(null),
     note: new FormControl('', { nonNullable: true }),
   });
 
@@ -67,7 +70,7 @@ export class SiteDetailComponent implements OnInit {
 
   readonly monitoringVisitForm = new FormGroup({
     visitType: new FormControl<'SIV' | 'IMV' | 'COV'>('IMV', { nonNullable: true }),
-    visitDate: new FormControl('', { nonNullable: true, validators: Validators.required }),
+    visitDate: new FormControl<Date | null>(null, { validators: Validators.required }),
     findings: new FormControl<string | null>(null),
     issuesIdentified: new FormControl<string | null>(null),
     checklistNotes: new FormControl<string | null>(null),
@@ -132,7 +135,7 @@ export class SiteDetailComponent implements OnInit {
     this.monitoringVisitErrorMessage.set(null);
     this.monitoringVisitForm.reset({
       visitType: 'IMV',
-      visitDate: new Date().toISOString().slice(0, 10),
+      visitDate: new Date(),
       findings: null,
       issuesIdentified: null,
       checklistNotes: null,
@@ -154,7 +157,7 @@ export class SiteDetailComponent implements OnInit {
       .log({
         siteId: this.siteId,
         visitType: raw.visitType,
-        visitDate: raw.visitDate,
+        visitDate: toIsoDate(raw.visitDate)!,
         findings: raw.findings || null,
         issuesIdentified: raw.issuesIdentified || null,
         checklistNotes: raw.checklistNotes || null,
@@ -201,7 +204,7 @@ export class SiteDetailComponent implements OnInit {
   startEdit(item: ChecklistItemResponse): void {
     this.editingItemType.set(item.itemType);
     this.editForm.setValue({
-      completedDate: item.completedDate ?? new Date().toISOString().slice(0, 10),
+      completedDate: item.completedDate ? fromIsoDate(item.completedDate) : new Date(),
       note: item.note ?? '',
     });
   }
@@ -214,7 +217,7 @@ export class SiteDetailComponent implements OnInit {
     const { completedDate, note } = this.editForm.getRawValue();
     this.errorMessage.set(null);
     this.siteService
-      .updateChecklistItem(this.siteId, itemType, { status: 'COMPLETE', completedDate, note: note || null })
+      .updateChecklistItem(this.siteId, itemType, { status: 'COMPLETE', completedDate: toIsoDate(completedDate), note: note || null })
       .subscribe({
         next: () => {
           this.editingItemType.set(null);
@@ -233,7 +236,7 @@ export class SiteDetailComponent implements OnInit {
   }
 
   attemptActivation(): void {
-    const dialogRef = this.dialog.open(SiteActivationDialogComponent);
+    const dialogRef = this.dialog.open(SiteActivationDialogComponent, { width: '480px' });
     dialogRef.afterClosed().subscribe((result: SiteActivationResult | undefined) => {
       if (!result) {
         return;

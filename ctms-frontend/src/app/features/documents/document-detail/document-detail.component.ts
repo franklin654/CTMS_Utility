@@ -83,7 +83,7 @@ export class DocumentDetailComponent implements OnInit {
   }
 
   reviewerDecide(versionNumber: number, action: 'APPROVED' | 'REJECTED' | 'CHANGES_REQUESTED'): void {
-    const dialogRef = this.dialog.open(DocumentReviewDialogComponent, { data: { action } });
+    const dialogRef = this.dialog.open(DocumentReviewDialogComponent, { data: { action }, width: '480px' });
     dialogRef.afterClosed().subscribe((comment: string | undefined) => {
       if (comment === undefined) {
         return;
@@ -97,7 +97,7 @@ export class DocumentDetailComponent implements OnInit {
   }
 
   finalApprove(versionNumber: number): void {
-    const dialogRef = this.dialog.open(DocumentApproveDialogComponent);
+    const dialogRef = this.dialog.open(DocumentApproveDialogComponent, { width: '480px' });
     dialogRef.afterClosed().subscribe((result) => {
       if (!result) {
         return;
@@ -116,7 +116,7 @@ export class DocumentDetailComponent implements OnInit {
   }
 
   finalReject(versionNumber: number): void {
-    const dialogRef = this.dialog.open(DocumentReviewDialogComponent, { data: { action: 'REJECTED' } });
+    const dialogRef = this.dialog.open(DocumentReviewDialogComponent, { data: { action: 'REJECTED' }, width: '480px' });
     dialogRef.afterClosed().subscribe((comment: string | undefined) => {
       if (comment === undefined) {
         return;

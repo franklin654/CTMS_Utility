@@ -20,6 +20,7 @@ public interface SubjectRepository extends JpaRepository<Subject, Long> {
             select s from Subject s
             where (:studyId is null or s.study.id = :studyId)
               and (:siteId is null or s.site.id = :siteId)
+              and (:status is null or s.status = :status)
               and (:search = ''
                    or lower(s.firstName) like lower(concat('%', :search, '%'))
                    or lower(s.lastName) like lower(concat('%', :search, '%'))
@@ -28,6 +29,7 @@ public interface SubjectRepository extends JpaRepository<Subject, Long> {
     Page<Subject> search(
             @Param("studyId") Long studyId,
             @Param("siteId") Long siteId,
+            @Param("status") SubjectStatus status,
             @Param("search") String search,
             Pageable pageable);
 

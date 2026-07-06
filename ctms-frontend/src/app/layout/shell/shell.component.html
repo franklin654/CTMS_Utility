@@ -1,59 +1,65 @@
-<div class="min-h-screen bg-gray-50">
-  <nav class="bg-white border-b px-6 py-3 flex items-center justify-between">
-    <div class="flex items-center gap-8">
-      <span class="font-semibold text-gray-900">CTMS</span>
-      <div class="flex items-center gap-4 text-sm">
-        <a routerLink="/dashboard" class="text-gray-700 hover:text-gray-900">Dashboard</a>
-        <a routerLink="/studies" class="text-gray-700 hover:text-gray-900">Studies</a>
-        <a routerLink="/sites" class="text-gray-700 hover:text-gray-900">Sites</a>
-        <a routerLink="/subjects" class="text-gray-700 hover:text-gray-900">Subjects</a>
-        <a routerLink="/documents" class="text-gray-700 hover:text-gray-900">Documents</a>
-        <a
-          *appHasRole="['STUDY_MANAGER', 'QA_COMPLIANCE_AUDITOR', 'ADMIN']"
-          routerLink="/documents/approval-queue"
-          class="text-gray-700 hover:text-gray-900"
-        >
-          Approval Queue
-        </a>
-        <a
-          *appHasRole="['STUDY_MANAGER', 'ADMIN', 'SITE_COORDINATOR', 'INVESTIGATOR', 'CRA_MONITOR', 'DATA_MANAGEMENT', 'FINANCE_MANAGER', 'QA_COMPLIANCE_AUDITOR', 'CLINICAL_LEADERSHIP', 'EXECUTIVE', 'SPONSOR_CRO_LEADERSHIP']"
-          routerLink="/tasks"
-          class="text-gray-700 hover:text-gray-900"
-        >
-          Tasks
-        </a>
-        <a
-          *appHasRole="['INVESTIGATOR', 'STUDY_MANAGER', 'ADMIN', 'CRA_MONITOR']"
-          routerLink="/adverse-events/board"
-          class="text-gray-700 hover:text-gray-900"
-        >
-          AE Board
-        </a>
-        <a
-          *appHasRole="['FINANCE_MANAGER', 'ADMIN']"
-          routerLink="/payments"
-          class="text-gray-700 hover:text-gray-900"
-        >
-          Payments
-        </a>
-        <a routerLink="/notifications" class="text-gray-700 hover:text-gray-900">Notifications</a>
-        <a *appHasRole="['ADMIN']" routerLink="/admin/rule-sets" class="text-gray-700 hover:text-gray-900">
-          Rule Sets
-        </a>
-        <a *appHasRole="['ADMIN', 'QA_COMPLIANCE_AUDITOR']" routerLink="/admin/audit-log" class="text-gray-700 hover:text-gray-900">
-          Audit Log
-        </a>
-      </div>
+<mat-sidenav-container class="min-h-screen bg-gradient-to-br from-gray-50 to-slate-100">
+  <mat-sidenav mode="side" opened class="w-60 bg-white border-r">
+    <div class="px-4 py-4 border-b">
+      <span class="font-semibold text-blue-700 text-lg tracking-tight">CTMS</span>
     </div>
+    <mat-nav-list class="text-sm">
+      <a mat-list-item routerLink="/dashboard" routerLinkActive="bg-blue-50 text-blue-700 border-l-4 border-blue-600 -ml-1 pl-4">Dashboard</a>
+      <a mat-list-item routerLink="/studies" routerLinkActive="bg-blue-50 text-blue-700 border-l-4 border-blue-600 -ml-1 pl-4">Studies</a>
+      <a mat-list-item routerLink="/sites" routerLinkActive="bg-blue-50 text-blue-700 border-l-4 border-blue-600 -ml-1 pl-4">Sites</a>
+      <a mat-list-item routerLink="/subjects" routerLinkActive="bg-blue-50 text-blue-700 border-l-4 border-blue-600 -ml-1 pl-4">Subjects</a>
+      <a mat-list-item routerLink="/documents" routerLinkActive="bg-blue-50 text-blue-700 border-l-4 border-blue-600 -ml-1 pl-4">Documents</a>
+      <a
+        *appHasRole="['STUDY_MANAGER', 'QA_COMPLIANCE_AUDITOR', 'ADMIN']"
+        mat-list-item
+        routerLink="/documents/approval-queue"
+        routerLinkActive="bg-blue-50 text-blue-700 border-l-4 border-blue-600 -ml-1 pl-4"
+      >
+        Approval Queue
+      </a>
+      <a
+        *appHasRole="['STUDY_MANAGER', 'ADMIN', 'SITE_COORDINATOR', 'INVESTIGATOR', 'CRA_MONITOR', 'DATA_MANAGEMENT', 'FINANCE_MANAGER', 'QA_COMPLIANCE_AUDITOR', 'CLINICAL_LEADERSHIP', 'EXECUTIVE', 'SPONSOR_CRO_LEADERSHIP']"
+        mat-list-item
+        routerLink="/tasks"
+        routerLinkActive="bg-blue-50 text-blue-700 border-l-4 border-blue-600 -ml-1 pl-4"
+      >
+        Tasks
+      </a>
+      <a
+        *appHasRole="['INVESTIGATOR', 'STUDY_MANAGER', 'ADMIN', 'CRA_MONITOR']"
+        mat-list-item
+        routerLink="/adverse-events/board"
+        routerLinkActive="bg-blue-50 text-blue-700 border-l-4 border-blue-600 -ml-1 pl-4"
+      >
+        AE Board
+      </a>
+      <a *appHasRole="['FINANCE_MANAGER', 'ADMIN']" mat-list-item routerLink="/payments" routerLinkActive="bg-blue-50 text-blue-700 border-l-4 border-blue-600 -ml-1 pl-4">
+        Payments
+      </a>
+      <a mat-list-item routerLink="/notifications" routerLinkActive="bg-blue-50 text-blue-700 border-l-4 border-blue-600 -ml-1 pl-4">Notifications</a>
+      <a *appHasRole="['ADMIN']" mat-list-item routerLink="/admin/rule-sets" routerLinkActive="bg-blue-50 text-blue-700 border-l-4 border-blue-600 -ml-1 pl-4">
+        Rule Sets
+      </a>
+      <a *appHasRole="['ADMIN', 'QA_COMPLIANCE_AUDITOR']" mat-list-item routerLink="/admin/audit-log" routerLinkActive="bg-blue-50 text-blue-700 border-l-4 border-blue-600 -ml-1 pl-4">
+        Audit Log
+      </a>
+    </mat-nav-list>
+  </mat-sidenav>
 
-    <div class="flex items-center gap-4">
+  <mat-sidenav-content class="flex flex-col min-h-screen">
+    <mat-toolbar class="bg-white border-b border-b-2 border-b-blue-600/20 flex items-center justify-end gap-4">
       <app-notification-bell />
       <span class="text-sm text-gray-600">{{ authService.currentUser()?.username }}</span>
       <button mat-stroked-button (click)="logout()">Sign out</button>
-    </div>
-  </nav>
+    </mat-toolbar>
 
-  <main class="p-6">
-    <router-outlet />
-  </main>
-</div>
+    <main class="p-6 flex-1">
+      <router-outlet />
+    </main>
+
+    <footer class="border-t bg-white px-6 py-4 text-xs text-gray-500 flex items-center justify-between">
+      <span>CTMS &mdash; Clinical Trial Management System</span>
+      <span>Deterministic, rules-driven, no AI/ML in trial decisions</span>
+    </footer>
+  </mat-sidenav-content>
+</mat-sidenav-container>

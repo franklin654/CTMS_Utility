@@ -9,6 +9,8 @@ public record DocumentResponse(
         String ownerUsername,
         Long studyId,
         String studyCode,
+        Long subjectId,
+        String subjectCode,
         DocumentVersionResponse currentVersion,
         Instant createdAt,
         Instant updatedAt) {
@@ -21,6 +23,8 @@ public record DocumentResponse(
                 d.getOwner() == null ? null : d.getOwner().getUsername(),
                 d.getStudy() == null ? null : d.getStudy().getId(),
                 d.getStudy() == null ? null : d.getStudy().getStudyCode(),
+                d.getSubject() == null ? null : d.getSubject().getId(),
+                d.getSubject() == null ? null : d.getSubject().getSubjectCode(),
                 d.getCurrentVersion() == null ? null : DocumentVersionResponse.from(d.getCurrentVersion()),
                 d.getCreatedAt(),
                 d.getUpdatedAt());

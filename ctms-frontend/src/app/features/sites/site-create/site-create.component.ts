@@ -1,21 +1,24 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { ActivatedRoute, Router } from '@angular/router';
+import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs';
 import { SiteService } from '../../../core/sites/site.service';
 import { StudyResponse, StudyService } from '../../../core/studies/study.service';
 
 @Component({
   selector: 'app-site-create',
   standalone: true,
-  imports: [ReactiveFormsModule, MatButtonModule, MatFormFieldModule, MatInputModule, MatSelectModule],
+  imports: [ReactiveFormsModule, MatButtonModule, MatFormFieldModule, MatInputModule, MatSelectModule, MatAutocompleteModule],
   templateUrl: './site-create.component.html',
 })
 export class SiteCreateComponent implements OnInit {
-  readonly studies = signal<StudyResponse[]>([]);
+  readonly studySearchControl = new FormControl('', { nonNullable: true });
+  readonly studySuggestions = signal<StudyResponse[]>([]);
   readonly errorMessage = signal<string | null>(null);
 
   readonly form = new FormGroup({
@@ -45,11 +48,27 @@ export class SiteCreateComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.studyService.list(undefined, 0, 100).subscribe((page) => this.studies.set(page.content));
+    this.studySearchControl.valueChanges
+      .pipe(
+        debounceTime(250),
+        distinctUntilChanged(),
+        switchMap((value) => this.studyService.list(value.trim(), 0, 20)),
+      )
+      .subscribe((page) => this.studySuggestions.set(page.content));
+
     const studyIdParam = this.route.snapshot.queryParamMap.get('studyId');
     if (studyIdParam) {
-      this.form.patchValue({ studyId: Number(studyIdParam) });
+      const studyId = Number(studyIdParam);
+      this.form.patchValue({ studyId });
+      this.studyService.get(studyId).subscribe((study) => this.selectStudy(study));
     }
+  }
+
+  selectStudy(study: StudyResponse): void {
+    this.form.controls.studyId.setValue(study.id);
+    // Also drives the visible input text when pre-filled from a ?studyId= query param, where
+    // there's no real autocomplete selection event to set it for us.
+    this.studySearchControl.setValue(`${study.studyCode} – ${study.name}`, { emitEvent: false });
   }
 
   submit(): void {

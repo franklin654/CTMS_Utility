@@ -58,7 +58,7 @@ export class DocumentUploadComponent implements OnInit {
     }
     this.errorMessage.set(null);
     const { title, category, studyId } = this.form.getRawValue();
-    this.documentService.create(title, category, studyId, this.selectedFile()!).subscribe({
+    this.documentService.create(title, category, studyId, null, this.selectedFile()!).subscribe({
       next: (doc) => this.router.navigate(['/documents', doc.id]),
       error: (err) => this.errorMessage.set(err.error?.message ?? 'Could not upload document.'),
     });

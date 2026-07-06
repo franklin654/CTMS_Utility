@@ -86,13 +86,16 @@ export interface Page<T> {
 export class SiteService {
   constructor(private readonly http: HttpClient) {}
 
-  list(studyId?: number, search?: string, page = 0, size = 20): Observable<Page<SiteResponse>> {
+  list(studyId?: number, search?: string, page = 0, size = 20, status?: string | null): Observable<Page<SiteResponse>> {
     const params: Record<string, string | number> = { page, size };
     if (studyId != null) {
       params['studyId'] = studyId;
     }
     if (search) {
       params['search'] = search;
+    }
+    if (status) {
+      params['status'] = status;
     }
     return this.http.get<Page<SiteResponse>>('/api/sites', { params });
   }
