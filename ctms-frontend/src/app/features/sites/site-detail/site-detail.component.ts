@@ -20,6 +20,7 @@ import {
 import { ChecklistItemResponse, SiteResponse, SiteService } from '../../../core/sites/site.service';
 import { UserService, UserSummaryResponse } from '../../../core/users/user.service';
 import { fromIsoDate, toIsoDate } from '../../../core/utils/date-utils';
+import { StatusChipPipe } from '../../../core/utils/status-chip.pipe';
 import { SiteActivationDialogComponent, SiteActivationResult } from '../site-activation-dialog/site-activation-dialog.component';
 
 const ITEM_LABELS: Record<string, string> = {
@@ -44,6 +45,7 @@ const ITEM_LABELS: Record<string, string> = {
     ReactiveFormsModule,
     DatePipe,
     HasRoleDirective,
+    StatusChipPipe,
   ],
   templateUrl: './site-detail.component.html',
 })

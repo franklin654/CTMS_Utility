@@ -10,6 +10,24 @@ import { BaseChartDirective } from 'ng2-charts';
 import { AuthService } from '../../core/auth/auth.service';
 import { DashboardService, DashboardSummaryResponse } from '../../core/dashboard/dashboard.service';
 
+/** Maps status/category labels to the app's status-color language (see .chip-*
+ * classes in styles.css) so dashboard charts read as an extension of that
+ * system rather than defaulting to Chart.js's own generic palette. */
+const STATUS_COLORS: Record<string, string> = {
+  SCREENED: '#52606d', // graphite -- draft/neutral
+  ENROLLED: '#1b4f72', // prussian -- brand/in-progress
+  IN_TREATMENT: '#0e7c7b', // teal -- active
+  COMPLETED: '#0e7c7b', // teal -- active/success
+  WITHDRAWN: '#9b3a34', // brick -- critical
+  PENDING_ACTIVATION: '#b7791f', // amber -- pending
+  ACTIVE: '#0e7c7b', // teal -- active
+};
+const FALLBACK_COLOR = '#8a94a6';
+
+function colorsFor(labels: string[]): string[] {
+  return labels.map((label) => STATUS_COLORS[label] ?? FALLBACK_COLOR);
+}
+
 @Component({
   selector: 'app-dashboard',
   standalone: true,
@@ -57,17 +75,32 @@ export class DashboardComponent implements OnInit {
   readonly enrollmentChartData = computed<ChartConfiguration<'bar'>['data']>(() => {
     const s = this.summary();
     const entries = Object.entries(s?.enrollmentByStatus ?? {});
-    return { labels: entries.map(([k]) => k), datasets: [{ label: 'Subjects', data: entries.map(([, v]) => v) }] };
+    const labels = entries.map(([k]) => k);
+    return {
+      labels,
+      datasets: [{ label: 'Subjects', data: entries.map(([, v]) => v), backgroundColor: colorsFor(labels), borderRadius: 2 }],
+    };
   });
 
   readonly siteActivationChartData = computed<ChartConfiguration<'pie'>['data']>(() => {
     const s = this.summary();
     const entries = Object.entries(s?.siteActivationByStatus ?? {});
-    return { labels: entries.map(([k]) => k), datasets: [{ data: entries.map(([, v]) => v) }] };
+    const labels = entries.map(([k]) => k);
+    return { labels, datasets: [{ data: entries.map(([, v]) => v), backgroundColor: colorsFor(labels) }] };
   });
 
-  readonly barChartOptions: ChartConfiguration<'bar'>['options'] = { responsive: true };
-  readonly pieChartOptions: ChartConfiguration<'pie'>['options'] = { responsive: true };
+  readonly barChartOptions: ChartConfiguration<'bar'>['options'] = {
+    responsive: true,
+    plugins: { legend: { labels: { font: { family: 'IBM Plex Sans' } } } },
+    scales: {
+      x: { ticks: { font: { family: 'IBM Plex Mono', size: 10 } }, grid: { display: false } },
+      y: { ticks: { font: { family: 'IBM Plex Sans' } } },
+    },
+  };
+  readonly pieChartOptions: ChartConfiguration<'pie'>['options'] = {
+    responsive: true,
+    plugins: { legend: { labels: { font: { family: 'IBM Plex Sans' } } } },
+  };
 
   constructor(
     readonly authService: AuthService,

@@ -12,6 +12,7 @@ import { HasRoleDirective } from '../../../core/auth/has-role.directive';
 import { AdverseEventResponse, AdverseEventService } from '../../../core/adverse-events/adverse-event.service';
 import { DocumentResponse, DocumentService } from '../../../core/documents/document.service';
 import { toIsoDate } from '../../../core/utils/date-utils';
+import { StatusChipPipe } from '../../../core/utils/status-chip.pipe';
 import { DOCUMENT_CATEGORIES } from '../../documents/document-upload/document-upload.component';
 import {
   ProtocolDeviationResponse,
@@ -60,6 +61,7 @@ const STATUS_LABELS: Record<string, string> = {
     DatePipe,
     DecimalPipe,
     HasRoleDirective,
+    StatusChipPipe,
   ],
   templateUrl: './subject-detail.component.html',
 })

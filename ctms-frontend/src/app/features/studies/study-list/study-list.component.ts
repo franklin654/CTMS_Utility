@@ -8,11 +8,12 @@ import { RouterLink } from '@angular/router';
 import { debounceTime } from 'rxjs';
 import { HasRoleDirective } from '../../../core/auth/has-role.directive';
 import { StudyResponse, StudyService } from '../../../core/studies/study.service';
+import { StatusChipPipe } from '../../../core/utils/status-chip.pipe';
 
 @Component({
   selector: 'app-study-list',
   standalone: true,
-  imports: [ReactiveFormsModule, MatButtonModule, MatFormFieldModule, MatInputModule, MatPaginatorModule, RouterLink, HasRoleDirective],
+  imports: [ReactiveFormsModule, MatButtonModule, MatFormFieldModule, MatInputModule, MatPaginatorModule, RouterLink, HasRoleDirective, StatusChipPipe],
   templateUrl: './study-list.component.html',
 })
 export class StudyListComponent implements OnInit {

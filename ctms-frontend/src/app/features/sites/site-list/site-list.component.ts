@@ -9,6 +9,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { HasRoleDirective } from '../../../core/auth/has-role.directive';
 import { SiteResponse, SiteService } from '../../../core/sites/site.service';
+import { StatusChipPipe } from '../../../core/utils/status-chip.pipe';
 
 const STATUSES = ['PENDING_ACTIVATION', 'ACTIVE'];
 
@@ -24,6 +25,7 @@ const STATUSES = ['PENDING_ACTIVATION', 'ACTIVE'];
     ReactiveFormsModule,
     RouterLink,
     HasRoleDirective,
+    StatusChipPipe,
   ],
   templateUrl: './site-list.component.html',
 })

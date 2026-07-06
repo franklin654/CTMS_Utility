@@ -3,18 +3,12 @@
     <div class="bg-white rounded-lg shadow p-6">
       <div class="flex items-center justify-between">
         <div>
-          <h1 class="text-xl font-semibold text-gray-900">{{ s.name }}</h1>
-          <p class="text-sm text-gray-500">
-            {{ s.siteCode }} &middot; Study {{ s.studyCode }} &middot; {{ s.city }}, {{ s.country }}
+          <h1 class="text-xl font-semibold text-ink">{{ s.name }}</h1>
+          <p class="text-sm text-graphite">
+            <span class="code">{{ s.siteCode }}</span> &middot; Study <span class="code">{{ s.studyCode }}</span> &middot; {{ s.city }}, {{ s.country }}
           </p>
         </div>
-        <span
-          class="px-3 py-1 rounded text-sm font-medium"
-          [class.bg-green-100]="s.status === 'ACTIVE'"
-          [class.text-green-700]="s.status === 'ACTIVE'"
-          [class.bg-amber-100]="s.status === 'PENDING_ACTIVATION'"
-          [class.text-amber-700]="s.status === 'PENDING_ACTIVATION'"
-        >
+        <span [class]="s.status | statusChip">
           {{ s.status === 'ACTIVE' ? 'Active' : 'Pending Activation' }}
         </span>
       </div>
@@ -190,8 +184,8 @@
               <div class="flex items-center gap-3">
                 <span
                   class="w-3 h-3 rounded-full inline-block"
-                  [class.bg-green-500]="item.status === 'COMPLETE'"
-                  [class.bg-red-400]="item.status === 'PENDING'"
+                  [class.bg-teal]="item.status === 'COMPLETE'"
+                  [class.bg-amber]="item.status === 'PENDING'"
                 ></span>
                 <span class="text-sm font-medium text-gray-900">{{ label(item.itemType) }}</span>
                 @if (item.status === 'COMPLETE') {

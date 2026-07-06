@@ -1,55 +1,59 @@
-<mat-sidenav-container class="min-h-screen bg-gradient-to-br from-gray-50 to-slate-100">
-  <mat-sidenav mode="side" opened class="w-60 bg-white border-r">
-    <div class="px-4 py-4 border-b">
-      <span class="font-semibold text-blue-700 text-lg tracking-tight">CTMS</span>
+<mat-sidenav-container class="min-h-screen bg-paper">
+  <mat-sidenav mode="side" opened class="ctms-sidenav border-r border-black/20">
+    <div class="px-5 py-5 border-b border-white/10">
+      <span class="font-mono text-lg font-semibold text-white tracking-tight">CTMS</span>
+      <p class="eyebrow text-white/40 mt-0.5">Clinical Trial Mgmt</p>
     </div>
-    <mat-nav-list class="text-sm">
-      <a mat-list-item routerLink="/dashboard" routerLinkActive="bg-blue-50 text-blue-700 border-l-4 border-blue-600 -ml-1 pl-4">Dashboard</a>
-      <a mat-list-item routerLink="/studies" routerLinkActive="bg-blue-50 text-blue-700 border-l-4 border-blue-600 -ml-1 pl-4">Studies</a>
-      <a mat-list-item routerLink="/sites" routerLinkActive="bg-blue-50 text-blue-700 border-l-4 border-blue-600 -ml-1 pl-4">Sites</a>
-      <a mat-list-item routerLink="/subjects" routerLinkActive="bg-blue-50 text-blue-700 border-l-4 border-blue-600 -ml-1 pl-4">Subjects</a>
-      <a mat-list-item routerLink="/documents" routerLinkActive="bg-blue-50 text-blue-700 border-l-4 border-blue-600 -ml-1 pl-4">Documents</a>
+    <mat-nav-list class="text-sm py-2 px-2">
+      <a class="ctms-nav-link" mat-list-item routerLink="/dashboard" routerLinkActive="ctms-nav-link-active">Dashboard</a>
+      <a class="ctms-nav-link" mat-list-item routerLink="/studies" routerLinkActive="ctms-nav-link-active">Studies</a>
+      <a class="ctms-nav-link" mat-list-item routerLink="/sites" routerLinkActive="ctms-nav-link-active">Sites</a>
+      <a class="ctms-nav-link" mat-list-item routerLink="/subjects" routerLinkActive="ctms-nav-link-active">Subjects</a>
+      <a class="ctms-nav-link" mat-list-item routerLink="/documents" routerLinkActive="ctms-nav-link-active">Documents</a>
       <a
         *appHasRole="['STUDY_MANAGER', 'QA_COMPLIANCE_AUDITOR', 'ADMIN']"
+        class="ctms-nav-link"
         mat-list-item
         routerLink="/documents/approval-queue"
-        routerLinkActive="bg-blue-50 text-blue-700 border-l-4 border-blue-600 -ml-1 pl-4"
+        routerLinkActive="ctms-nav-link-active"
       >
         Approval Queue
       </a>
       <a
         *appHasRole="['STUDY_MANAGER', 'ADMIN', 'SITE_COORDINATOR', 'INVESTIGATOR', 'CRA_MONITOR', 'DATA_MANAGEMENT', 'FINANCE_MANAGER', 'QA_COMPLIANCE_AUDITOR', 'CLINICAL_LEADERSHIP', 'EXECUTIVE', 'SPONSOR_CRO_LEADERSHIP']"
+        class="ctms-nav-link"
         mat-list-item
         routerLink="/tasks"
-        routerLinkActive="bg-blue-50 text-blue-700 border-l-4 border-blue-600 -ml-1 pl-4"
+        routerLinkActive="ctms-nav-link-active"
       >
         Tasks
       </a>
       <a
         *appHasRole="['INVESTIGATOR', 'STUDY_MANAGER', 'ADMIN', 'CRA_MONITOR']"
+        class="ctms-nav-link"
         mat-list-item
         routerLink="/adverse-events/board"
-        routerLinkActive="bg-blue-50 text-blue-700 border-l-4 border-blue-600 -ml-1 pl-4"
+        routerLinkActive="ctms-nav-link-active"
       >
         AE Board
       </a>
-      <a *appHasRole="['FINANCE_MANAGER', 'ADMIN']" mat-list-item routerLink="/payments" routerLinkActive="bg-blue-50 text-blue-700 border-l-4 border-blue-600 -ml-1 pl-4">
+      <a *appHasRole="['FINANCE_MANAGER', 'ADMIN']" class="ctms-nav-link" mat-list-item routerLink="/payments" routerLinkActive="ctms-nav-link-active">
         Payments
       </a>
-      <a mat-list-item routerLink="/notifications" routerLinkActive="bg-blue-50 text-blue-700 border-l-4 border-blue-600 -ml-1 pl-4">Notifications</a>
-      <a *appHasRole="['ADMIN']" mat-list-item routerLink="/admin/rule-sets" routerLinkActive="bg-blue-50 text-blue-700 border-l-4 border-blue-600 -ml-1 pl-4">
+      <a class="ctms-nav-link" mat-list-item routerLink="/notifications" routerLinkActive="ctms-nav-link-active">Notifications</a>
+      <a *appHasRole="['ADMIN']" class="ctms-nav-link" mat-list-item routerLink="/admin/rule-sets" routerLinkActive="ctms-nav-link-active">
         Rule Sets
       </a>
-      <a *appHasRole="['ADMIN', 'QA_COMPLIANCE_AUDITOR']" mat-list-item routerLink="/admin/audit-log" routerLinkActive="bg-blue-50 text-blue-700 border-l-4 border-blue-600 -ml-1 pl-4">
+      <a *appHasRole="['ADMIN', 'QA_COMPLIANCE_AUDITOR']" class="ctms-nav-link" mat-list-item routerLink="/admin/audit-log" routerLinkActive="ctms-nav-link-active">
         Audit Log
       </a>
     </mat-nav-list>
   </mat-sidenav>
 
   <mat-sidenav-content class="flex flex-col min-h-screen">
-    <mat-toolbar class="bg-white border-b border-b-2 border-b-blue-600/20 flex items-center justify-end gap-4">
+    <mat-toolbar class="!bg-white border-b flex items-center justify-end gap-4">
       <app-notification-bell />
-      <span class="text-sm text-gray-600">{{ authService.currentUser()?.username }}</span>
+      <span class="code text-graphite">{{ authService.currentUser()?.username }}</span>
       <button mat-stroked-button (click)="logout()">Sign out</button>
     </mat-toolbar>
 
@@ -57,9 +61,9 @@
       <router-outlet />
     </main>
 
-    <footer class="border-t bg-white px-6 py-4 text-xs text-gray-500 flex items-center justify-between">
+    <footer class="border-t bg-white px-6 py-3 text-xs text-graphite flex items-center justify-between">
       <span>CTMS &mdash; Clinical Trial Management System</span>
-      <span>Deterministic, rules-driven, no AI/ML in trial decisions</span>
+      <span class="eyebrow">Deterministic &middot; Rules-Driven &middot; No AI/ML in Trial Decisions</span>
     </footer>
   </mat-sidenav-content>
 </mat-sidenav-container>

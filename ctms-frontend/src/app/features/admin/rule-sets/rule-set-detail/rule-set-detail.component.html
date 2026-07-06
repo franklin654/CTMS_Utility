@@ -48,12 +48,12 @@
         <tbody>
           @for (def of d.definitions; track def.id) {
             <tr class="border-b">
-              <td class="py-2 pr-2">v{{ def.version }}</td>
+              <td class="py-2 pr-2 code">v{{ def.version }}</td>
               <td class="py-2 pr-2">
                 @if (def.active) {
-                  <span class="text-xs px-2 py-0.5 rounded bg-green-100 text-green-700">CURRENT</span>
+                  <span class="chip chip-active">CURRENT</span>
                 } @else {
-                  <span class="text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-600">SUPERSEDED</span>
+                  <span class="chip chip-draft">SUPERSEDED</span>
                 }
               </td>
               <td class="py-2 pr-2">{{ def.createdAt | date: 'short' }}</td>

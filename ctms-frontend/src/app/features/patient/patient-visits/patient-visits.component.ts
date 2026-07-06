@@ -1,12 +1,13 @@
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { Component, OnInit, signal } from '@angular/core';
 import { PatientVisitService } from '../../../core/patient/patient-visit.service';
+import { StatusChipPipe } from '../../../core/utils/status-chip.pipe';
 import { SubjectVisitScheduleResponse } from '../../../core/visits/visit.service';
 
 @Component({
   selector: 'app-patient-visits',
   standalone: true,
-  imports: [DatePipe, DecimalPipe],
+  imports: [DatePipe, DecimalPipe, StatusChipPipe],
   templateUrl: './patient-visits.component.html',
 })
 export class PatientVisitsComponent implements OnInit {

@@ -51,7 +51,7 @@
       <div class="flex flex-col gap-2">
         @for (entry of trace.auditTrail; track entry.id) {
           <div class="border rounded p-3 text-sm">
-            <span class="px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-700 mr-2">{{ entry.action }}</span>
+            <span class="mr-2" [class]="entry.action | statusChip">{{ entry.action }}</span>
             {{ entry.performedByUsername ?? '&mdash;' }} at {{ entry.performedAt | date: 'short' }}
             @if (entry.beforeValue || entry.afterValue) {
               <div class="text-xs text-gray-600 mt-1">{{ entry.beforeValue ?? '&mdash;' }} &rarr; {{ entry.afterValue ?? '&mdash;' }}</div>
@@ -86,7 +86,7 @@
             <td class="px-4 py-3">{{ e.entityName }}</td>
             <td class="px-4 py-3">{{ e.entityId }}</td>
             <td class="px-4 py-3">
-              <span class="px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-700">{{ e.action }}</span>
+              <span [class]="e.action | statusChip">{{ e.action }}</span>
             </td>
             <td class="px-4 py-3">{{ e.performedByUsername ?? '&mdash;' }}</td>
             <td class="px-4 py-3">{{ e.performedAt | date: 'short' }}</td>

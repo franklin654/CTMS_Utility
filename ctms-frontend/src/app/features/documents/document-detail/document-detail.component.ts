@@ -9,13 +9,14 @@ import {
   DocumentService,
   DocumentVersionResponse,
 } from '../../../core/documents/document.service';
+import { StatusChipPipe } from '../../../core/utils/status-chip.pipe';
 import { DocumentApproveDialogComponent } from '../document-approve-dialog/document-approve-dialog.component';
 import { DocumentReviewDialogComponent } from '../document-review-dialog/document-review-dialog.component';
 
 @Component({
   selector: 'app-document-detail',
   standalone: true,
-  imports: [MatButtonModule, MatDialogModule, DatePipe, HasRoleDirective],
+  imports: [MatButtonModule, MatDialogModule, DatePipe, HasRoleDirective, StatusChipPipe],
   templateUrl: './document-detail.component.html',
 })
 export class DocumentDetailComponent implements OnInit {

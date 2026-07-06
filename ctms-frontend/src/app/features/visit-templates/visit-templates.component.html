@@ -74,7 +74,7 @@
           <div>
             <div class="text-sm font-medium text-gray-900">
               {{ t.sequenceNumber }}. {{ t.name }}
-              <span class="ml-2 text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-600">{{ t.visitType }}</span>
+              <span class="ml-2 chip chip-draft">{{ t.visitType }}</span>
             </div>
             <div class="text-xs text-gray-500">
               Day {{ t.targetDay }} (&plusmn;{{ t.windowEarlyDays }}/{{ t.windowLateDays }} days)

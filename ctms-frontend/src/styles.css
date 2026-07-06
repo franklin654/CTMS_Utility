@@ -1,3 +1,141 @@
 /* You can add global styles to this file, and also import other style files */
 
 @import 'tailwindcss';
+
+/* ---------------------------------------------------------------------------
+ * CTMS design tokens
+ * ---------------------------------------------------------------------------
+ * Named brand colors + type families, available as Tailwind utilities
+ * (bg-ink, text-prussian, font-mono, etc). Kept in sync with the Material
+ * system-color overrides in material-theme.scss so the two styling systems
+ * (Tailwind for layout, Material for complex widgets) read as one theme, per
+ * CLAUDE.md's "one theme" rule.
+ * ------------------------------------------------------------------------- */
+@theme {
+  --color-ink: #14213d; /* near-black indigo-navy -- sidebar, primary text */
+  --color-paper: #f5f6f4; /* app background -- cool, quiet neutral */
+  --color-prussian: #1b4f72; /* brand blue -- buttons, links, active states */
+  --color-prussian-dark: #123a56;
+  --color-teal: #0e7c7b; /* status: active / current / success */
+  --color-amber: #b7791f; /* status: pending / awaiting action */
+  --color-brick: #9b3a34; /* status: critical / withdrawn / danger */
+  --color-graphite: #52606d; /* status: draft / archived / neutral */
+
+  --font-sans: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
+
+  /* Flatter, more considered card treatment than Tailwind's stock shadow scale. */
+  --shadow-sm: 0 1px 2px 0 rgb(20 33 61 / 0.05);
+  --shadow: 0 1px 3px 0 rgb(20 33 61 / 0.07), 0 1px 2px -1px rgb(20 33 61 / 0.06);
+  --shadow-md: 0 4px 8px -2px rgb(20 33 61 / 0.08), 0 2px 4px -2px rgb(20 33 61 / 0.06);
+}
+
+body {
+  font-family: var(--font-sans);
+}
+
+/* ---------------------------------------------------------------------------
+ * Status chip -- the one signature element this app is built around. Every
+ * Study/Site/Subject/Visit/Document/Payment/AE status renders as a small
+ * "stamped" tag: uppercase, tracked-out, thin colored left bar -- evoking a
+ * lab requisition form's status stamp rather than a generic pill badge.
+ * Deliberately the same shape everywhere: one visual language for state,
+ * echoing the BRD's own positioning (deterministic state machines, not
+ * ambiguous status).
+ * ------------------------------------------------------------------------- */
+@layer components {
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.125rem 0.5rem;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    border-left-width: 3px;
+    border-radius: 0.125rem;
+    background-color: var(--color-paper);
+    white-space: nowrap;
+  }
+  .chip-active {
+    color: var(--color-teal);
+    border-color: var(--color-teal);
+    background-color: color-mix(in srgb, var(--color-teal) 8%, white);
+  }
+  .chip-pending {
+    color: var(--color-amber);
+    border-color: var(--color-amber);
+    background-color: color-mix(in srgb, var(--color-amber) 8%, white);
+  }
+  .chip-critical {
+    color: var(--color-brick);
+    border-color: var(--color-brick);
+    background-color: color-mix(in srgb, var(--color-brick) 8%, white);
+  }
+  .chip-draft {
+    color: var(--color-graphite);
+    border-color: var(--color-graphite);
+    background-color: color-mix(in srgb, var(--color-graphite) 8%, white);
+  }
+  .chip-info {
+    color: var(--color-prussian);
+    border-color: var(--color-prussian);
+    background-color: color-mix(in srgb, var(--color-prussian) 8%, white);
+  }
+
+  /* System-generated identifiers (protocol IDs, study/site/subject codes) --
+     monospace signals "this is a precise, generated record," distinct from
+     free-text prose sitting right next to it. */
+  .code {
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    letter-spacing: -0.01em;
+    color: var(--color-ink);
+  }
+
+  /* Small tracked-out section labels ("STUDY DETAILS", "VERSION HISTORY"). */
+  .eyebrow {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-graphite);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * Sidebar shell -- mat-sidenav's own component style hardcodes
+ * `width: var(--mat-sidenav-container-width, 360px)`, which beats a plain
+ * Tailwind `w-*` utility class on specificity/source order. Set the token
+ * Material actually reads instead of fighting it.
+ * ------------------------------------------------------------------------- */
+mat-sidenav.ctms-sidenav {
+  --mat-sidenav-container-width: 16rem;
+  --mat-sidenav-container-background-color: var(--color-ink);
+  --mat-sidenav-container-shape: 0;
+}
+
+/* ---------------------------------------------------------------------------
+ * Sidebar nav links (dark ink sidebar) -- overrides Material's internal list
+ * item text color, which otherwise defaults to a system on-surface token
+ * meant for light surfaces.
+ * ------------------------------------------------------------------------- */
+.ctms-nav-link {
+  --mat-sys-on-surface: rgba(255, 255, 255, 0.78);
+  color: rgba(255, 255, 255, 0.78) !important;
+  border-left: 3px solid transparent;
+  margin: 1px 0;
+}
+.ctms-nav-link:hover {
+  --mat-sys-on-surface: rgba(255, 255, 255, 0.95);
+  color: rgba(255, 255, 255, 0.95) !important;
+  background-color: rgba(255, 255, 255, 0.06);
+}
+.ctms-nav-link-active {
+  --mat-sys-on-surface: #ffffff;
+  color: #ffffff !important;
+  background-color: rgba(255, 255, 255, 0.08) !important;
+  border-left-color: var(--color-teal);
+  font-weight: 500;
+}

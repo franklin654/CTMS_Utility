@@ -3,11 +3,12 @@ import { Component, OnInit, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { HasRoleDirective } from '../../../core/auth/has-role.directive';
 import { Page, TaskResponse, TaskService } from '../../../core/tasks/task.service';
+import { StatusChipPipe } from '../../../core/utils/status-chip.pipe';
 
 @Component({
   selector: 'app-task-inbox',
   standalone: true,
-  imports: [MatButtonModule, DatePipe, HasRoleDirective],
+  imports: [MatButtonModule, DatePipe, HasRoleDirective, StatusChipPipe],
   templateUrl: './task-inbox.component.html',
 })
 export class TaskInboxComponent implements OnInit {
@@ -33,16 +34,16 @@ export class TaskInboxComponent implements OnInit {
 
   urgencyClass(dueAt: string, status: string): string {
     if (status === 'COMPLETED') {
-      return 'bg-gray-100 text-gray-600';
+      return 'chip chip-draft';
     }
     const hoursUntilDue = (new Date(dueAt).getTime() - Date.now()) / (1000 * 60 * 60);
     if (hoursUntilDue < 0) {
-      return 'bg-red-100 text-red-700';
+      return 'chip chip-critical';
     }
     if (hoursUntilDue < 48) {
-      return 'bg-amber-100 text-amber-700';
+      return 'chip chip-pending';
     }
-    return 'bg-green-100 text-green-700';
+    return 'chip chip-active';
   }
 
   urgencyLabel(dueAt: string, status: string): string {

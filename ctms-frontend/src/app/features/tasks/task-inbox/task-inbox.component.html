@@ -22,9 +22,9 @@
             <div>
               <div class="text-sm font-medium text-gray-900">
                 {{ t.title }}
-                <span class="ml-2 text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-600">{{ t.priority }}</span>
+                <span class="ml-2" [class]="t.priority | statusChip">{{ t.priority }}</span>
                 @if (t.escalated) {
-                  <span class="ml-2 text-xs px-2 py-0.5 rounded bg-red-100 text-red-700">Escalated</span>
+                  <span class="ml-2 chip chip-critical">Escalated</span>
                 }
               </div>
               <div class="text-xs text-gray-500">
@@ -36,7 +36,7 @@
               }
             </div>
             <div class="flex flex-col items-end gap-2">
-              <span class="px-2 py-1 rounded text-xs font-medium" [class]="urgencyClass(t.dueAt, t.status)">
+              <span [class]="urgencyClass(t.dueAt, t.status)">
                 {{ t.status === 'COMPLETED' ? 'Completed' : urgencyLabel(t.dueAt, t.status) }}
               </span>
               @if (t.status !== 'COMPLETED') {

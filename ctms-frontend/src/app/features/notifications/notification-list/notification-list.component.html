@@ -28,9 +28,9 @@
           <div>
             <div class="text-sm font-medium text-gray-900">
               {{ n.title }}
-              <span class="ml-2 text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-600">{{ n.type }}</span>
+              <span class="ml-2 chip chip-draft">{{ n.type }}</span>
               @if (!n.read) {
-                <span class="ml-2 text-xs px-2 py-0.5 rounded bg-blue-100 text-blue-700">Unread</span>
+                <span class="ml-2 chip chip-info">Unread</span>
               }
             </div>
             @if (n.body) {

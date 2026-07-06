@@ -2,6 +2,7 @@ import { DatePipe } from '@angular/common';
 import { Component, OnInit, computed, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AdverseEventResponse, AdverseEventService } from '../../../core/adverse-events/adverse-event.service';
+import { StatusChipPipe } from '../../../core/utils/status-chip.pipe';
 
 const COLUMNS: { status: AdverseEventResponse['status']; label: string }[] = [
   { status: 'OPEN', label: 'Open' },
@@ -12,7 +13,7 @@ const COLUMNS: { status: AdverseEventResponse['status']; label: string }[] = [
 @Component({
   selector: 'app-ae-board',
   standalone: true,
-  imports: [DatePipe, RouterLink],
+  imports: [DatePipe, RouterLink, StatusChipPipe],
   templateUrl: './ae-board.component.html',
 })
 export class AeBoardComponent implements OnInit {
@@ -39,19 +40,6 @@ export class AeBoardComponent implements OnInit {
       next: (events) => this.events.set(events),
       error: (err) => this.errorMessage.set(err.error?.message ?? 'Could not load adverse events.'),
     });
-  }
-
-  severityClass(severity: string): string {
-    if (severity === 'LIFE_THREATENING') {
-      return 'bg-red-100 text-red-700';
-    }
-    if (severity === 'SEVERE') {
-      return 'bg-orange-100 text-orange-700';
-    }
-    if (severity === 'MODERATE') {
-      return 'bg-amber-100 text-amber-700';
-    }
-    return 'bg-gray-100 text-gray-600';
   }
 
   eventsFor(status: string): AdverseEventResponse[] {

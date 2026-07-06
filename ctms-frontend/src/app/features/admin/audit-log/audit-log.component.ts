@@ -6,11 +6,12 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { AuditLogResponse, AuditLogService, TraceabilityResponse } from '../../../core/audit/audit-log.service';
+import { StatusChipPipe } from '../../../core/utils/status-chip.pipe';
 
 @Component({
   selector: 'app-audit-log',
   standalone: true,
-  imports: [ReactiveFormsModule, MatButtonModule, MatFormFieldModule, MatInputModule, MatPaginatorModule, DatePipe],
+  imports: [ReactiveFormsModule, MatButtonModule, MatFormFieldModule, MatInputModule, MatPaginatorModule, DatePipe, StatusChipPipe],
   templateUrl: './audit-log.component.html',
 })
 export class AuditLogComponent implements OnInit {

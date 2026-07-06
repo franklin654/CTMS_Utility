@@ -28,17 +28,7 @@
               <td class="py-2 pr-2">{{ visit.scheduledDate | date: 'mediumDate' }}</td>
               <td class="py-2 pr-2">{{ visit.visitType }}</td>
               <td class="py-2 pr-2">
-                <span
-                  class="text-xs px-2 py-0.5 rounded"
-                  [class.bg-gray-100]="visit.status === 'SCHEDULED'"
-                  [class.text-gray-600]="visit.status === 'SCHEDULED'"
-                  [class.bg-green-100]="visit.status === 'COMPLETED'"
-                  [class.text-green-700]="visit.status === 'COMPLETED'"
-                  [class.bg-red-100]="visit.status === 'MISSED'"
-                  [class.text-red-700]="visit.status === 'MISSED'"
-                  [class.bg-amber-100]="visit.status === 'RESCHEDULED'"
-                  [class.text-amber-700]="visit.status === 'RESCHEDULED'"
-                >
+                <span [class]="visit.status | statusChip">
                   {{ visit.status }}
                 </span>
               </td>

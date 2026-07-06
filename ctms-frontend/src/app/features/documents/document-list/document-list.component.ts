@@ -4,11 +4,12 @@ import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { RouterLink } from '@angular/router';
 import { HasRoleDirective } from '../../../core/auth/has-role.directive';
 import { DocumentResponse, DocumentService } from '../../../core/documents/document.service';
+import { StatusChipPipe } from '../../../core/utils/status-chip.pipe';
 
 @Component({
   selector: 'app-document-list',
   standalone: true,
-  imports: [MatButtonModule, MatPaginatorModule, RouterLink, HasRoleDirective],
+  imports: [MatButtonModule, MatPaginatorModule, RouterLink, HasRoleDirective, StatusChipPipe],
   templateUrl: './document-list.component.html',
 })
 export class DocumentListComponent implements OnInit {

@@ -9,6 +9,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { HasRoleDirective } from '../../../core/auth/has-role.directive';
 import { SubjectResponse, SubjectService } from '../../../core/subjects/subject.service';
+import { StatusChipPipe } from '../../../core/utils/status-chip.pipe';
 
 const STATUS_LABELS: Record<string, string> = {
   SCREENED: 'Screened',
@@ -32,6 +33,7 @@ const ALL_STATUSES = Object.keys(STATUS_LABELS);
     ReactiveFormsModule,
     RouterLink,
     HasRoleDirective,
+    StatusChipPipe,
   ],
   templateUrl: './subject-list.component.html',
 })

@@ -7,6 +7,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { Page, PaymentResponse, PaymentService } from '../../../core/payments/payment.service';
+import { StatusChipPipe } from '../../../core/utils/status-chip.pipe';
 import { PaymentHoldDialogComponent } from '../payment-hold-dialog/payment-hold-dialog.component';
 import { PaymentReleaseDialogComponent, PaymentReleaseResult } from '../payment-release-dialog/payment-release-dialog.component';
 
@@ -22,6 +23,7 @@ import { PaymentReleaseDialogComponent, PaymentReleaseResult } from '../payment-
     MatDialogModule,
     DatePipe,
     DecimalPipe,
+    StatusChipPipe,
   ],
   templateUrl: './payment-list.component.html',
 })

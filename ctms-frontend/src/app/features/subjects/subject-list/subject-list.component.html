@@ -37,12 +37,12 @@
       <tbody>
         @for (subject of subjects(); track subject.id) {
           <tr class="border-b hover:bg-gray-50 cursor-pointer" [routerLink]="['/subjects', subject.id]">
-            <td class="px-4 py-3 font-medium text-gray-900">{{ subject.subjectCode }}</td>
+            <td class="px-4 py-3 code font-medium">{{ subject.subjectCode }}</td>
             <td class="px-4 py-3">{{ subject.firstName }} {{ subject.lastName }}</td>
-            <td class="px-4 py-3">{{ subject.studyCode }}</td>
-            <td class="px-4 py-3">{{ subject.siteCode }}</td>
+            <td class="px-4 py-3 code">{{ subject.studyCode }}</td>
+            <td class="px-4 py-3 code">{{ subject.siteCode }}</td>
             <td class="px-4 py-3">
-              <span class="px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-700">
+              <span [class]="subject.status | statusChip">
                 {{ statusLabel(subject.status) }}
               </span>
             </td>

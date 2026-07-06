@@ -3,20 +3,12 @@
     <div class="bg-white rounded-lg shadow p-6">
       <div class="flex items-center justify-between">
         <div>
-          <h1 class="text-xl font-semibold text-gray-900">{{ s.firstName }} {{ s.lastName }}</h1>
-          <p class="text-sm text-gray-500">
-            {{ s.subjectCode }} &middot; Study {{ s.studyCode }} &middot; Site {{ s.siteCode }}
+          <h1 class="text-xl font-semibold text-ink">{{ s.firstName }} {{ s.lastName }}</h1>
+          <p class="text-sm text-graphite">
+            <span class="code">{{ s.subjectCode }}</span> &middot; Study <span class="code">{{ s.studyCode }}</span> &middot; Site <span class="code">{{ s.siteCode }}</span>
           </p>
         </div>
-        <span
-          class="px-3 py-1 rounded text-sm font-medium"
-          [class.bg-green-100]="s.status === 'COMPLETED'"
-          [class.text-green-700]="s.status === 'COMPLETED'"
-          [class.bg-red-100]="s.status === 'WITHDRAWN'"
-          [class.text-red-700]="s.status === 'WITHDRAWN'"
-          [class.bg-blue-100]="s.status !== 'COMPLETED' && s.status !== 'WITHDRAWN'"
-          [class.text-blue-700]="s.status !== 'COMPLETED' && s.status !== 'WITHDRAWN'"
-        >
+        <span [class]="s.status | statusChip">
           {{ statusLabel(s.status) }}
         </span>
       </div>
@@ -126,7 +118,7 @@
       <div class="bg-white rounded-lg shadow p-6">
         <div class="flex items-center justify-between mb-3">
           <h2 class="text-sm font-semibold text-gray-700">Visit Schedule</h2>
-          <span class="text-xs px-2 py-1 rounded bg-gray-100 text-gray-700">
+          <span class="chip chip-info">
             Compliance: {{ vs.complianceRate * 100 | number: '1.0-0' }}%
           </span>
         </div>
@@ -194,12 +186,12 @@
                 <div>
                   <div class="text-sm font-medium text-gray-900">
                     @if (v.adHoc) {
-                      <span class="text-xs px-2 py-0.5 rounded bg-purple-100 text-purple-700 mr-1">Ad-hoc</span>
+                      <span class="chip chip-info mr-1">Ad-hoc</span>
                     } @else {
                       {{ v.sequenceNumber }}.
                     }
                     {{ v.name }}
-                    <span class="ml-2 text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-600">{{ v.visitType }}</span>
+                    <span class="ml-2 chip chip-draft">{{ v.visitType }}</span>
                   </div>
                   <div class="text-xs text-gray-500">
                     Scheduled {{ v.scheduledDate | date: 'mediumDate' }}
@@ -214,17 +206,7 @@
                     }
                   </div>
                 </div>
-                <span
-                  class="px-2 py-1 rounded text-xs font-medium"
-                  [class.bg-green-100]="v.status === 'COMPLETED'"
-                  [class.text-green-700]="v.status === 'COMPLETED'"
-                  [class.bg-red-100]="v.status === 'MISSED'"
-                  [class.text-red-700]="v.status === 'MISSED'"
-                  [class.bg-amber-100]="v.status === 'RESCHEDULED'"
-                  [class.text-amber-700]="v.status === 'RESCHEDULED'"
-                  [class.bg-blue-100]="v.status === 'SCHEDULED'"
-                  [class.text-blue-700]="v.status === 'SCHEDULED'"
-                >
+                <span [class]="v.status | statusChip">
                   {{ v.status }}
                 </span>
               </div>
@@ -379,9 +361,9 @@
                 <div class="text-sm font-medium text-gray-900">
                   {{ r.testName }}: {{ r.resultValue }} {{ r.units }}
                   @if (r.abnormal) {
-                    <span class="ml-2 text-xs px-2 py-0.5 rounded bg-amber-100 text-amber-700">Abnormal</span>
+                    <span class="ml-2 chip chip-pending">Abnormal</span>
                   }
-                  <span class="ml-2 text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-600">{{ r.status }}</span>
+                  <span class="ml-2 chip chip-draft">{{ r.status }}</span>
                 </div>
                 <div class="text-xs text-gray-500">
                   {{ r.visitName }} &middot; Reference: {{ r.referenceRange || '&mdash;' }}
@@ -472,8 +454,8 @@
               <div>
                 <div class="text-sm font-medium text-gray-900">
                   {{ ae.description }}
-                  <span class="ml-2 text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-600">{{ ae.severity }}</span>
-                  <span class="ml-2 text-xs px-2 py-0.5 rounded bg-blue-100 text-blue-700">{{ ae.status }}</span>
+                  <span class="ml-2" [class]="ae.severity | statusChip">{{ ae.severity }}</span>
+                  <span class="ml-2" [class]="ae.status | statusChip">{{ ae.status }}</span>
                 </div>
                 @if (ae.resolutionNotes) {
                   <div class="text-xs text-gray-600 mt-1">Resolution: {{ ae.resolutionNotes }}</div>
@@ -592,7 +574,7 @@
           >
             <div class="text-sm font-medium text-gray-900">
               {{ deviation.description }}
-              <span class="ml-2 text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-600">{{ deviation.severity }}</span>
+              <span class="ml-2" [class]="deviation.severity | statusChip">{{ deviation.severity }}</span>
             </div>
             <div class="text-xs text-gray-500 mt-1">
               {{ deviation.deviationDate | date: 'mediumDate' }} &middot; reported by {{ deviation.createdByUsername }}
@@ -655,10 +637,10 @@
             <div class="text-sm font-medium text-gray-900">
               {{ doc.title }}
               @if (doc.category) {
-                <span class="ml-2 text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-600">{{ doc.category }}</span>
+                <span class="ml-2 chip chip-draft">{{ doc.category }}</span>
               }
               @if (doc.currentVersion) {
-                <span class="ml-2 text-xs px-2 py-0.5 rounded bg-blue-100 text-blue-700">{{ doc.currentVersion.status }}</span>
+                <span class="ml-2" [class]="doc.currentVersion.status | statusChip">{{ doc.currentVersion.status }}</span>
               }
             </div>
             <div class="text-xs text-gray-500 mt-1">

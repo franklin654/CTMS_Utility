@@ -91,13 +91,7 @@
               [checked]="criteriaAnswers()[c.id] ?? false"
               (change)="toggleCriterion(c.id, $event.checked)"
             ></mat-checkbox>
-            <span
-              class="px-2 py-0.5 rounded text-xs font-medium"
-              [class.bg-green-100]="c.criterionType === 'INCLUSION'"
-              [class.text-green-700]="c.criterionType === 'INCLUSION'"
-              [class.bg-amber-100]="c.criterionType === 'EXCLUSION'"
-              [class.text-amber-700]="c.criterionType === 'EXCLUSION'"
-            >
+            <span class="chip" [class.chip-active]="c.criterionType === 'INCLUSION'" [class.chip-pending]="c.criterionType === 'EXCLUSION'">
               {{ c.criterionType === 'INCLUSION' ? 'Inclusion' : 'Exclusion' }}
             </span>
             <span class="text-sm text-gray-900">{{ c.label }}</span>

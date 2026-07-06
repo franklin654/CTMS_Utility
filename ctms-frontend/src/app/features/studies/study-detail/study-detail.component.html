@@ -3,8 +3,10 @@
     <div class="bg-white rounded-lg shadow p-6">
       <div class="flex flex-col gap-3 mb-4">
         <div class="min-w-0">
-          <h1 class="text-xl font-semibold text-gray-900 break-words">{{ s.name }}</h1>
-          <p class="text-sm text-gray-500">{{ s.studyCode }} &middot; Protocol {{ s.protocolId }}</p>
+          <h1 class="text-xl font-semibold text-ink break-words">{{ s.name }}</h1>
+          <p class="text-sm text-graphite">
+            <span class="code">{{ s.studyCode }}</span> &middot; Protocol <span class="code">{{ s.protocolId }}</span>
+          </p>
         </div>
         <div class="flex flex-wrap gap-2">
           <a
@@ -38,16 +40,10 @@
         </div>
       </div>
 
-      <!-- Status chip row -->
+      <!-- Lifecycle stepper -->
       <div class="flex items-center gap-2 mb-6">
         @for (status of allStatuses; track status) {
-          <span
-            class="px-3 py-1 rounded-full text-xs font-medium"
-            [class.bg-blue-600]="status === s.status"
-            [class.text-white]="status === s.status"
-            [class.bg-gray-100]="status !== s.status"
-            [class.text-gray-500]="status !== s.status"
-          >
+          <span [class]="status === s.status ? (status | statusChip) : 'chip chip-draft opacity-60'">
             {{ status }}
           </span>
         }
@@ -64,7 +60,7 @@
           <div><dt class="text-gray-500">Protocol Version</dt><dd>{{ s.protocolVersion }}</dd></div>
           <div><dt class="text-gray-500">Phase</dt><dd>{{ s.phase }}</dd></div>
           <div><dt class="text-gray-500">Sponsor</dt><dd>{{ s.sponsor }}</dd></div>
-          <div><dt class="text-gray-500">Status</dt><dd>{{ s.status }}</dd></div>
+          <div><dt class="text-gray-500">Status</dt><dd><span [class]="s.status | statusChip">{{ s.status }}</span></dd></div>
           <div><dt class="text-gray-500">Planned Start</dt><dd>{{ s.plannedStartDate ?? '&mdash;' }}</dd></div>
           <div><dt class="text-gray-500">Planned End</dt><dd>{{ s.plannedEndDate ?? '&mdash;' }}</dd></div>
           <div><dt class="text-gray-500">Actual Start</dt><dd>{{ s.actualStartDate ?? '&mdash;' }}</dd></div>
@@ -177,7 +173,7 @@
             <div class="text-sm font-medium text-gray-900">
               {{ h.fromStatus ?? 'START' }} &rarr; {{ h.toStatus }}
               @if (h.signed) {
-                <span class="ml-2 text-xs px-2 py-0.5 rounded bg-green-100 text-green-700">e-signed</span>
+                <span class="ml-2 chip chip-active">e-signed</span>
               }
             </div>
             <div class="text-xs text-gray-500">{{ h.changedByUsername }} &middot; {{ h.changedAt | date: 'medium' }}</div>

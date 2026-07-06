@@ -55,9 +55,9 @@
             <td class="py-2 pr-2">{{ doc.category }}</td>
             <td class="py-2 pr-2">
               @if (doc.currentVersion) {
-                <span class="text-xs px-2 py-0.5 rounded bg-green-100 text-green-700">Current</span>
+                <span class="chip chip-active">Current</span>
               } @else {
-                <span class="text-xs px-2 py-0.5 rounded bg-amber-100 text-amber-700">Pending Review</span>
+                <span class="chip chip-pending">Pending Review</span>
               }
             </td>
             <td class="py-2 pr-2">{{ doc.createdAt | date: 'mediumDate' }}</td>

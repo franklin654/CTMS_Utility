@@ -15,6 +15,7 @@ import {
   StudyStatusHistoryResponse,
 } from '../../../core/studies/study.service';
 import { fromIsoDate, toIsoDate } from '../../../core/utils/date-utils';
+import { StatusChipPipe } from '../../../core/utils/status-chip.pipe';
 import { plannedDateRangeValidator, STUDY_PHASES } from '../study-create/study-create.component';
 import { StudyCloseoutDialogComponent } from '../study-closeout-dialog/study-closeout-dialog.component';
 import { StudyTransitionDialogComponent } from '../study-transition-dialog/study-transition-dialog.component';
@@ -41,6 +42,7 @@ const ALL_STATUSES = ['DRAFT', 'ACTIVE', 'CONDUCT', 'CLOSEOUT'];
     DatePipe,
     HasRoleDirective,
     RouterLink,
+    StatusChipPipe,
   ],
   templateUrl: './study-detail.component.html',
 })
