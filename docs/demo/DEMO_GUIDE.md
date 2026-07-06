@@ -12,6 +12,7 @@
 2. Log in once as `demo.mgr` / `Demo2026!Pass` to confirm the seed data is there — you should see the study **"Oncology Combination Therapy Trial"** with 5 subjects across 2 sites.
 3. Open 2 browser windows/profiles side by side if one person is driving: one logged in as `demo.mgr` (or `demo.coord`), one logged in as `demo.auditor` — saves time switching accounts mid-demo.
 4. Decide who's driving. If splitting across the 5 people, a natural split is: **Presenter A** — intro + study/site/subject tour; **Presenter B** — consent gate + adverse event; **Presenter C** — financial (payment hold/release); **Presenter D** — protocol deviation + site activation; **Presenter E** — traceability report + close. One person can just as easily run the whole thing solo — the notes below work either way.
+5. **UI orientation (post-hardening pass):** navigation is now a left sidebar, not a top bar — every module (Studies, Sites, Subjects, Documents, Tasks, Payments, Rule Sets, Audit Log, etc.) is listed there, with a slim top bar for the notification bell and sign-out. All date fields use a real date-picker widget now (calendar icon, no more typing raw dates), and the Subjects/Sites list pages have a search + status filter bar at the top if you want to jump straight to a named subject/site instead of scrolling.
 
 **Demo accounts** (all password `Demo2026!Pass`):
 
@@ -135,6 +136,13 @@ Point out the CSV export button on the main audit log screen as well — same un
 
 If you have 1–2 minutes left: mention (don't necessarily log in) that subjects also get their own lightweight portal — visit schedule, document upload, profile, and self-service adverse-event reporting — reusing every mechanism just demoed underneath, just presented simply for a non-technical audience.
 
+## 8b. (Optional, if time remains) Recent UX Polish
+
+If there's still time, two quick things worth a 30-second look, both a direct response to internal UAT feedback:
+
+- On the **Sites** list, type a few letters into Search or pick a Status — narrows the list live, server-side (not just a client-side filter), and the same is now on the **Subjects** list.
+- On **Register Site**, the Study field is a live autocomplete now instead of a giant dropdown of every study — type a few letters of a study name or protocol ID and it narrows as you go.
+
 ---
 
 ## 9. Wrap-Up (≈30 sec)
@@ -156,9 +164,10 @@ If you have 1–2 minutes left: mention (don't necessarily log in) that subjects
 | Protocol deviation + site activation | 1:30 | 11:30 |
 | Traceability report | 1:30 | 13:00 |
 | (Optional) Patient portal | 1:00 | 14:00 |
-| Wrap-up | 0:30 | 14:30 |
+| (Optional) Recent UX polish | 0:30 | 14:30 |
+| Wrap-up | 0:30 | 15:00 |
 
-Cut the optional patient-portal beat first if you're running long; everything else is core.
+Cut the optional beats first if you're running long (UX polish, then patient portal) — everything else is core.
 
 ## If Something Goes Wrong
 
