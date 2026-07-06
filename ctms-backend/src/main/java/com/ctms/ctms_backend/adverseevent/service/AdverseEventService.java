@@ -12,6 +12,8 @@ import com.ctms.ctms_backend.adverseevent.exception.InvalidAdverseEventTransitio
 import com.ctms.ctms_backend.adverseevent.repository.AdverseEventRepository;
 import com.ctms.ctms_backend.audit.AuditAction;
 import com.ctms.ctms_backend.audit.AuditService;
+import com.ctms.ctms_backend.esignature.ESignature;
+import com.ctms.ctms_backend.esignature.ESignatureService;
 import com.ctms.ctms_backend.security.exception.InvalidCredentialsException;
 import com.ctms.ctms_backend.subject.entity.Subject;
 import com.ctms.ctms_backend.subject.exception.SubjectNotFoundException;
@@ -47,6 +49,7 @@ public class AdverseEventService {
     private final UserRepository userRepository;
     private final AuditService auditService;
     private final TaskService taskService;
+    private final ESignatureService eSignatureService;
 
     public AdverseEventService(
             AdverseEventRepository adverseEventRepository,
@@ -54,13 +57,15 @@ public class AdverseEventService {
             VisitRepository visitRepository,
             UserRepository userRepository,
             AuditService auditService,
-            TaskService taskService) {
+            TaskService taskService,
+            ESignatureService eSignatureService) {
         this.adverseEventRepository = adverseEventRepository;
         this.subjectRepository = subjectRepository;
         this.visitRepository = visitRepository;
         this.userRepository = userRepository;
         this.auditService = auditService;
         this.taskService = taskService;
+        this.eSignatureService = eSignatureService;
     }
 
     @Transactional
@@ -121,11 +126,14 @@ public class AdverseEventService {
         if (ae.getStatus() != AdverseEventStatus.UNDER_REVIEW) {
             throw new InvalidAdverseEventTransitionException("Cannot resolve adverse event from status " + ae.getStatus());
         }
+
+        ESignature signature = eSignatureService.sign(actorUsername, req.password(), "AdverseEvent", String.valueOf(id), req.resolutionNotes());
         User actor = currentUser(actorUsername);
 
         ae.setStatus(AdverseEventStatus.RESOLVED);
         ae.setResolutionNotes(req.resolutionNotes());
         ae.setResolvedAt(Instant.now());
+        ae.setEsignature(signature);
         ae.setModifiedBy(actor);
         ae = adverseEventRepository.save(ae);
 

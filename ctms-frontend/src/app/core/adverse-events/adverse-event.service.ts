@@ -43,7 +43,7 @@ export class AdverseEventService {
     return this.http.post<AdverseEventResponse>(`/api/adverse-events/${id}/transition`, { targetStatus, justification });
   }
 
-  resolve(id: number, resolutionNotes: string): Observable<AdverseEventResponse> {
-    return this.http.post<AdverseEventResponse>(`/api/adverse-events/${id}/resolve`, { resolutionNotes });
+  resolve(id: number, resolutionNotes: string, password: string): Observable<AdverseEventResponse> {
+    return this.http.post<AdverseEventResponse>(`/api/adverse-events/${id}/resolve`, { resolutionNotes, password });
   }
 }

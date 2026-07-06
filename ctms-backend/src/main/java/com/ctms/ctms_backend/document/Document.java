@@ -1,6 +1,7 @@
 package com.ctms.ctms_backend.document;
 
 import com.ctms.ctms_backend.study.entity.Study;
+import com.ctms.ctms_backend.subject.entity.Subject;
 import com.ctms.ctms_backend.user.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -45,6 +46,14 @@ public class Document {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "study_id")
     private Study study;
+
+    /** BL Epic 11 Story 01 (consent-before-activity gate) -- nullable, set only when a document is
+     * specifically about one Subject (e.g. their signed informed consent), as opposed to a
+     * study-wide document. Deliberately separate from `study`: a per-subject consent check must
+     * never be satisfied by another subject's document just because they share a study. */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "subject_id")
+    private Subject subject;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "current_version_id")

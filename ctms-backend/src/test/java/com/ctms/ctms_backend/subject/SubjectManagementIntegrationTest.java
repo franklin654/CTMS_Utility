@@ -152,7 +152,7 @@ class SubjectManagementIntegrationTest {
         assertEquals("ENROLLED", afterEnrolled.status());
 
         SubjectResponse withdrawn = subjectLifecycleService.withdraw(
-                enrolled.id(), new WithdrawSubjectRequest("lost to follow-up"), coordinator.getUsername());
+                enrolled.id(), new WithdrawSubjectRequest("lost to follow-up", "Integration!Test2026Pass"), coordinator.getUsername());
         assertEquals("WITHDRAWN", withdrawn.status());
     }
 }

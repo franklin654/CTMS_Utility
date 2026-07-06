@@ -7,6 +7,9 @@ import com.ctms.ctms_backend.document.service.DocumentAccessControlService;
 import com.ctms.ctms_backend.security.exception.InvalidCredentialsException;
 import com.ctms.ctms_backend.study.entity.Study;
 import com.ctms.ctms_backend.study.repository.StudyRepository;
+import com.ctms.ctms_backend.subject.entity.Subject;
+import com.ctms.ctms_backend.subject.exception.SubjectNotFoundException;
+import com.ctms.ctms_backend.subject.repository.SubjectRepository;
 import com.ctms.ctms_backend.user.User;
 import com.ctms.ctms_backend.user.UserRepository;
 import java.io.ByteArrayInputStream;
@@ -33,6 +36,7 @@ public class DocumentService {
     private final StorageService storageService;
     private final UserRepository userRepository;
     private final StudyRepository studyRepository;
+    private final SubjectRepository subjectRepository;
     private final AuditService auditService;
     private final DocumentAccessControlService accessControlService;
 
@@ -42,6 +46,7 @@ public class DocumentService {
             StorageService storageService,
             UserRepository userRepository,
             StudyRepository studyRepository,
+            SubjectRepository subjectRepository,
             AuditService auditService,
             DocumentAccessControlService accessControlService) {
         this.documentRepository = documentRepository;
@@ -49,6 +54,7 @@ public class DocumentService {
         this.storageService = storageService;
         this.userRepository = userRepository;
         this.studyRepository = studyRepository;
+        this.subjectRepository = subjectRepository;
         this.auditService = auditService;
         this.accessControlService = accessControlService;
     }
@@ -58,7 +64,7 @@ public class DocumentService {
      * pass through the Phase 2 approval workflow before superseding it (see {@link #addVersion}). */
     @Transactional
     public DocumentResponse createDocument(
-            String title, String category, Long studyId, String uploaderUsername, MultipartFile file) {
+            String title, String category, Long studyId, Long subjectId, String uploaderUsername, MultipartFile file) {
         User uploader = currentUser(uploaderUsername);
 
         Document document = new Document();
@@ -67,6 +73,9 @@ public class DocumentService {
         document.setOwner(uploader);
         if (studyId != null) {
             document.setStudy(resolveStudy(studyId));
+        }
+        if (subjectId != null) {
+            document.setSubject(resolveSubject(subjectId));
         }
         document = documentRepository.save(document);
 
@@ -216,6 +225,10 @@ public class DocumentService {
 
     private Study resolveStudy(Long studyId) {
         return studyRepository.findById(studyId).orElseThrow(NoSuchElementException::new);
+    }
+
+    private Subject resolveSubject(Long subjectId) {
+        return subjectRepository.findById(subjectId).orElseThrow(() -> new SubjectNotFoundException(subjectId));
     }
 
     private User currentUser(String username) {

@@ -10,6 +10,7 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.ctms.ctms_backend.adverseevent.dto.AdverseEventResponse;
 import com.ctms.ctms_backend.adverseevent.dto.ReportAdverseEventRequest;
@@ -20,6 +21,9 @@ import com.ctms.ctms_backend.adverseevent.entity.AdverseEventStatus;
 import com.ctms.ctms_backend.adverseevent.exception.InvalidAdverseEventTransitionException;
 import com.ctms.ctms_backend.adverseevent.repository.AdverseEventRepository;
 import com.ctms.ctms_backend.audit.AuditService;
+import com.ctms.ctms_backend.esignature.ESignature;
+import com.ctms.ctms_backend.esignature.ESignatureService;
+import com.ctms.ctms_backend.security.exception.InvalidCredentialsException;
 import com.ctms.ctms_backend.site.entity.Site;
 import com.ctms.ctms_backend.study.entity.Study;
 import com.ctms.ctms_backend.subject.entity.Subject;
@@ -45,6 +49,7 @@ class AdverseEventServiceTest {
     @Mock private UserRepository userRepository;
     @Mock private AuditService auditService;
     @Mock private TaskService taskService;
+    @Mock private ESignatureService eSignatureService;
 
     @InjectMocks
     private AdverseEventService adverseEventService;
@@ -138,7 +143,10 @@ class AdverseEventServiceTest {
     @Test
     void resolve_fromUnderReview_succeeds() {
         openEvent.setStatus(AdverseEventStatus.UNDER_REVIEW);
-        ResolveAdverseEventRequest req = new ResolveAdverseEventRequest("Explained and resolved");
+        when(eSignatureService.sign("coordinator1", "correct-password", "AdverseEvent", "300", "Explained and resolved"))
+                .thenReturn(new ESignature(actor, "AdverseEvent", "300", "Explained and resolved"));
+
+        ResolveAdverseEventRequest req = new ResolveAdverseEventRequest("Explained and resolved", "correct-password");
         AdverseEventResponse response = adverseEventService.resolve(300L, req, "coordinator1");
         assertEquals("RESOLVED", response.status());
         assertEquals("Explained and resolved", response.resolutionNotes());
@@ -146,7 +154,18 @@ class AdverseEventServiceTest {
 
     @Test
     void resolve_fromOpen_throws() {
-        ResolveAdverseEventRequest req = new ResolveAdverseEventRequest("too early");
+        ResolveAdverseEventRequest req = new ResolveAdverseEventRequest("too early", "correct-password");
         assertThrows(InvalidAdverseEventTransitionException.class, () -> adverseEventService.resolve(300L, req, "coordinator1"));
+    }
+
+    @Test
+    void resolve_wrongPassword_throwsAndLeavesStatusUntouched() {
+        openEvent.setStatus(AdverseEventStatus.UNDER_REVIEW);
+        when(eSignatureService.sign("coordinator1", "wrong-password", "AdverseEvent", "300", "Explained and resolved"))
+                .thenThrow(new InvalidCredentialsException());
+
+        ResolveAdverseEventRequest req = new ResolveAdverseEventRequest("Explained and resolved", "wrong-password");
+        assertThrows(InvalidCredentialsException.class, () -> adverseEventService.resolve(300L, req, "coordinator1"));
+        assertEquals(AdverseEventStatus.UNDER_REVIEW, openEvent.getStatus());
     }
 }

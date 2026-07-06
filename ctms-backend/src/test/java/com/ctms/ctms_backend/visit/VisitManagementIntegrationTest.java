@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.ctms.ctms_backend.audit.AuditLogRepository;
+import com.ctms.ctms_backend.document.DocumentService;
 import com.ctms.ctms_backend.site.dto.CreateSiteRequest;
 import com.ctms.ctms_backend.site.dto.SiteResponse;
 import com.ctms.ctms_backend.site.service.SiteService;
@@ -36,6 +37,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -53,6 +55,7 @@ class VisitManagementIntegrationTest {
     @Autowired private SubjectLifecycleService subjectLifecycleService;
     @Autowired private VisitTemplateService visitTemplateService;
     @Autowired private VisitService visitService;
+    @Autowired private DocumentService documentService;
     @Autowired private UserRepository userRepository;
     @Autowired private RoleRepository roleRepository;
     @Autowired private PasswordEncoder passwordEncoder;
@@ -90,6 +93,14 @@ class VisitManagementIntegrationTest {
         return subjectService.enrollSubject(req, coordinatorUsername);
     }
 
+    /** Epic 11 Story 01 consent gate -- markCompleted requires a CURRENT INFORMED_CONSENT document
+     * on file for the subject. */
+    private void uploadConsent(Long studyId, Long subjectId, String actorUsername) {
+        documentService.createDocument(
+                "Consent Form", "INFORMED_CONSENT", studyId, subjectId, actorUsername,
+                new MockMultipartFile("file", "consent.pdf", "application/pdf", "content".getBytes()));
+    }
+
     @Test
     void enrollment_autoGeneratesVisitSchedule_anchoredToScreeningDate() {
         User coordinator = createTestUser("visit-coord-it1", Role.SITE_COORDINATOR);
@@ -125,6 +136,7 @@ class VisitManagementIntegrationTest {
         SubjectResponse subjectB = enrollSubject(coordinator.getUsername(), study.id(), site.id(), screeningDate);
 
         // Complete subject B's visit before the template changes -- it must stay untouched.
+        uploadConsent(study.id(), subjectB.id(), coordinator.getUsername());
         VisitResponse subjectBVisit = visitService.schedule(subjectB.id()).visits().get(0);
         visitService.markCompleted(subjectBVisit.id(), new MarkVisitCompletedRequest(screeningDate, null, "done"), coordinator.getUsername());
 
@@ -162,6 +174,7 @@ class VisitManagementIntegrationTest {
         VisitResponse visit2 = visits.get(1);
         VisitResponse visit3 = visits.get(2);
 
+        uploadConsent(study.id(), subject.id(), coordinator.getUsername());
         visitService.markCompleted(visit1.id(), new MarkVisitCompletedRequest(visit1.scheduledDate(), null, "done"), coordinator.getUsername());
         visitService.markMissed(visit2.id(), new MarkVisitMissedRequest("Subject unreachable"), coordinator.getUsername());
 
@@ -193,7 +206,7 @@ class VisitManagementIntegrationTest {
         SubjectResponse activeSubject = enrollSubject(coordinator.getUsername(), study.id(), site.id(), screeningDate);
         SubjectResponse withdrawnSubject = enrollSubject(coordinator.getUsername(), study.id(), site.id(), screeningDate);
         subjectLifecycleService.withdraw(
-                withdrawnSubject.id(), new WithdrawSubjectRequest("lost to follow-up"), coordinator.getUsername());
+                withdrawnSubject.id(), new WithdrawSubjectRequest("lost to follow-up", "Integration!Test2026Pass"), coordinator.getUsername());
 
         // No templates existed at enrollment time -- both subjects start with an empty schedule.
         assertEquals(0, visitService.schedule(activeSubject.id()).visits().size());
@@ -222,6 +235,7 @@ class VisitManagementIntegrationTest {
         LocalDate screeningDate = LocalDate.now().minusDays(10);
         SubjectResponse subject = enrollSubject(coordinator.getUsername(), study.id(), site.id(), screeningDate);
 
+        uploadConsent(study.id(), subject.id(), coordinator.getUsername());
         VisitResponse protocolVisit = visitService.schedule(subject.id()).visits().get(0);
         visitService.markCompleted(protocolVisit.id(), new MarkVisitCompletedRequest(screeningDate, null, "done"), coordinator.getUsername());
 

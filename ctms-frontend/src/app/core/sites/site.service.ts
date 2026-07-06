@@ -121,7 +121,7 @@ export class SiteService {
     return this.http.put<ChecklistItemResponse>(`/api/sites/${id}/checklist/${itemType}`, req);
   }
 
-  attemptActivation(id: number): Observable<ActivationAttemptResponse> {
-    return this.http.post<ActivationAttemptResponse>(`/api/sites/${id}/attempt-activation`, {});
+  attemptActivation(id: number, password: string, reason: string): Observable<ActivationAttemptResponse> {
+    return this.http.post<ActivationAttemptResponse>(`/api/sites/${id}/attempt-activation`, { password, reason });
   }
 }

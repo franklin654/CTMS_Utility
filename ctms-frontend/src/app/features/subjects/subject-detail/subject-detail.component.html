@@ -102,7 +102,17 @@
                 <mat-label>Reason for withdrawal</mat-label>
                 <input matInput [formControl]="reasonCodeControl" />
               </mat-form-field>
-              <button mat-flat-button color="warn" (click)="confirmWithdraw()" [disabled]="reasonCodeControl.invalid" class="mb-4">
+              <mat-form-field appearance="outline" class="flex-1">
+                <mat-label>Password (e-signature)</mat-label>
+                <input matInput type="password" [formControl]="withdrawPasswordControl" />
+              </mat-form-field>
+              <button
+                mat-flat-button
+                color="warn"
+                (click)="confirmWithdraw()"
+                [disabled]="reasonCodeControl.invalid || withdrawPasswordControl.invalid"
+                class="mb-4"
+              >
                 Confirm Withdrawal
               </button>
               <button mat-button (click)="showWithdrawForm.set(false)" class="mb-4">Cancel</button>
@@ -492,7 +502,17 @@
                           <mat-label>Resolution Notes</mat-label>
                           <input matInput [formControl]="aeResolutionNotesControl" />
                         </mat-form-field>
-                        <button mat-flat-button color="primary" (click)="submitAeResolve(ae.id)" [disabled]="aeResolutionNotesControl.invalid" class="mb-4">
+                        <mat-form-field appearance="outline">
+                          <mat-label>Password (e-signature)</mat-label>
+                          <input matInput type="password" [formControl]="aeResolvePasswordControl" />
+                        </mat-form-field>
+                        <button
+                          mat-flat-button
+                          color="primary"
+                          (click)="submitAeResolve(ae.id)"
+                          [disabled]="aeResolutionNotesControl.invalid || aeResolvePasswordControl.invalid"
+                          class="mb-4"
+                        >
                           Confirm
                         </button>
                         <button mat-button (click)="cancelAeAction()" class="mb-4">Cancel</button>
@@ -506,6 +526,73 @@
         }
         @if (adverseEvents().length === 0) {
           <p class="text-sm text-gray-500 text-center py-4">No adverse events reported.</p>
+        }
+      </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="text-sm font-semibold text-gray-700">Protocol Deviations</h2>
+        <button *appHasRole="['SITE_COORDINATOR', 'INVESTIGATOR', 'ADMIN']" mat-stroked-button (click)="openProtocolDeviationForm()">
+          Report Protocol Deviation
+        </button>
+      </div>
+
+      @if (protocolDeviationErrorMessage()) {
+        <p class="text-sm text-red-600 mb-3">{{ protocolDeviationErrorMessage() }}</p>
+      }
+
+      @if (showProtocolDeviationForm()) {
+        <form [formGroup]="protocolDeviationForm" class="grid grid-cols-1 sm:grid-cols-2 gap-3 border rounded p-3 mb-4">
+          <mat-form-field appearance="outline" class="sm:col-span-2">
+            <mat-label>Description</mat-label>
+            <textarea matInput formControlName="description" rows="2"></textarea>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Severity</mat-label>
+            <mat-select formControlName="severity">
+              <mat-option value="MINOR">Minor</mat-option>
+              <mat-option value="MAJOR">Major</mat-option>
+              <mat-option value="CRITICAL">Critical</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Deviation Date</mat-label>
+            <input matInput type="date" formControlName="deviationDate" />
+          </mat-form-field>
+          <div class="sm:col-span-2 flex gap-2">
+            <button
+              mat-flat-button
+              color="primary"
+              type="button"
+              (click)="submitProtocolDeviation()"
+              [disabled]="protocolDeviationForm.invalid"
+            >
+              Report
+            </button>
+            <button mat-button type="button" (click)="cancelProtocolDeviationForm()">Cancel</button>
+          </div>
+        </form>
+      }
+
+      <div class="flex flex-col gap-3">
+        @for (deviation of protocolDeviations(); track deviation.id) {
+          <div
+            class="border rounded p-3"
+            [class.bg-red-50]="deviation.severity === 'CRITICAL'"
+            [class.border-red-200]="deviation.severity === 'CRITICAL'"
+          >
+            <div class="text-sm font-medium text-gray-900">
+              {{ deviation.description }}
+              <span class="ml-2 text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-600">{{ deviation.severity }}</span>
+            </div>
+            <div class="text-xs text-gray-500 mt-1">
+              {{ deviation.deviationDate | date: 'mediumDate' }} &middot; reported by {{ deviation.createdByUsername }}
+            </div>
+          </div>
+        }
+        @if (protocolDeviations().length === 0) {
+          <p class="text-sm text-gray-500 text-center py-4">No protocol deviations reported.</p>
         }
       </div>
     </div>

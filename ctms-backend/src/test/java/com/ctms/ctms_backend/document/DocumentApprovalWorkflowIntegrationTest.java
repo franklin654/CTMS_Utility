@@ -68,7 +68,7 @@ class DocumentApprovalWorkflowIntegrationTest {
         User qa = createUser("doc-qa-it", Role.QA_COMPLIANCE_AUDITOR);
 
         var created = documentService.createDocument(
-                "Protocol", "PROTOCOL", null, manager.getUsername(), file("v1.txt", "version one"));
+                "Protocol", "PROTOCOL", null, null, manager.getUsername(), file("v1.txt", "version one"));
         assertEquals("CURRENT", created.currentVersion().status());
 
         var v2 = documentService.addVersion(created.id(), manager.getUsername(), file("v2.txt", "version two"));
@@ -114,7 +114,7 @@ class DocumentApprovalWorkflowIntegrationTest {
     void rejectionPath_requiresCommentAndIsTerminal() {
         User manager = createUser("doc-mgr-it2", Role.STUDY_MANAGER);
         var created = documentService.createDocument(
-                "SOP", "SOP", null, manager.getUsername(), file("v1.txt", "sop v1"));
+                "SOP", "SOP", null, null, manager.getUsername(), file("v1.txt", "sop v1"));
         documentService.addVersion(created.id(), manager.getUsername(), file("v2-bad.txt", "bad content"));
         workflowService.submitForReview(created.id(), 2, manager.getUsername());
 
@@ -131,7 +131,7 @@ class DocumentApprovalWorkflowIntegrationTest {
         // FINANCIAL/CRA_MONITOR deny rule is seeded in V4 migration.
         User manager = createUser("doc-mgr-it3", Role.STUDY_MANAGER);
         var created = documentService.createDocument(
-                "Budget", "FINANCIAL", null, manager.getUsername(), file("budget.txt", "numbers"));
+                "Budget", "FINANCIAL", null, null, manager.getUsername(), file("budget.txt", "numbers"));
 
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
                 "cra-it", null, java.util.List.of(new SimpleGrantedAuthority("ROLE_CRA_MONITOR"))));

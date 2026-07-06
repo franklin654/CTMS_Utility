@@ -1,5 +1,6 @@
 package com.ctms.ctms_backend.subject.entity;
 
+import com.ctms.ctms_backend.esignature.ESignature;
 import com.ctms.ctms_backend.user.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -50,6 +51,12 @@ public class SubjectStatusHistory {
 
     @Column(name = "changed_at", nullable = false)
     private Instant changedAt;
+
+    /** BL Epic 11 Story 02 -- populated only for withdrawal, which requires password
+     * re-authentication (mirrors StudyStatusHistory.esignature exactly). */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "esignature_id")
+    private ESignature esignature;
 
     @PrePersist
     void onCreate() {

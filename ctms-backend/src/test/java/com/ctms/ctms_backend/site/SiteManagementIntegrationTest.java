@@ -101,7 +101,9 @@ class SiteManagementIntegrationTest {
                 new UpdateChecklistItemRequest("COMPLETE", null, "done"), manager.getUsername());
 
         SiteActivationBlockedException ex = assertThrows(SiteActivationBlockedException.class,
-                () -> siteActivationService.attemptActivation(site.id(), manager.getUsername()));
+                () -> siteActivationService.attemptActivation(
+                        site.id(), new com.ctms.ctms_backend.site.dto.AttemptActivationRequest("Integration!Test2026Pass", "attempting"),
+                        manager.getUsername()));
         assertEquals(List.of("Site Initiation Visit"), ex.getMissingItems());
 
         // Complete the last item -- should auto-activate.

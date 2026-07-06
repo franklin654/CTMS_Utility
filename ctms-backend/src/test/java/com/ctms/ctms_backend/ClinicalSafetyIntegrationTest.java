@@ -187,14 +187,14 @@ class ClinicalSafetyIntegrationTest {
         assertEquals("OPEN", ae.status());
 
         assertThrows(InvalidAdverseEventTransitionException.class, () -> adverseEventService.resolve(
-                ae.id(), new ResolveAdverseEventRequest("too early"), investigator.getUsername()));
+                ae.id(), new ResolveAdverseEventRequest("too early", "Integration!Test2026Pass"), investigator.getUsername()));
 
         AdverseEventResponse underReview = adverseEventService.transition(
                 ae.id(), new TransitionAdverseEventRequest("UNDER_REVIEW", "investigating"), investigator.getUsername());
         assertEquals("UNDER_REVIEW", underReview.status());
 
         AdverseEventResponse resolved = adverseEventService.resolve(
-                ae.id(), new ResolveAdverseEventRequest("Resolved after monitoring"), investigator.getUsername());
+                ae.id(), new ResolveAdverseEventRequest("Resolved after monitoring", "Integration!Test2026Pass"), investigator.getUsername());
         assertEquals("RESOLVED", resolved.status());
         assertEquals("Resolved after monitoring", resolved.resolutionNotes());
 

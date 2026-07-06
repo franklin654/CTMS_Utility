@@ -9,6 +9,7 @@ import com.ctms.ctms_backend.budget.dto.BudgetVersionResponse;
 import com.ctms.ctms_backend.budget.dto.CreateBudgetRequest;
 import com.ctms.ctms_backend.budget.dto.CreateBudgetVersionRequest;
 import com.ctms.ctms_backend.budget.service.BudgetService;
+import com.ctms.ctms_backend.document.DocumentService;
 import com.ctms.ctms_backend.esignature.ESignatureRepository;
 import com.ctms.ctms_backend.payment.dto.HoldPaymentRequest;
 import com.ctms.ctms_backend.payment.dto.PaymentResponse;
@@ -46,6 +47,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -61,6 +63,7 @@ class FinancialManagementIntegrationTest {
     @Autowired private SubjectService subjectService;
     @Autowired private VisitTemplateService visitTemplateService;
     @Autowired private VisitService visitService;
+    @Autowired private DocumentService documentService;
     @Autowired private BudgetService budgetService;
     @Autowired private PaymentService paymentService;
     @Autowired private PaymentRepository paymentRepository;
@@ -112,6 +115,12 @@ class FinancialManagementIntegrationTest {
                 coordinator.getUsername());
         SubjectVisitScheduleResponse schedule = visitService.schedule(subject.id());
         VisitResponse visit = schedule.visits().get(0);
+
+        // Epic 11 Story 01 consent gate -- markCompleted requires a CURRENT INFORMED_CONSENT
+        // document on file for this subject.
+        documentService.createDocument(
+                "Consent Form", "INFORMED_CONSENT", study.id(), subject.id(), coordinator.getUsername(),
+                new MockMultipartFile("file", "consent.pdf", "application/pdf", "content".getBytes()));
 
         long paymentsBefore = paymentRepository.count();
         visitService.markCompleted(visit.id(), new MarkVisitCompletedRequest(LocalDate.now(), null, "done"), coordinator.getUsername());
@@ -175,7 +184,9 @@ class FinancialManagementIntegrationTest {
 
         long paymentsBefore = paymentRepository.count();
         completeAllChecklistItems(site.id(), manager.getUsername());
-        siteActivationService.attemptActivation(site.id(), manager.getUsername());
+        siteActivationService.attemptActivation(
+                site.id(), new com.ctms.ctms_backend.site.dto.AttemptActivationRequest("Integration!Test2026Pass", "all prerequisites met"),
+                manager.getUsername());
         long paymentsAfter = paymentRepository.count();
         assertEquals(1, paymentsAfter - paymentsBefore);
 

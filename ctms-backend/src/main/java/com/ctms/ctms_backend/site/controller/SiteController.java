@@ -2,6 +2,7 @@ package com.ctms.ctms_backend.site.controller;
 
 import com.ctms.ctms_backend.site.dto.ActivationAttemptResponse;
 import com.ctms.ctms_backend.site.dto.AssignCraRequest;
+import com.ctms.ctms_backend.site.dto.AttemptActivationRequest;
 import com.ctms.ctms_backend.site.dto.ChecklistItemResponse;
 import com.ctms.ctms_backend.site.dto.CreateSiteRequest;
 import com.ctms.ctms_backend.site.dto.SiteResponse;
@@ -95,7 +96,8 @@ public class SiteController {
 
     @PostMapping("/{id}/attempt-activation")
     @PreAuthorize(WRITE_ROLES)
-    public ActivationAttemptResponse attemptActivation(Principal principal, @PathVariable Long id) {
-        return siteActivationService.attemptActivation(id, principal.getName());
+    public ActivationAttemptResponse attemptActivation(
+            Principal principal, @PathVariable Long id, @Valid @RequestBody AttemptActivationRequest req) {
+        return siteActivationService.attemptActivation(id, req, principal.getName());
     }
 }

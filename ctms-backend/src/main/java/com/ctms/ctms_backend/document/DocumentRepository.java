@@ -16,6 +16,11 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
      * has a document of this category whose CURRENT version has actually been approved. */
     boolean existsByStudyIdAndCategoryAndCurrentVersionStatus(Long studyId, String category, DocumentVersionStatus status);
 
+    /** Backs ConsentGateService's per-Subject consent check (Epic 11 Story 01) -- deliberately
+     * scoped by subject, not study: a study-level check would incorrectly clear the gate for every
+     * subject in a study the moment any ONE subject's consent is uploaded. */
+    boolean existsBySubjectIdAndCategoryAndCurrentVersionStatus(Long subjectId, String category, DocumentVersionStatus status);
+
     /** Excludes documents whose category is DENY-listed for any of the caller's roles, at the DB
      * level (not a post-fetch Java filter, which would break Pageable counts) -- Story 05. */
     @Query("SELECT d FROM Document d WHERE d.category IS NULL OR d.category NOT IN "

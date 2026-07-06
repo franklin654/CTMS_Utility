@@ -110,8 +110,8 @@ export class SubjectService {
     return this.http.post<SubjectResponse>(`/api/subjects/${id}/transition`, { targetStatus, justification });
   }
 
-  withdraw(id: number, reasonCode: string): Observable<SubjectResponse> {
-    return this.http.post<SubjectResponse>(`/api/subjects/${id}/withdraw`, { reasonCode });
+  withdraw(id: number, reasonCode: string, password: string): Observable<SubjectResponse> {
+    return this.http.post<SubjectResponse>(`/api/subjects/${id}/withdraw`, { reasonCode, password });
   }
 
   history(id: number): Observable<SubjectStatusHistoryResponse[]> {

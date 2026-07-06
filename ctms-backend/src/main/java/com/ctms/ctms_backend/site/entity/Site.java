@@ -1,5 +1,6 @@
 package com.ctms.ctms_backend.site.entity;
 
+import com.ctms.ctms_backend.esignature.ESignature;
 import com.ctms.ctms_backend.study.entity.Study;
 import com.ctms.ctms_backend.user.User;
 import jakarta.persistence.Column;
@@ -87,6 +88,12 @@ public class Site {
 
     @Column(name = "activation_date")
     private LocalDate activationDate;
+
+    /** BL Epic 11 Story 02 -- populated only when this Site is activated, which requires password
+     * re-authentication (mirrors StudyStatusHistory.esignature exactly). */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "esignature_id")
+    private ESignature esignature;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "assigned_cra_id")

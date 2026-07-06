@@ -5,7 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
-import { AuditLogResponse, AuditLogService } from '../../../core/audit/audit-log.service';
+import { AuditLogResponse, AuditLogService, TraceabilityResponse } from '../../../core/audit/audit-log.service';
 
 @Component({
   selector: 'app-audit-log',
@@ -20,6 +20,8 @@ export class AuditLogComponent implements OnInit {
   readonly totalElements = signal(0);
   readonly pageSize = signal(50);
   readonly pageIndex = signal(0);
+  readonly traceability = signal<TraceabilityResponse | null>(null);
+  readonly traceabilityErrorMessage = signal<string | null>(null);
 
   constructor(private readonly auditLogService: AuditLogService) {}
 
@@ -57,5 +59,22 @@ export class AuditLogComponent implements OnInit {
       a.click();
       URL.revokeObjectURL(url);
     });
+  }
+
+  get canViewTraceability(): boolean {
+    return !!this.entityName.value.trim() && !!this.entityId.value.trim();
+  }
+
+  viewTraceability(): void {
+    this.traceabilityErrorMessage.set(null);
+    this.auditLogService.traceability(this.entityName.value.trim(), this.entityId.value.trim()).subscribe({
+      next: (result) => this.traceability.set(result),
+      error: (err) => this.traceabilityErrorMessage.set(err.error?.message ?? 'Could not load traceability report.'),
+    });
+  }
+
+  closeTraceability(): void {
+    this.traceability.set(null);
+    this.traceabilityErrorMessage.set(null);
   }
 }

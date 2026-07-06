@@ -10,6 +10,10 @@ import { ActivatedRoute } from '@angular/router';
 import { HasRoleDirective } from '../../../core/auth/has-role.directive';
 import { AdverseEventResponse, AdverseEventService } from '../../../core/adverse-events/adverse-event.service';
 import {
+  ProtocolDeviationResponse,
+  ProtocolDeviationService,
+} from '../../../core/protocol-deviations/protocol-deviation.service';
+import {
   PortalAccountResponse,
   SubjectResponse,
   SubjectService,
@@ -76,11 +80,16 @@ export class SubjectDetailComponent implements OnInit {
   readonly showAdverseEventForm = signal(false);
   readonly openAeAction = signal<{ id: number; type: 'transition' | 'resolve' } | null>(null);
 
+  readonly protocolDeviations = signal<ProtocolDeviationResponse[]>([]);
+  readonly protocolDeviationErrorMessage = signal<string | null>(null);
+  readonly showProtocolDeviationForm = signal(false);
+
   readonly portalAccountErrorMessage = signal<string | null>(null);
   readonly portalAccountResult = signal<PortalAccountResponse | null>(null);
 
   readonly justificationControl = new FormControl('', { nonNullable: true, validators: Validators.required });
   readonly reasonCodeControl = new FormControl('', { nonNullable: true, validators: Validators.required });
+  readonly withdrawPasswordControl = new FormControl('', { nonNullable: true, validators: Validators.required });
 
   readonly completeVisitForm = new FormGroup({
     actualDate: new FormControl('', { nonNullable: true, validators: Validators.required }),
@@ -123,6 +132,13 @@ export class SubjectDetailComponent implements OnInit {
 
   readonly aeJustificationControl = new FormControl('', { nonNullable: true, validators: Validators.required });
   readonly aeResolutionNotesControl = new FormControl('', { nonNullable: true, validators: Validators.required });
+  readonly aeResolvePasswordControl = new FormControl('', { nonNullable: true, validators: Validators.required });
+
+  readonly protocolDeviationForm = new FormGroup({
+    description: new FormControl('', { nonNullable: true, validators: Validators.required }),
+    severity: new FormControl<'MINOR' | 'MAJOR' | 'CRITICAL'>('MINOR', { nonNullable: true }),
+    deviationDate: new FormControl('', { nonNullable: true, validators: Validators.required }),
+  });
 
   readonly editForm = new FormGroup({
     firstName: new FormControl('', { nonNullable: true, validators: Validators.required }),
@@ -144,6 +160,7 @@ export class SubjectDetailComponent implements OnInit {
     private readonly visitService: VisitService,
     private readonly testResultService: TestResultService,
     private readonly adverseEventService: AdverseEventService,
+    private readonly protocolDeviationService: ProtocolDeviationService,
   ) {}
 
   ngOnInit(): void {
@@ -157,6 +174,7 @@ export class SubjectDetailComponent implements OnInit {
     this.loadVisits();
     this.loadTestResults();
     this.loadAdverseEvents();
+    this.loadProtocolDeviations();
   }
 
   loadTestResults(): void {
@@ -295,6 +313,7 @@ export class SubjectDetailComponent implements OnInit {
   openAeResolve(id: number): void {
     this.adverseEventErrorMessage.set(null);
     this.aeResolutionNotesControl.reset('');
+    this.aeResolvePasswordControl.reset('');
     this.openAeAction.set({ id, type: 'resolve' });
   }
 
@@ -317,17 +336,57 @@ export class SubjectDetailComponent implements OnInit {
   }
 
   submitAeResolve(id: number): void {
-    if (this.aeResolutionNotesControl.invalid) {
+    if (this.aeResolutionNotesControl.invalid || this.aeResolvePasswordControl.invalid) {
       return;
     }
     this.adverseEventErrorMessage.set(null);
-    this.adverseEventService.resolve(id, this.aeResolutionNotesControl.value).subscribe({
+    this.adverseEventService.resolve(id, this.aeResolutionNotesControl.value, this.aeResolvePasswordControl.value).subscribe({
       next: () => {
         this.openAeAction.set(null);
         this.loadAdverseEvents();
       },
-      error: (err) => this.adverseEventErrorMessage.set(err.error?.message ?? 'Could not resolve adverse event.'),
+      error: (err) => {
+        const message =
+          err.status === 401 ? 'Incorrect password. Please try again.' : (err.error?.message ?? 'Could not resolve adverse event.');
+        this.adverseEventErrorMessage.set(message);
+      },
     });
+  }
+
+  loadProtocolDeviations(): void {
+    this.protocolDeviationService.list(this.subjectId).subscribe((deviations) => this.protocolDeviations.set(deviations));
+  }
+
+  openProtocolDeviationForm(): void {
+    this.protocolDeviationErrorMessage.set(null);
+    this.protocolDeviationForm.reset({ description: '', severity: 'MINOR', deviationDate: new Date().toISOString().slice(0, 10) });
+    this.showProtocolDeviationForm.set(true);
+  }
+
+  cancelProtocolDeviationForm(): void {
+    this.showProtocolDeviationForm.set(false);
+  }
+
+  submitProtocolDeviation(): void {
+    if (this.protocolDeviationForm.invalid) {
+      return;
+    }
+    const raw = this.protocolDeviationForm.getRawValue();
+    this.protocolDeviationErrorMessage.set(null);
+    this.protocolDeviationService
+      .report({
+        subjectId: this.subjectId,
+        description: raw.description,
+        severity: raw.severity,
+        deviationDate: raw.deviationDate,
+      })
+      .subscribe({
+        next: () => {
+          this.showProtocolDeviationForm.set(false);
+          this.loadProtocolDeviations();
+        },
+        error: (err) => this.protocolDeviationErrorMessage.set(err.error?.message ?? 'Could not report protocol deviation.'),
+      });
   }
 
   loadVisits(): void {
@@ -474,17 +533,21 @@ export class SubjectDetailComponent implements OnInit {
   }
 
   confirmWithdraw(): void {
-    if (this.reasonCodeControl.invalid) {
+    if (this.reasonCodeControl.invalid || this.withdrawPasswordControl.invalid) {
       return;
     }
     this.errorMessage.set(null);
-    this.subjectService.withdraw(this.subjectId, this.reasonCodeControl.value).subscribe({
+    this.subjectService.withdraw(this.subjectId, this.reasonCodeControl.value, this.withdrawPasswordControl.value).subscribe({
       next: () => {
         this.reasonCodeControl.setValue('');
+        this.withdrawPasswordControl.setValue('');
         this.showWithdrawForm.set(false);
         this.load();
       },
-      error: (err) => this.errorMessage.set(err.error?.message ?? 'Withdrawal failed.'),
+      error: (err) => {
+        const message = err.status === 401 ? 'Incorrect password. Please try again.' : (err.error?.message ?? 'Withdrawal failed.');
+        this.errorMessage.set(message);
+      },
     });
   }
 

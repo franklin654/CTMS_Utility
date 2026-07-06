@@ -2,6 +2,8 @@ package com.ctms.ctms_backend.subject.service;
 
 import com.ctms.ctms_backend.audit.AuditAction;
 import com.ctms.ctms_backend.audit.AuditService;
+import com.ctms.ctms_backend.esignature.ESignature;
+import com.ctms.ctms_backend.esignature.ESignatureService;
 import com.ctms.ctms_backend.notification.NotificationService;
 import com.ctms.ctms_backend.security.exception.InvalidCredentialsException;
 import com.ctms.ctms_backend.subject.dto.SubjectResponse;
@@ -45,18 +47,21 @@ public class SubjectLifecycleService {
     private final UserRepository userRepository;
     private final AuditService auditService;
     private final NotificationService notificationService;
+    private final ESignatureService eSignatureService;
 
     public SubjectLifecycleService(
             SubjectRepository subjectRepository,
             SubjectStatusHistoryRepository historyRepository,
             UserRepository userRepository,
             AuditService auditService,
-            NotificationService notificationService) {
+            NotificationService notificationService,
+            ESignatureService eSignatureService) {
         this.subjectRepository = subjectRepository;
         this.historyRepository = historyRepository;
         this.userRepository = userRepository;
         this.auditService = auditService;
         this.notificationService = notificationService;
+        this.eSignatureService = eSignatureService;
     }
 
     @Transactional
@@ -76,7 +81,7 @@ public class SubjectLifecycleService {
         }
 
         User actor = currentUser(actorUsername);
-        recordTransition(subject, current, targetStatus, req.justification(), actor);
+        recordTransition(subject, current, targetStatus, req.justification(), actor, null);
         return SubjectResponse.from(subject, currentRoleCodes());
     }
 
@@ -88,8 +93,9 @@ public class SubjectLifecycleService {
             throw new InvalidSubjectTransitionException("Cannot withdraw subject from status " + current);
         }
 
+        ESignature signature = eSignatureService.sign(actorUsername, req.password(), "Subject", String.valueOf(id), req.reasonCode());
         User actor = currentUser(actorUsername);
-        recordTransition(subject, current, SubjectStatus.WITHDRAWN, req.reasonCode(), actor);
+        recordTransition(subject, current, SubjectStatus.WITHDRAWN, req.reasonCode(), actor, signature);
         return SubjectResponse.from(subject, currentRoleCodes());
     }
 
@@ -103,13 +109,15 @@ public class SubjectLifecycleService {
                 .toList();
     }
 
-    private void recordTransition(Subject subject, SubjectStatus from, SubjectStatus to, String reasonOrJustification, User actor) {
+    private void recordTransition(
+            Subject subject, SubjectStatus from, SubjectStatus to, String reasonOrJustification, User actor, ESignature signature) {
         SubjectStatusHistory history = new SubjectStatusHistory();
         history.setSubject(subject);
         history.setFromStatus(from);
         history.setToStatus(to);
         history.setReasonCode(reasonOrJustification);
         history.setChangedBy(actor);
+        history.setEsignature(signature);
         historyRepository.save(history);
 
         subject.setStatus(to);

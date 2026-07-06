@@ -4,8 +4,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.when;
 
 import com.ctms.ctms_backend.audit.AuditService;
+import com.ctms.ctms_backend.esignature.ESignature;
+import com.ctms.ctms_backend.esignature.ESignatureService;
 import com.ctms.ctms_backend.notification.NotificationService;
 import com.ctms.ctms_backend.site.entity.Site;
 import com.ctms.ctms_backend.study.entity.Study;
@@ -40,6 +43,7 @@ class SubjectLifecycleServiceTest {
     @Mock private UserRepository userRepository;
     @Mock private AuditService auditService;
     @Mock private NotificationService notificationService;
+    @Mock private ESignatureService eSignatureService;
 
     @InjectMocks
     private SubjectLifecycleService lifecycleService;
@@ -76,6 +80,11 @@ class SubjectLifecycleServiceTest {
 
         SecurityContextHolder.getContext().setAuthentication(
                 new TestingAuthenticationToken("coordinator1", null, List.of(new SimpleGrantedAuthority("ROLE_SITE_COORDINATOR"))));
+
+        lenient().when(eSignatureService.sign(
+                        org.mockito.ArgumentMatchers.eq("coordinator1"), org.mockito.ArgumentMatchers.eq("correct-password"),
+                        org.mockito.ArgumentMatchers.eq("Subject"), org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.anyString()))
+                .thenReturn(new ESignature(actor, "Subject", "1000", "withdrawal"));
     }
 
     @Test
@@ -100,7 +109,7 @@ class SubjectLifecycleServiceTest {
     @Test
     void withdraw_fromScreened_succeeds() {
         SubjectResponse response = lifecycleService.withdraw(
-                1000L, new WithdrawSubjectRequest("subject requested withdrawal"), "coordinator1");
+                1000L, new WithdrawSubjectRequest("subject requested withdrawal", "correct-password"), "coordinator1");
         assertEquals("WITHDRAWN", response.status());
     }
 
@@ -108,7 +117,7 @@ class SubjectLifecycleServiceTest {
     void withdraw_fromEnrolled_succeeds() {
         subject.setStatus(SubjectStatus.ENROLLED);
         SubjectResponse response = lifecycleService.withdraw(
-                1000L, new WithdrawSubjectRequest("lost to follow-up"), "coordinator1");
+                1000L, new WithdrawSubjectRequest("lost to follow-up", "correct-password"), "coordinator1");
         assertEquals("WITHDRAWN", response.status());
     }
 
@@ -116,7 +125,7 @@ class SubjectLifecycleServiceTest {
     void withdraw_fromInTreatment_succeeds() {
         subject.setStatus(SubjectStatus.IN_TREATMENT);
         SubjectResponse response = lifecycleService.withdraw(
-                1000L, new WithdrawSubjectRequest("adverse reaction"), "coordinator1");
+                1000L, new WithdrawSubjectRequest("adverse reaction", "correct-password"), "coordinator1");
         assertEquals("WITHDRAWN", response.status());
     }
 
@@ -124,13 +133,24 @@ class SubjectLifecycleServiceTest {
     void withdraw_fromCompleted_throws() {
         subject.setStatus(SubjectStatus.COMPLETED);
         assertThrows(InvalidSubjectTransitionException.class, () -> lifecycleService.withdraw(
-                1000L, new WithdrawSubjectRequest("too late"), "coordinator1"));
+                1000L, new WithdrawSubjectRequest("too late", "correct-password"), "coordinator1"));
     }
 
     @Test
     void withdraw_alreadyWithdrawn_throws() {
         subject.setStatus(SubjectStatus.WITHDRAWN);
         assertThrows(InvalidSubjectTransitionException.class, () -> lifecycleService.withdraw(
-                1000L, new WithdrawSubjectRequest("again"), "coordinator1"));
+                1000L, new WithdrawSubjectRequest("again", "correct-password"), "coordinator1"));
+    }
+
+    @Test
+    void withdraw_wrongPassword_throwsAndLeavesStatusUntouched() {
+        when(eSignatureService.sign(
+                        "coordinator1", "wrong-password", "Subject", "1000", "leaving"))
+                .thenThrow(new com.ctms.ctms_backend.security.exception.InvalidCredentialsException());
+
+        assertThrows(com.ctms.ctms_backend.security.exception.InvalidCredentialsException.class, () -> lifecycleService.withdraw(
+                1000L, new WithdrawSubjectRequest("leaving", "wrong-password"), "coordinator1"));
+        assertEquals(SubjectStatus.SCREENED, subject.getStatus());
     }
 }

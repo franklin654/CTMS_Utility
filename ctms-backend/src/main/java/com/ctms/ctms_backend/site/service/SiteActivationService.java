@@ -2,10 +2,13 @@ package com.ctms.ctms_backend.site.service;
 
 import com.ctms.ctms_backend.audit.AuditAction;
 import com.ctms.ctms_backend.audit.AuditService;
+import com.ctms.ctms_backend.esignature.ESignature;
+import com.ctms.ctms_backend.esignature.ESignatureService;
 import com.ctms.ctms_backend.notification.NotificationService;
 import com.ctms.ctms_backend.payment.service.PaymentService;
 import com.ctms.ctms_backend.security.exception.InvalidCredentialsException;
 import com.ctms.ctms_backend.site.dto.ActivationAttemptResponse;
+import com.ctms.ctms_backend.site.dto.AttemptActivationRequest;
 import com.ctms.ctms_backend.site.dto.ChecklistItemResponse;
 import com.ctms.ctms_backend.site.dto.SiteResponse;
 import com.ctms.ctms_backend.site.dto.UpdateChecklistItemRequest;
@@ -51,6 +54,7 @@ public class SiteActivationService {
     private final NotificationService notificationService;
     private final TaskService taskService;
     private final PaymentService paymentService;
+    private final ESignatureService eSignatureService;
 
     public SiteActivationService(
             SiteRepository siteRepository,
@@ -59,7 +63,8 @@ public class SiteActivationService {
             AuditService auditService,
             NotificationService notificationService,
             TaskService taskService,
-            PaymentService paymentService) {
+            PaymentService paymentService,
+            ESignatureService eSignatureService) {
         this.siteRepository = siteRepository;
         this.checklistRepository = checklistRepository;
         this.userRepository = userRepository;
@@ -67,6 +72,7 @@ public class SiteActivationService {
         this.notificationService = notificationService;
         this.taskService = taskService;
         this.paymentService = paymentService;
+        this.eSignatureService = eSignatureService;
     }
 
     @Transactional(readOnly = true)
@@ -113,9 +119,15 @@ public class SiteActivationService {
 
     /** Story 03: explicit activation attempt. Succeeds (and promotes) only if every checklist
      * item is COMPLETE; otherwise throws with the exact missing-item list. The attempt itself
-     * is always audit-logged, win or lose (Story 03 AC4). */
+     * is always audit-logged, win or lose (Story 03 AC4). BL Epic 11 Story 02: promotion via this
+     * explicit action now requires password re-authentication -- a go-live gate, same category as
+     * Study closeout/Document final-approval/Payment release. Signing happens only once we know
+     * activation will actually occur (not on a blocked/no-op attempt), so a failed attempt never
+     * needs a password. Note: the silent auto-promotion path (updateChecklistItem completing the
+     * last item) still promotes without e-signature -- a known, deliberately out-of-scope gap
+     * documented in the phase report rather than expanding this change unreviewed. */
     @Transactional
-    public ActivationAttemptResponse attemptActivation(Long siteId, String actorUsername) {
+    public ActivationAttemptResponse attemptActivation(Long siteId, AttemptActivationRequest req, String actorUsername) {
         Site site = getSite(siteId);
         User actor = currentUser(actorUsername);
         List<SiteActivationChecklistItem> items = checklistRepository.findBySiteIdOrderByItemType(siteId);
@@ -133,7 +145,8 @@ public class SiteActivationService {
             throw new SiteActivationBlockedException(missing);
         }
         if (site.getStatus() == SiteStatus.PENDING_ACTIVATION) {
-            promote(site, actor);
+            ESignature signature = eSignatureService.sign(actorUsername, req.password(), "Site", String.valueOf(siteId), req.reason());
+            promote(site, actor, signature);
         }
         return new ActivationAttemptResponse(true, List.of(), SiteResponse.from(site));
     }
@@ -144,13 +157,14 @@ public class SiteActivationService {
         }
         List<SiteActivationChecklistItem> items = checklistRepository.findBySiteIdOrderByItemType(site.getId());
         if (missingLabels(items).isEmpty()) {
-            promote(site, actor);
+            promote(site, actor, null);
         }
     }
 
-    private void promote(Site site, User actor) {
+    private void promote(Site site, User actor, ESignature signature) {
         site.setStatus(SiteStatus.ACTIVE);
         site.setActivationDate(LocalDate.now());
+        site.setEsignature(signature);
         site.setModifiedBy(actor);
         siteRepository.save(site);
 

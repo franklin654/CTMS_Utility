@@ -1,5 +1,6 @@
 package com.ctms.ctms_backend.adverseevent.entity;
 
+import com.ctms.ctms_backend.esignature.ESignature;
 import com.ctms.ctms_backend.subject.entity.Subject;
 import com.ctms.ctms_backend.user.User;
 import com.ctms.ctms_backend.visit.entity.Visit;
@@ -63,6 +64,12 @@ public class AdverseEvent {
 
     @Column(name = "resolved_at")
     private Instant resolvedAt;
+
+    /** BL Epic 11 Story 02 -- populated only when this AE is resolved, which requires password
+     * re-authentication (mirrors StudyStatusHistory.esignature exactly). */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "esignature_id")
+    private ESignature esignature;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "created_by", nullable = false)

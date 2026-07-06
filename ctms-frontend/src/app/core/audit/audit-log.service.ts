@@ -22,6 +22,22 @@ export interface Page<T> {
   size: number;
 }
 
+export interface ESignatureResponse {
+  id: number;
+  signedByUsername: string;
+  entityName: string;
+  entityId: string;
+  reason: string;
+  signedAt: string;
+}
+
+export interface TraceabilityResponse {
+  entityName: string;
+  entityId: string;
+  auditTrail: AuditLogResponse[];
+  signatures: ESignatureResponse[];
+}
+
 @Injectable({ providedIn: 'root' })
 export class AuditLogService {
   constructor(private readonly http: HttpClient) {}
@@ -46,5 +62,9 @@ export class AuditLogService {
       params['entityId'] = entityId;
     }
     return this.http.get('/api/audit-logs/export', { params, responseType: 'text' });
+  }
+
+  traceability(entityName: string, entityId: string): Observable<TraceabilityResponse> {
+    return this.http.get<TraceabilityResponse>(`/api/audit-logs/traceability/${entityName}/${entityId}`);
   }
 }

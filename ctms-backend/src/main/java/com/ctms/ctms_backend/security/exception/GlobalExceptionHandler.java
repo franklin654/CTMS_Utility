@@ -6,12 +6,14 @@ import com.ctms.ctms_backend.budget.exception.BudgetNotFoundException;
 import com.ctms.ctms_backend.budget.exception.BudgetVersionNotFoundException;
 import com.ctms.ctms_backend.budget.exception.DuplicateBudgetException;
 import com.ctms.ctms_backend.budget.exception.MissingBudgetVersionReasonException;
+import com.ctms.ctms_backend.deviation.exception.InvalidProtocolDeviationException;
 import com.ctms.ctms_backend.document.exception.DocumentAccessDeniedException;
 import com.ctms.ctms_backend.document.exception.DocumentLockedException;
 import com.ctms.ctms_backend.document.exception.DocumentNotFoundException;
 import com.ctms.ctms_backend.document.exception.DocumentVersionNotFoundException;
 import com.ctms.ctms_backend.document.exception.DocumentRequirementNotFoundException;
 import com.ctms.ctms_backend.document.exception.InvalidDocumentTransitionException;
+import com.ctms.ctms_backend.document.exception.MissingConsentException;
 import com.ctms.ctms_backend.document.exception.MissingMandatoryDocumentsException;
 import com.ctms.ctms_backend.milestone.exception.DuplicateMilestoneTypeException;
 import com.ctms.ctms_backend.milestone.exception.InvalidMilestoneActualDateException;
@@ -274,6 +276,16 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Object> handleMissingMandatoryDocuments(MissingMandatoryDocumentsException e) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(Map.of("timestamp", Instant.now(), "message", e.getMessage(), "missingCategories", e.getMissingCategories()));
+    }
+
+    @ExceptionHandler(MissingConsentException.class)
+    public ResponseEntity<Object> handleMissingConsent(MissingConsentException e) {
+        return error(HttpStatus.BAD_REQUEST, e.getMessage());
+    }
+
+    @ExceptionHandler(InvalidProtocolDeviationException.class)
+    public ResponseEntity<Object> handleInvalidProtocolDeviation(InvalidProtocolDeviationException e) {
+        return error(HttpStatus.BAD_REQUEST, e.getMessage());
     }
 
     @ExceptionHandler(MaxUploadSizeExceededException.class)

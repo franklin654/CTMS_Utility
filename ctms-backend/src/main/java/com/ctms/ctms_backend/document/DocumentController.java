@@ -66,8 +66,9 @@ public class DocumentController {
             @RequestParam String title,
             @RequestParam(required = false) String category,
             @RequestParam(required = false) Long studyId,
+            @RequestParam(required = false) Long subjectId,
             @RequestPart MultipartFile file) {
-        return documentService.createDocument(title, category, studyId, principal.getName(), file);
+        return documentService.createDocument(title, category, studyId, subjectId, principal.getName(), file);
     }
 
     @PostMapping(value = "/{id}/versions", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

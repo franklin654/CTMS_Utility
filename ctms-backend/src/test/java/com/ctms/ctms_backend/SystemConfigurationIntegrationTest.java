@@ -138,6 +138,12 @@ class SystemConfigurationIntegrationTest {
         assertThrows(VisitDependencyNotMetException.class, () -> visitService.markCompleted(
                 visit2.id(), new MarkVisitCompletedRequest(LocalDate.now(), null, "out of order"), coordinator.getUsername()));
 
+        // Epic 11 Story 01 consent gate -- markCompleted also requires a CURRENT INFORMED_CONSENT
+        // document on file for this subject, independent of the dependency guard under test here.
+        documentService.createDocument(
+                "Consent Form", "INFORMED_CONSENT", study.id(), subject.id(), coordinator.getUsername(),
+                new MockMultipartFile("file", "consent.pdf", "application/pdf", "content".getBytes()));
+
         visitService.markCompleted(visit1.id(), new MarkVisitCompletedRequest(LocalDate.now(), null, "done"), coordinator.getUsername());
         VisitResponse visit2Completed = visitService.markCompleted(
                 visit2.id(), new MarkVisitCompletedRequest(LocalDate.now(), null, "done"), coordinator.getUsername());
@@ -183,7 +189,7 @@ class SystemConfigurationIntegrationTest {
         assertEquals("DRAFT", stillDraft.status());
 
         documentService.createDocument(
-                "IRB Approval Letter", "REGULATORY_APPROVAL", study.id(), manager.getUsername(),
+                "IRB Approval Letter", "REGULATORY_APPROVAL", study.id(), null, manager.getUsername(),
                 new MockMultipartFile("file", "irb-approval.pdf", "application/pdf", "content".getBytes()));
 
         StudyResponse activated = studyService.transition(

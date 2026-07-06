@@ -7,6 +7,8 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 import com.ctms.ctms_backend.audit.AuditService;
+import com.ctms.ctms_backend.document.exception.MissingConsentException;
+import com.ctms.ctms_backend.document.service.ConsentGateService;
 import com.ctms.ctms_backend.notification.NotificationService;
 import com.ctms.ctms_backend.payment.service.PaymentService;
 import com.ctms.ctms_backend.site.entity.Site;
@@ -49,6 +51,7 @@ class VisitServiceTest {
     @Mock private NotificationService notificationService;
     @Mock private TaskService taskService;
     @Mock private PaymentService paymentService;
+    @Mock private ConsentGateService consentGateService;
 
     @InjectMocks
     private VisitService visitService;
@@ -117,6 +120,24 @@ class VisitServiceTest {
         MarkVisitCompletedRequest req = new MarkVisitCompletedRequest(LocalDate.now(), null, "all good");
         VisitResponse response = visitService.markCompleted(1L, req, "coordinator1");
         assertEquals("COMPLETED", response.status());
+    }
+
+    @Test
+    void markCompleted_noConsentOnFile_throwsAndLeavesVisitScheduled() {
+        org.mockito.Mockito.doThrow(new MissingConsentException(1000L))
+                .when(consentGateService).assertConsentPresent(subject);
+
+        MarkVisitCompletedRequest req = new MarkVisitCompletedRequest(LocalDate.now(), null, "all good");
+        assertThrows(MissingConsentException.class, () -> visitService.markCompleted(1L, req, "coordinator1"));
+        assertEquals(VisitStatus.SCHEDULED, scheduledVisit.getStatus());
+    }
+
+    @Test
+    void markCompleted_consentOnFile_succeeds() {
+        MarkVisitCompletedRequest req = new MarkVisitCompletedRequest(LocalDate.now(), null, "all good");
+        VisitResponse response = visitService.markCompleted(1L, req, "coordinator1");
+        assertEquals("COMPLETED", response.status());
+        org.mockito.Mockito.verify(consentGateService).assertConsentPresent(subject);
     }
 
     @Test

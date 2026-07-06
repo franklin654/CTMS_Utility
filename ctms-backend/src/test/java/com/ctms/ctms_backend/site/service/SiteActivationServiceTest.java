@@ -11,9 +11,13 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.ctms.ctms_backend.audit.AuditService;
+import com.ctms.ctms_backend.esignature.ESignature;
+import com.ctms.ctms_backend.esignature.ESignatureService;
 import com.ctms.ctms_backend.notification.NotificationService;
 import com.ctms.ctms_backend.payment.service.PaymentService;
+import com.ctms.ctms_backend.security.exception.InvalidCredentialsException;
 import com.ctms.ctms_backend.site.dto.ActivationAttemptResponse;
+import com.ctms.ctms_backend.site.dto.AttemptActivationRequest;
 import com.ctms.ctms_backend.site.dto.ChecklistItemResponse;
 import com.ctms.ctms_backend.site.dto.UpdateChecklistItemRequest;
 import com.ctms.ctms_backend.site.entity.ChecklistItemStatus;
@@ -57,6 +61,8 @@ class SiteActivationServiceTest {
     private TaskService taskService;
     @Mock
     private PaymentService paymentService;
+    @Mock
+    private ESignatureService eSignatureService;
 
     @InjectMocks
     private SiteActivationService siteActivationService;
@@ -101,6 +107,11 @@ class SiteActivationServiceTest {
         lenient().when(checklistRepository.findBySiteIdOrderByItemType(100L)).thenReturn(items);
         lenient().when(checklistRepository.save(any(SiteActivationChecklistItem.class)))
                 .thenAnswer(inv -> inv.getArgument(0));
+
+        lenient().when(eSignatureService.sign(
+                        org.mockito.ArgumentMatchers.eq("study.manager"), org.mockito.ArgumentMatchers.eq("correct-password"),
+                        org.mockito.ArgumentMatchers.eq("Site"), org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.anyString()))
+                .thenReturn(new ESignature(actor, "Site", "100", "activation"));
     }
 
     private SiteActivationChecklistItem itemOfType(ChecklistItemType type) {
@@ -179,7 +190,8 @@ class SiteActivationServiceTest {
         // SITE_INITIATION_VISIT left PENDING
 
         SiteActivationBlockedException ex = assertThrows(SiteActivationBlockedException.class,
-                () -> siteActivationService.attemptActivation(100L, "study.manager"));
+                () -> siteActivationService.attemptActivation(
+                        100L, new AttemptActivationRequest("correct-password", "attempting"), "study.manager"));
         assertEquals(List.of("Site Initiation Visit"), ex.getMissingItems());
         assertEquals(SiteStatus.PENDING_ACTIVATION, site.getStatus());
     }
@@ -189,7 +201,8 @@ class SiteActivationServiceTest {
         for (ChecklistItemType type : ChecklistItemType.values()) {
             itemOfType(type).setStatus(ChecklistItemStatus.COMPLETE);
         }
-        ActivationAttemptResponse response = siteActivationService.attemptActivation(100L, "study.manager");
+        ActivationAttemptResponse response = siteActivationService.attemptActivation(
+                100L, new AttemptActivationRequest("correct-password", "all prerequisites met"), "study.manager");
         assertTrue(response.activated());
         assertTrue(response.missingItems().isEmpty());
         assertEquals(SiteStatus.ACTIVE, site.getStatus());
@@ -201,8 +214,21 @@ class SiteActivationServiceTest {
         for (ChecklistItemType type : ChecklistItemType.values()) {
             itemOfType(type).setStatus(ChecklistItemStatus.COMPLETE);
         }
-        siteActivationService.attemptActivation(100L, "study.manager");
+        siteActivationService.attemptActivation(100L, new AttemptActivationRequest("correct-password", "reattempt"), "study.manager");
         verify(notificationService, never()).notify(any(), any(), any(), any(), any());
         assertEquals(SiteStatus.ACTIVE, site.getStatus());
+    }
+
+    @Test
+    void attemptActivation_wrongPassword_throwsAndLeavesSitePendingActivation() {
+        for (ChecklistItemType type : ChecklistItemType.values()) {
+            itemOfType(type).setStatus(ChecklistItemStatus.COMPLETE);
+        }
+        when(eSignatureService.sign("study.manager", "wrong-password", "Site", "100", "attempting"))
+                .thenThrow(new InvalidCredentialsException());
+
+        assertThrows(InvalidCredentialsException.class, () -> siteActivationService.attemptActivation(
+                100L, new AttemptActivationRequest("wrong-password", "attempting"), "study.manager"));
+        assertEquals(SiteStatus.PENDING_ACTIVATION, site.getStatus());
     }
 }

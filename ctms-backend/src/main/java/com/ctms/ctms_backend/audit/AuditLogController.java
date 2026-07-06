@@ -1,5 +1,6 @@
 package com.ctms.ctms_backend.audit;
 
+import com.ctms.ctms_backend.esignature.ESignatureService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -9,6 +10,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -21,9 +23,23 @@ import org.springframework.transaction.annotation.Transactional;
 public class AuditLogController {
 
     private final AuditLogRepository auditLogRepository;
+    private final ESignatureService eSignatureService;
 
-    public AuditLogController(AuditLogRepository auditLogRepository) {
+    public AuditLogController(AuditLogRepository auditLogRepository, ESignatureService eSignatureService) {
         this.auditLogRepository = auditLogRepository;
+        this.eSignatureService = eSignatureService;
+    }
+
+    /** BL Epic 11 Story 04 -- consolidated per-entity view joining the full audit trail with any
+     * e-signatures captured against it, reusing ESignatureService.history unchanged. */
+    @GetMapping("/traceability/{entityName}/{entityId}")
+    @Transactional(readOnly = true)
+    public TraceabilityResponse traceability(@PathVariable String entityName, @PathVariable String entityId) {
+        var auditTrail = auditLogRepository.findByEntityNameAndEntityIdOrderByPerformedAtDesc(entityName, entityId).stream()
+                .map(AuditLogResponse::from)
+                .toList();
+        var signatures = eSignatureService.history(entityName, entityId);
+        return new TraceabilityResponse(entityName, entityId, auditTrail, signatures);
     }
 
     @GetMapping
@@ -41,7 +57,7 @@ public class AuditLogController {
     public ResponseEntity<String> export(
             @RequestParam(required = false) String entityName, @RequestParam(required = false) String entityId) {
         Page<AuditLog> page = resolvePage(entityName, entityId, Pageable.ofSize(10_000));
-        StringBuilder csv = new StringBuilder("id,entityName,entityId,action,performedBy,performedAt,reason\n");
+        StringBuilder csv = new StringBuilder("id,entityName,entityId,action,performedBy,performedAt,beforeValue,afterValue,reason\n");
         for (AuditLog log : page.getContent()) {
             csv.append(csvRow(log));
         }
@@ -70,6 +86,8 @@ public class AuditLogController {
                         escape(log.getAction()),
                         escape(log.getPerformedBy() == null ? "" : log.getPerformedBy().getUsername()),
                         String.valueOf(log.getPerformedAt()),
+                        escape(log.getBeforeValue()),
+                        escape(log.getAfterValue()),
                         escape(log.getReason()))
                 + "\n";
     }

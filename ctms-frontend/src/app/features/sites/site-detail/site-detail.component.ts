@@ -3,6 +3,7 @@ import { Component, OnInit, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
@@ -17,6 +18,7 @@ import {
 } from '../../../core/monitoring-visits/monitoring-visit.service';
 import { ChecklistItemResponse, SiteResponse, SiteService } from '../../../core/sites/site.service';
 import { UserService, UserSummaryResponse } from '../../../core/users/user.service';
+import { SiteActivationDialogComponent, SiteActivationResult } from '../site-activation-dialog/site-activation-dialog.component';
 
 const ITEM_LABELS: Record<string, string> = {
   FEASIBILITY_COMPLETION: 'Feasibility Completion',
@@ -35,6 +37,7 @@ const ITEM_LABELS: Record<string, string> = {
     MatInputModule,
     MatSelectModule,
     MatAutocompleteModule,
+    MatDialogModule,
     ReactiveFormsModule,
     DatePipe,
     HasRoleDirective,
@@ -78,6 +81,7 @@ export class SiteDetailComponent implements OnInit {
     private readonly userService: UserService,
     private readonly monitoringVisitService: MonitoringVisitService,
     private readonly snackBar: MatSnackBar,
+    private readonly dialog: MatDialog,
   ) {}
 
   ngOnInit(): void {
@@ -229,20 +233,27 @@ export class SiteDetailComponent implements OnInit {
   }
 
   attemptActivation(): void {
-    this.errorMessage.set(null);
-    this.missingItems.set([]);
-    this.siteService.attemptActivation(this.siteId).subscribe({
-      next: () => {
-        this.load();
-        this.snackBar.open('Site activated.', 'Dismiss', { duration: 4000 });
-      },
-      error: (err) => {
-        if (err.status === 400 && err.error?.missingItems) {
-          this.missingItems.set(err.error.missingItems);
-        } else {
-          this.errorMessage.set(err.error?.message ?? 'Activation attempt failed.');
-        }
-      },
+    const dialogRef = this.dialog.open(SiteActivationDialogComponent);
+    dialogRef.afterClosed().subscribe((result: SiteActivationResult | undefined) => {
+      if (!result) {
+        return;
+      }
+      this.errorMessage.set(null);
+      this.missingItems.set([]);
+      this.siteService.attemptActivation(this.siteId, result.password, result.reason).subscribe({
+        next: () => {
+          this.load();
+          this.snackBar.open('Site activated.', 'Dismiss', { duration: 4000 });
+        },
+        error: (err) => {
+          if (err.status === 400 && err.error?.missingItems) {
+            this.missingItems.set(err.error.missingItems);
+          } else {
+            const message = err.status === 401 ? 'Incorrect password. Please try again.' : (err.error?.message ?? 'Activation attempt failed.');
+            this.errorMessage.set(message);
+          }
+        },
+      });
     });
   }
 

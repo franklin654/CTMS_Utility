@@ -2,6 +2,7 @@ package com.ctms.ctms_backend.visit.service;
 
 import com.ctms.ctms_backend.audit.AuditAction;
 import com.ctms.ctms_backend.audit.AuditService;
+import com.ctms.ctms_backend.document.service.ConsentGateService;
 import com.ctms.ctms_backend.notification.NotificationService;
 import com.ctms.ctms_backend.payment.service.PaymentService;
 import com.ctms.ctms_backend.security.exception.InvalidCredentialsException;
@@ -48,6 +49,7 @@ public class VisitService {
     private final NotificationService notificationService;
     private final TaskService taskService;
     private final PaymentService paymentService;
+    private final ConsentGateService consentGateService;
 
     public VisitService(
             VisitRepository visitRepository,
@@ -56,7 +58,8 @@ public class VisitService {
             AuditService auditService,
             NotificationService notificationService,
             TaskService taskService,
-            PaymentService paymentService) {
+            PaymentService paymentService,
+            ConsentGateService consentGateService) {
         this.visitRepository = visitRepository;
         this.subjectRepository = subjectRepository;
         this.userRepository = userRepository;
@@ -64,6 +67,7 @@ public class VisitService {
         this.notificationService = notificationService;
         this.taskService = taskService;
         this.paymentService = paymentService;
+        this.consentGateService = consentGateService;
     }
 
     @Transactional(readOnly = true)
@@ -81,6 +85,7 @@ public class VisitService {
         Visit visit = findVisit(id);
         guardScheduled(visit);
         assertDependencyMet(visit);
+        consentGateService.assertConsentPresent(visit.getSubject());
 
         visit.setStatus(VisitStatus.COMPLETED);
         visit.setActualDate(req.actualDate());
