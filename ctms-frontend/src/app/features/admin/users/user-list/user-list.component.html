@@ -47,6 +47,13 @@
         <mat-form-field appearance="outline">
           <mat-label>Roles</mat-label>
           <mat-select formControlName="roles" multiple>
+            <mat-select-trigger>
+              <span class="flex flex-wrap gap-1 py-1">
+                @for (code of createForm.controls.roles.value; track code) {
+                  <span class="chip chip-info">{{ code }}</span>
+                }
+              </span>
+            </mat-select-trigger>
             @for (code of roleCodes(); track code) {
               <mat-option [value]="code">{{ code }}</mat-option>
             }
@@ -84,6 +91,13 @@
               @if (editingUserId() === user.id) {
                 <mat-form-field appearance="outline" class="w-full">
                   <mat-select [formControl]="editRolesControl" multiple>
+                    <mat-select-trigger>
+                      <span class="flex flex-wrap gap-1 py-1">
+                        @for (code of editRolesControl.value; track code) {
+                          <span class="chip chip-info">{{ code }}</span>
+                        }
+                      </span>
+                    </mat-select-trigger>
                     @for (code of roleCodes(); track code) {
                       <mat-option [value]="code">{{ code }}</mat-option>
                     }
