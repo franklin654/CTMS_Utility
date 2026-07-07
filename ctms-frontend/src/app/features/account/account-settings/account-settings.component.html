@@ -1,0 +1,99 @@
+<div class="max-w-2xl mx-auto flex flex-col gap-6">
+  <div>
+    <h1 class="text-xl font-semibold text-ink">Account Settings</h1>
+    <p class="text-sm text-graphite mt-1">
+      Manage your login credentials. Your profile's contact details are managed separately.
+    </p>
+  </div>
+
+  <!-- Username -->
+  <div class="bg-white rounded-lg shadow p-6">
+    <h2 class="text-sm font-semibold text-graphite mb-3">Change Username</h2>
+
+    <div class="p-3 rounded bg-amber-50 border border-amber-200 text-sm text-amber-900 mb-4">
+      Changing your username signs you out of every device. You'll need to sign back in with the new one.
+    </div>
+
+    @if (usernameError()) {
+      <p class="text-sm text-red-600 mb-3">{{ usernameError() }}</p>
+    }
+
+    <form [formGroup]="usernameForm" (ngSubmit)="submitUsername()" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <mat-form-field appearance="outline">
+        <mat-label>Current password</mat-label>
+        <input matInput type="password" formControlName="currentPassword" autocomplete="current-password" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>New username</mat-label>
+        <input matInput formControlName="newUsername" autocomplete="username" />
+      </mat-form-field>
+
+      <div class="sm:col-span-2">
+        <button mat-flat-button color="primary" type="submit" [disabled]="usernameForm.invalid">
+          Change username
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Email -->
+  <div class="bg-white rounded-lg shadow p-6">
+    <h2 class="text-sm font-semibold text-graphite mb-3">Change Email</h2>
+    <p class="text-sm text-graphite mb-4">
+      This is your login email, used for password resets. It's separate from any contact email on your profile.
+    </p>
+
+    @if (emailError()) {
+      <p class="text-sm text-red-600 mb-3">{{ emailError() }}</p>
+    }
+    @if (emailSuccess()) {
+      <p class="text-sm text-green-600 mb-3">{{ emailSuccess() }}</p>
+    }
+
+    <form [formGroup]="emailForm" #ef="ngForm" (ngSubmit)="submitEmail(ef)" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <mat-form-field appearance="outline">
+        <mat-label>Current password</mat-label>
+        <input matInput type="password" formControlName="currentPassword" autocomplete="current-password" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>New email</mat-label>
+        <input matInput type="email" formControlName="newEmail" autocomplete="email" />
+      </mat-form-field>
+
+      <div class="sm:col-span-2">
+        <button mat-flat-button color="primary" type="submit" [disabled]="emailForm.invalid">
+          Change email
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Password -->
+  <div class="bg-white rounded-lg shadow p-6">
+    <h2 class="text-sm font-semibold text-graphite mb-3">Change Password</h2>
+
+    @if (passwordError()) {
+      <p class="text-sm text-red-600 mb-3">{{ passwordError() }}</p>
+    }
+
+    <form [formGroup]="passwordForm" (ngSubmit)="submitPassword()" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <mat-form-field appearance="outline">
+        <mat-label>Current password</mat-label>
+        <input matInput type="password" formControlName="currentPassword" autocomplete="current-password" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>New password</mat-label>
+        <input matInput type="password" formControlName="newPassword" autocomplete="new-password" />
+      </mat-form-field>
+
+      <div class="sm:col-span-2">
+        <button mat-flat-button color="primary" type="submit" [disabled]="passwordForm.invalid">
+          Change password
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

@@ -13,10 +13,12 @@ import static org.mockito.Mockito.when;
 import com.ctms.ctms_backend.audit.AuditAction;
 import com.ctms.ctms_backend.audit.AuditService;
 import com.ctms.ctms_backend.notification.MailService;
+import com.ctms.ctms_backend.security.exception.InvalidCredentialsException;
 import com.ctms.ctms_backend.security.exception.InvalidTokenException;
 import com.ctms.ctms_backend.user.PasswordHistoryRepository;
 import com.ctms.ctms_backend.user.User;
 import com.ctms.ctms_backend.user.UserRepository;
+import com.ctms.ctms_backend.user.exception.DuplicateUserException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
@@ -116,6 +118,103 @@ class AuthenticationServiceTest {
         verify(auditService).record(
                 eq("User"), eq("1"), eq(AuditAction.UPDATE), any(),
                 org.mockito.ArgumentMatchers.contains("sessions invalidated"), any());
+    }
+
+    @Test
+    void changeUsername_correctPassword_updatesUsernameInvalidatesSessionsAndAudits() {
+        when(userRepository.findByUsername("jdoe")).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("old-pass", "old-hash")).thenReturn(true);
+
+        authenticationService.changeUsername("jdoe", "old-pass", "newname");
+
+        verify(userRepository).save(user);
+        verify(refreshTokenRepository).deleteByUser(user);
+        verify(auditService).record(
+                eq("User"), eq("1"), eq(AuditAction.UPDATE), anyString(),
+                org.mockito.ArgumentMatchers.contains("all active sessions invalidated"), any());
+    }
+
+    @Test
+    void changeUsername_wrongPassword_throwsInvalidCredentialsAndDoesNotAudit() {
+        when(userRepository.findByUsername("jdoe")).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("wrong-pass", "old-hash")).thenReturn(false);
+
+        assertThrows(InvalidCredentialsException.class,
+                () -> authenticationService.changeUsername("jdoe", "wrong-pass", "newname"));
+
+        verify(refreshTokenRepository, never()).deleteByUser(any());
+        verify(auditService, never()).record(anyString(), anyString(), any(), any(), any(), any());
+    }
+
+    @Test
+    void changeUsername_duplicateUsername_throwsDuplicateUserExceptionAndDoesNotMutate() {
+        when(userRepository.findByUsername("jdoe")).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("old-pass", "old-hash")).thenReturn(true);
+        when(userRepository.existsByUsername("taken")).thenReturn(true);
+
+        assertThrows(DuplicateUserException.class,
+                () -> authenticationService.changeUsername("jdoe", "old-pass", "taken"));
+
+        verify(userRepository, never()).save(any());
+        verify(refreshTokenRepository, never()).deleteByUser(any());
+    }
+
+    @Test
+    void changeUsername_sameUsernameAsCurrent_isNoOpAndDoesNotAuditOrInvalidateSessions() {
+        when(userRepository.findByUsername("jdoe")).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("old-pass", "old-hash")).thenReturn(true);
+
+        authenticationService.changeUsername("jdoe", "old-pass", "jdoe");
+
+        verify(userRepository, never()).save(any());
+        verify(refreshTokenRepository, never()).deleteByUser(any());
+        verify(auditService, never()).record(anyString(), anyString(), any(), any(), any(), any());
+    }
+
+    @Test
+    void changeEmail_correctPassword_updatesEmailAndAuditsWithoutInvalidatingSessions() {
+        when(userRepository.findByUsername("jdoe")).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("old-pass", "old-hash")).thenReturn(true);
+
+        authenticationService.changeEmail("jdoe", "old-pass", "new@ctms.local");
+
+        verify(userRepository).save(user);
+        verify(refreshTokenRepository, never()).deleteByUser(any());
+        verify(auditService).record(eq("User"), eq("1"), eq(AuditAction.UPDATE), anyString(), anyString(), any());
+    }
+
+    @Test
+    void changeEmail_wrongPassword_throwsInvalidCredentialsAndDoesNotAudit() {
+        when(userRepository.findByUsername("jdoe")).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("wrong-pass", "old-hash")).thenReturn(false);
+
+        assertThrows(InvalidCredentialsException.class,
+                () -> authenticationService.changeEmail("jdoe", "wrong-pass", "new@ctms.local"));
+
+        verify(auditService, never()).record(anyString(), anyString(), any(), any(), any(), any());
+    }
+
+    @Test
+    void changeEmail_duplicateEmail_throwsDuplicateUserExceptionAndDoesNotMutate() {
+        when(userRepository.findByUsername("jdoe")).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("old-pass", "old-hash")).thenReturn(true);
+        when(userRepository.existsByEmail("taken@ctms.local")).thenReturn(true);
+
+        assertThrows(DuplicateUserException.class,
+                () -> authenticationService.changeEmail("jdoe", "old-pass", "taken@ctms.local"));
+
+        verify(userRepository, never()).save(any());
+    }
+
+    @Test
+    void changeEmail_sameEmailAsCurrent_isNoOp() {
+        when(userRepository.findByUsername("jdoe")).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("old-pass", "old-hash")).thenReturn(true);
+
+        authenticationService.changeEmail("jdoe", "old-pass", "jdoe@ctms.local");
+
+        verify(userRepository, never()).save(any());
+        verify(auditService, never()).record(anyString(), anyString(), any(), any(), any(), any());
     }
 
     @Test

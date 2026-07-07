@@ -61,6 +61,14 @@ export class AuthService {
     return this.http.post<void>('/api/auth/change-password', { currentPassword, newPassword });
   }
 
+  changeUsername(currentPassword: string, newUsername: string): Observable<void> {
+    return this.http.put<void>('/api/auth/username', { currentPassword, newUsername });
+  }
+
+  changeEmail(currentPassword: string, newEmail: string): Observable<void> {
+    return this.http.put<void>('/api/auth/email', { currentPassword, newEmail });
+  }
+
   forgotPassword(email: string): Observable<void> {
     return this.http.post<void>('/api/auth/forgot-password', { email });
   }

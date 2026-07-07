@@ -195,6 +195,13 @@ export const routes: Routes = [
             (m) => m.NotificationListComponent,
           ),
       },
+      {
+        path: 'account-settings',
+        loadComponent: () =>
+          import('./features/account/account-settings/account-settings.component').then(
+            (m) => m.AccountSettingsComponent,
+          ),
+      },
       { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
     ],
   },
@@ -232,6 +239,13 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/notifications/notification-list/notification-list.component').then(
             (m) => m.NotificationListComponent,
+          ),
+      },
+      {
+        path: 'account-settings',
+        loadComponent: () =>
+          import('./features/account/account-settings/account-settings.component').then(
+            (m) => m.AccountSettingsComponent,
           ),
       },
       { path: '', pathMatch: 'full', redirectTo: 'visits' },

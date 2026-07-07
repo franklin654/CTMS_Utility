@@ -12,6 +12,7 @@ import com.ctms.ctms_backend.user.PasswordHistoryEntry;
 import com.ctms.ctms_backend.user.PasswordHistoryRepository;
 import com.ctms.ctms_backend.user.User;
 import com.ctms.ctms_backend.user.UserRepository;
+import com.ctms.ctms_backend.user.exception.DuplicateUserException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -155,6 +156,53 @@ public class AuthenticationService {
         auditService.record(
                 "User", String.valueOf(user.getId()), AuditAction.UPDATE, null,
                 "password changed; all active sessions invalidated", null);
+    }
+
+    @Transactional
+    public void changeUsername(String currentUsername, String currentPassword, String newUsername) {
+        User user = userRepository.findByUsername(currentUsername).orElseThrow(InvalidCredentialsException::new);
+        if (!passwordEncoder.matches(currentPassword, user.getPasswordHash())) {
+            throw new InvalidCredentialsException();
+        }
+        if (newUsername.equals(currentUsername)) {
+            return;
+        }
+        if (userRepository.existsByUsername(newUsername)) {
+            throw new DuplicateUserException("username", newUsername);
+        }
+        String oldUsername = user.getUsername();
+        user.setUsername(newUsername);
+        userRepository.save(user);
+        // Username is the JWT subject and the key PatientContextService/Principal.getName() lookups
+        // use, so any still-live access token would carry a now-stale claim -- force full re-login.
+        refreshTokenRepository.deleteByUser(user);
+        auditService.record(
+                "User", String.valueOf(user.getId()), AuditAction.UPDATE,
+                "username: " + oldUsername,
+                "username: " + newUsername + "; all active sessions invalidated", null);
+    }
+
+    @Transactional
+    public void changeEmail(String username, String currentPassword, String newEmail) {
+        User user = userRepository.findByUsername(username).orElseThrow(InvalidCredentialsException::new);
+        if (!passwordEncoder.matches(currentPassword, user.getPasswordHash())) {
+            throw new InvalidCredentialsException();
+        }
+        if (newEmail.equals(user.getEmail())) {
+            return;
+        }
+        if (userRepository.existsByEmail(newEmail)) {
+            throw new DuplicateUserException("email", newEmail);
+        }
+        String oldEmail = user.getEmail();
+        user.setEmail(newEmail);
+        userRepository.save(user);
+        // Deliberately no refreshTokenRepository.deleteByUser() here: email is not the JWT subject
+        // or a security-context lookup key, so no live session becomes stale. Do not "fix" this into
+        // symmetry with changeUsername.
+        auditService.record(
+                "User", String.valueOf(user.getId()), AuditAction.UPDATE,
+                "email: " + oldEmail, "email: " + newEmail, null);
     }
 
     @Transactional
