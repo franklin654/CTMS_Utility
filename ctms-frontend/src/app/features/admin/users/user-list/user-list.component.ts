@@ -12,6 +12,7 @@ import {
   UserResponse,
 } from '../../../../core/users/user-management.service';
 import { StatusChipPipe } from '../../../../core/utils/status-chip.pipe';
+import { RoleChipsComponent } from '../../../../shared/role-chips/role-chips.component';
 
 @Component({
   selector: 'app-user-list',
@@ -25,6 +26,7 @@ import { StatusChipPipe } from '../../../../core/utils/status-chip.pipe';
     MatPaginatorModule,
     DatePipe,
     StatusChipPipe,
+    RoleChipsComponent,
   ],
   templateUrl: './user-list.component.html',
 })
