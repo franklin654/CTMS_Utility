@@ -314,7 +314,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     public ResponseEntity<Object> handleMaxUploadSizeExceeded(MaxUploadSizeExceededException e) {
-        return error(HttpStatus.PAYLOAD_TOO_LARGE, "File exceeds the maximum allowed upload size");
+        return error(HttpStatus.CONTENT_TOO_LARGE, "File exceeds the maximum allowed upload size");
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

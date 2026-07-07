@@ -1,6 +1,5 @@
 package com.ctms.ctms_backend.audit;
 
-import com.ctms.ctms_backend.user.User;
 import com.ctms.ctms_backend.user.UserRepository;
 import java.util.Optional;
 import org.springframework.security.core.context.SecurityContextHolder;
