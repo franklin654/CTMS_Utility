@@ -45,6 +45,10 @@ import com.ctms.ctms_backend.subject.exception.StudySiteMismatchException;
 import com.ctms.ctms_backend.subject.exception.SubjectNotFoundException;
 import com.ctms.ctms_backend.task.exception.InvalidTaskTransitionException;
 import com.ctms.ctms_backend.task.exception.TaskNotFoundException;
+import com.ctms.ctms_backend.user.exception.DuplicateUserException;
+import com.ctms.ctms_backend.user.exception.InvalidRoleException;
+import com.ctms.ctms_backend.user.exception.LastAdminException;
+import com.ctms.ctms_backend.user.exception.UserNotFoundException;
 import com.ctms.ctms_backend.testresult.exception.InvalidTestResultTransitionException;
 import com.ctms.ctms_backend.testresult.exception.TestResultAttachmentNotFoundException;
 import com.ctms.ctms_backend.testresult.exception.TestResultNotFoundException;
@@ -244,6 +248,26 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(DuplicateBudgetException.class)
     public ResponseEntity<Object> handleDuplicateBudget(DuplicateBudgetException e) {
+        return error(HttpStatus.CONFLICT, e.getMessage());
+    }
+
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<Object> handleUserNotFound(UserNotFoundException e) {
+        return error(HttpStatus.NOT_FOUND, e.getMessage());
+    }
+
+    @ExceptionHandler(DuplicateUserException.class)
+    public ResponseEntity<Object> handleDuplicateUser(DuplicateUserException e) {
+        return error(HttpStatus.CONFLICT, e.getMessage());
+    }
+
+    @ExceptionHandler(InvalidRoleException.class)
+    public ResponseEntity<Object> handleInvalidRole(InvalidRoleException e) {
+        return error(HttpStatus.BAD_REQUEST, e.getMessage());
+    }
+
+    @ExceptionHandler(LastAdminException.class)
+    public ResponseEntity<Object> handleLastAdmin(LastAdminException e) {
         return error(HttpStatus.CONFLICT, e.getMessage());
     }
 

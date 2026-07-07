@@ -41,6 +41,9 @@
         Payments
       </a>
       <a class="ctms-nav-link" mat-list-item routerLink="/notifications" routerLinkActive="ctms-nav-link-active">Notifications</a>
+      <a *appHasRole="['ADMIN']" class="ctms-nav-link" mat-list-item routerLink="/admin/users" routerLinkActive="ctms-nav-link-active">
+        Users
+      </a>
       <a *appHasRole="['ADMIN']" class="ctms-nav-link" mat-list-item routerLink="/admin/rule-sets" routerLinkActive="ctms-nav-link-active">
         Rule Sets
       </a>

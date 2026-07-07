@@ -106,6 +106,12 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'admin/users',
+        canActivate: [roleGuard(['ADMIN'])],
+        loadComponent: () =>
+          import('./features/admin/users/user-list/user-list.component').then((m) => m.UserListComponent),
+      },
+      {
         path: 'admin/rule-sets',
         canActivate: [roleGuard(['ADMIN'])],
         loadComponent: () =>

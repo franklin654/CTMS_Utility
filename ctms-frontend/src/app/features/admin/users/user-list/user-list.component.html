@@ -1,0 +1,139 @@
+<div class="max-w-5xl mx-auto flex flex-col gap-6">
+  <div class="flex items-center justify-between">
+    <h1 class="text-xl font-semibold text-ink">Users</h1>
+    <button mat-flat-button color="primary" (click)="openCreateForm()">New User</button>
+  </div>
+
+  @if (errorMessage()) {
+    <p class="text-sm text-red-600">{{ errorMessage() }}</p>
+  }
+
+  @if (createResult(); as result) {
+    <div class="p-4 rounded bg-amber-50 border border-amber-200 text-sm">
+      <p class="font-medium text-amber-900">
+        Account created &mdash; relay these credentials to {{ result.user.fullName }} directly (not shown again):
+      </p>
+      <p class="mt-1 text-amber-800">Username: <span class="code">{{ result.user.username }}</span></p>
+      <p class="text-amber-800">Temporary password: <span class="code">{{ result.temporaryPassword }}</span></p>
+      <p class="mt-1 text-amber-700 text-xs">They will be required to set their own password on first login.</p>
+      <button mat-button (click)="dismissCreateResult()" class="mt-2">Dismiss</button>
+    </div>
+  }
+
+  @if (showCreateForm()) {
+    <div class="bg-white rounded-lg shadow p-6">
+      <h2 class="text-sm font-semibold text-graphite mb-3">New User</h2>
+
+      @if (createErrorMessage()) {
+        <p class="text-sm text-red-600 mb-3">{{ createErrorMessage() }}</p>
+      }
+
+      <form [formGroup]="createForm" (ngSubmit)="submitCreate()" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <mat-form-field appearance="outline">
+          <mat-label>Username</mat-label>
+          <input matInput formControlName="username" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Email</mat-label>
+          <input matInput type="email" formControlName="email" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Full Name</mat-label>
+          <input matInput formControlName="fullName" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Roles</mat-label>
+          <mat-select formControlName="roles" multiple>
+            @for (code of roleCodes(); track code) {
+              <mat-option [value]="code">{{ code }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <div class="sm:col-span-2 flex gap-2">
+          <button mat-flat-button color="primary" type="submit" [disabled]="createForm.invalid">Create</button>
+          <button mat-button type="button" (click)="cancelCreateForm()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  }
+
+  <div class="bg-white rounded-lg shadow overflow-x-auto">
+    <table class="w-full text-sm text-left">
+      <thead class="bg-gray-50 text-gray-600 border-b">
+        <tr>
+          <th class="px-4 py-3">Username</th>
+          <th class="px-4 py-3">Full Name</th>
+          <th class="px-4 py-3">Email</th>
+          <th class="px-4 py-3">Roles</th>
+          <th class="px-4 py-3">Status</th>
+          <th class="px-4 py-3">Created</th>
+          <th class="px-4 py-3"></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (user of users(); track user.id) {
+          <tr class="border-b align-top">
+            <td class="px-4 py-3 code">{{ user.username }}</td>
+            <td class="px-4 py-3">{{ user.fullName }}</td>
+            <td class="px-4 py-3">{{ user.email }}</td>
+            <td class="px-4 py-3">
+              @if (editingUserId() === user.id) {
+                <mat-form-field appearance="outline" class="w-full">
+                  <mat-select [formControl]="editRolesControl" multiple>
+                    @for (code of roleCodes(); track code) {
+                      <mat-option [value]="code">{{ code }}</mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+              } @else {
+                <div class="flex flex-wrap gap-1">
+                  @for (role of user.roles; track role) {
+                    <span class="chip chip-info">{{ role }}</span>
+                  }
+                </div>
+              }
+            </td>
+            <td class="px-4 py-3">
+              <span [class]="(user.enabled ? 'ACTIVE' : 'WITHDRAWN') | statusChip">
+                {{ user.enabled ? 'Active' : 'Disabled' }}
+              </span>
+              @if (user.accountLocked) {
+                <span class="chip chip-pending ml-1">Locked</span>
+              }
+            </td>
+            <td class="px-4 py-3 code">{{ user.createdAt | date: 'mediumDate' }}</td>
+            <td class="px-4 py-3">
+              @if (editingUserId() === user.id) {
+                <div class="flex gap-2">
+                  <button mat-button (click)="saveRoles(user.id)" [disabled]="editRolesControl.invalid">Save</button>
+                  <button mat-button (click)="cancelEditRoles()">Cancel</button>
+                </div>
+              } @else {
+                <div class="flex gap-2">
+                  <button mat-button (click)="startEditRoles(user)">Edit Roles</button>
+                  <button mat-button (click)="toggleEnabled(user)">{{ user.enabled ? 'Disable' : 'Enable' }}</button>
+                </div>
+              }
+            </td>
+          </tr>
+        }
+        @if (users().length === 0) {
+          <tr>
+            <td colspan="7" class="px-4 py-6 text-center text-gray-500">No users found</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+    <mat-paginator
+      [length]="totalElements()"
+      [pageSize]="pageSize()"
+      [pageIndex]="pageIndex()"
+      [pageSizeOptions]="[10, 20, 50]"
+      (page)="onPage($event)"
+    ></mat-paginator>
+  </div>
+</div>
