@@ -1,12 +1,16 @@
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { Component, OnInit, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { RouterLink } from '@angular/router';
+import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs';
 import { Page, PaymentResponse, PaymentService } from '../../../core/payments/payment.service';
+import { StudyResponse, StudyService } from '../../../core/studies/study.service';
 import { StatusChipPipe } from '../../../core/utils/status-chip.pipe';
 import { PaymentHoldDialogComponent } from '../payment-hold-dialog/payment-hold-dialog.component';
 import { PaymentReleaseDialogComponent, PaymentReleaseResult } from '../payment-release-dialog/payment-release-dialog.component';
@@ -20,7 +24,9 @@ import { PaymentReleaseDialogComponent, PaymentReleaseResult } from '../payment-
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
+    MatAutocompleteModule,
     MatDialogModule,
+    RouterLink,
     DatePipe,
     DecimalPipe,
     StatusChipPipe,
@@ -31,6 +37,9 @@ export class PaymentListComponent implements OnInit {
   readonly page = signal<Page<PaymentResponse> | null>(null);
   readonly errorMessage = signal<string | null>(null);
 
+  readonly studySearchControl = new FormControl('', { nonNullable: true });
+  readonly studySuggestions = signal<StudyResponse[]>([]);
+
   readonly filterForm = new FormGroup({
     studyId: new FormControl<number | null>(null),
     siteId: new FormControl<number | null>(null),
@@ -40,11 +49,30 @@ export class PaymentListComponent implements OnInit {
 
   constructor(
     private readonly paymentService: PaymentService,
+    private readonly studyService: StudyService,
     private readonly dialog: MatDialog,
   ) {}
 
   ngOnInit(): void {
+    this.studySearchControl.valueChanges
+      .pipe(
+        debounceTime(250),
+        distinctUntilChanged(),
+        switchMap((value) => this.studyService.list(value.trim(), 0, 20)),
+      )
+      .subscribe((page) => this.studySuggestions.set(page.content));
+
     this.load();
+  }
+
+  selectStudy(study: StudyResponse): void {
+    this.filterForm.controls.studyId.setValue(study.id);
+    this.studySearchControl.setValue(`${study.studyCode} – ${study.name}`, { emitEvent: false });
+  }
+
+  clearStudyFilter(): void {
+    this.filterForm.controls.studyId.setValue(null);
+    this.studySearchControl.setValue('', { emitEvent: false });
   }
 
   load(): void {
