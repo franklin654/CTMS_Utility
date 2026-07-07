@@ -139,3 +139,24 @@ mat-sidenav.ctms-sidenav {
   border-left-color: var(--color-teal);
   font-weight: 500;
 }
+
+/* ---------------------------------------------------------------------------
+ * Login page brand panel -- a faint drafting/blueprint grid on the dark ink
+ * panel, echoing the cyanotype/technical-drawing lineage of the "Prussian
+ * blue" brand color. Deliberately subtle (a texture, not a pattern anyone
+ * should consciously notice).
+ * ------------------------------------------------------------------------- */
+.ctms-blueprint-grid {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 32px 32px;
+  pointer-events: none;
+}
+
+/* Unread notification row -- left accent bar + faint tint, same "stamped
+ * status" language as .chip, applied to a whole row instead of a small tag. */
+.ctms-notification-unread {
+  border-left-color: var(--color-teal);
+  background-color: color-mix(in srgb, var(--color-teal) 5%, white);
+}

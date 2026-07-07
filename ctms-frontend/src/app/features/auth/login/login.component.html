@@ -1,39 +1,73 @@
-<div class="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-  <div class="w-full max-w-sm bg-white rounded-lg shadow p-8">
-    <h1 class="text-xl font-semibold text-gray-900 mb-6">CTMS Sign In</h1>
+<div class="min-h-screen flex">
+  <!-- Brand panel -- deliberately the one place in the app that spends real
+       visual boldness: a dark "blueprint" panel (echoing the Prussian-blue/
+       technical-drawing motif used for the brand color) with a faint drafting
+       grid, since this is the first thing anyone sees, unauthenticated. -->
+  <div class="hidden lg:flex lg:w-1/2 bg-ink relative overflow-hidden flex-col justify-between p-12">
+    <div class="ctms-blueprint-grid absolute inset-0"></div>
+    <div class="relative z-10">
+      <span class="font-mono text-2xl font-semibold text-white tracking-tight">CTMS</span>
+      <p class="eyebrow text-white/40 mt-1">Clinical Trial Management System</p>
+    </div>
+    <div class="relative z-10 max-w-md">
+      <p class="text-2xl font-medium text-white leading-snug">
+        Deterministic. Rules&#8209;driven.<br />No AI black box.
+      </p>
+      <p class="text-sm text-white/50 mt-4 leading-relaxed">
+        Every eligibility check, escalation, and payment in this system traces back to an explicit,
+        inspectable rule &mdash; not a model prediction. That's the whole point.
+      </p>
+    </div>
+    <div class="relative z-10 flex items-center gap-2 text-white/30 text-xs">
+      <span class="chip chip-active !bg-transparent !border-teal/60 !text-teal/80">Study</span>
+      <span>&rarr;</span>
+      <span class="chip chip-active !bg-transparent !border-teal/60 !text-teal/80">Site</span>
+      <span>&rarr;</span>
+      <span class="chip chip-active !bg-transparent !border-teal/60 !text-teal/80">Subject</span>
+      <span>&rarr;</span>
+      <span class="chip chip-active !bg-transparent !border-teal/60 !text-teal/80">Visit</span>
+    </div>
+  </div>
 
-    <form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col gap-4">
-      <mat-form-field appearance="outline" class="w-full">
-        <mat-label>Username</mat-label>
-        <input matInput formControlName="username" autocomplete="username" />
-      </mat-form-field>
+  <!-- Sign-in panel -->
+  <div class="flex-1 flex items-center justify-center bg-paper px-4">
+    <div class="w-full max-w-sm bg-white rounded-lg shadow p-8">
+      <span class="font-mono text-sm font-semibold text-prussian tracking-tight lg:hidden">CTMS</span>
+      <h1 class="text-xl font-semibold text-ink mb-6">Sign In</h1>
 
-      <mat-form-field appearance="outline" class="w-full">
-        <mat-label>Password</mat-label>
-        <input matInput type="password" formControlName="password" autocomplete="current-password" />
-      </mat-form-field>
+      <form [formGroup]="form" (ngSubmit)="submit()" class="flex flex-col gap-4">
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Username</mat-label>
+          <input matInput formControlName="username" autocomplete="username" />
+        </mat-form-field>
 
-      @if (errorMessage()) {
-        <p class="text-sm text-red-600">{{ errorMessage() }}</p>
-      }
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Password</mat-label>
+          <input matInput type="password" formControlName="password" autocomplete="current-password" />
+        </mat-form-field>
 
-      <button
-        mat-flat-button
-        color="primary"
-        type="submit"
-        class="w-full"
-        [disabled]="form.invalid || submitting()"
-      >
-        @if (submitting()) {
-          <mat-spinner diameter="20" class="inline-block align-middle"></mat-spinner>
-        } @else {
-          Sign in
+        @if (errorMessage()) {
+          <p class="text-sm text-red-600">{{ errorMessage() }}</p>
         }
-      </button>
 
-      <a routerLink="/forgot-password" class="text-sm text-blue-600 hover:underline self-center">
-        Forgot password?
-      </a>
-    </form>
+        <button
+          mat-flat-button
+          color="primary"
+          type="submit"
+          class="w-full"
+          [disabled]="form.invalid || submitting()"
+        >
+          @if (submitting()) {
+            <mat-spinner diameter="20" class="inline-block align-middle"></mat-spinner>
+          } @else {
+            Sign in
+          }
+        </button>
+
+        <a routerLink="/forgot-password" class="text-sm text-prussian hover:underline self-center">
+          Forgot password?
+        </a>
+      </form>
+    </div>
   </div>
 </div>
