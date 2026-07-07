@@ -134,3 +134,19 @@ Confirm both backend (`:8080`) and frontend (`:4200`) are up before starting.
 - [ ] `/admin/audit-log` (Admin/Auditor only) — filter by entity name/ID, confirm CSV export includes before/after value columns.
 - [ ] Pick an entity you just acted on above (e.g. the AE you resolved, or the payment you released) — enter its name/ID and click **View Traceability**. Confirm it shows both the full audit trail and the e-signature(s) tied to it.
 - [ ] As `demo.investigator` (non-auditor role), try navigating to `/admin/audit-log` directly — should be blocked.
+
+## 17. Account Settings (Self-Service Username/Email/Password)
+
+New self-service page at `/account-settings` (staff shell — sidenav link) and `/patient/account-settings` (patient portal — top nav link), available to **every** role. Distinct from the existing `/change-password` forced-expiry page and from a patient's "My Profile" page (which edits `Subject.contactEmail`, a separate clinical contact field, not the login email tested here).
+
+**⚠️ Renaming a `demo.*` account will break later steps in this guide that log in by that username.** Do the destructive checks below on the **disposable patient portal account** you created in §15 (safe to rename/break — it's not referenced by username anywhere else in this guide), and only test the staff-shell page's *appearance* and *email change* (non-destructive) against a `demo.*` account, changing the email back to its original value afterward if you want the guide to stay re-runnable.
+
+- [ ] As any `demo.*` user, open `/account-settings` from the sidenav — confirm all three sections render (Change Username, Change Email, Change Password), matching the app's card/form styling elsewhere.
+- [ ] **Wrong current password** on the username form — rejected, no change made.
+- [ ] **Email change**, correct current password — succeeds with an inline "Email updated." confirmation, **you stay logged in** (no forced logout — email isn't tied to your session). Change it back to the original afterward.
+- [ ] **Duplicate email** — try changing to another `demo.*` account's email — rejected (409, "already exists").
+- [ ] Log in as the **patient account created in §15**, go to `/patient/account-settings` (top nav) — confirm the same three sections render in the patient-portal styling.
+- [ ] **Username change**, correct current password — succeeds, and you're **immediately signed out** and redirected to `/login` (username is embedded in your session token, so changing it invalidates every active session, on every device).
+- [ ] Log back in with the **new** username — confirm it works, and the old username no longer does.
+- [ ] Confirm the patient's **"My Profile" contact email is unchanged** — the account-settings email change only touches the login credential, not `Subject.contactEmail`.
+- [ ] `/admin/audit-log` — filter by entity `User` and the account's ID, confirm both the username and email changes appear with correct before/after values, and **no password ever appears in the log**.
